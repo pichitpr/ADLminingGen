@@ -1,0 +1,16 @@
+.Sample2{
+	.init{
+		Set("texture", DynamicFilter("this"), 4);
+		Set("position", DynamicFilter("this"), "c(400,200)");
+	}
+
+	.base{
+		.seq0{
+			RunStraight(Get("direction",DynamicFilter("this")), 6, Abs(DistanceToPlayer("X")) + DistanceToPlayer("Y") > 10);
+		}
+	}
+
+	.des{
+		Spawn(.Sample2);
+	}
+}

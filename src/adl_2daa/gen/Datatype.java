@@ -1,0 +1,19 @@
+package adl_2daa.gen;
+
+public enum Datatype {
+	VOID,
+	ABSTRACT,
+	BOOL,
+	INT,
+	DECIMAL,
+	DIRECTION,
+	POSITION,
+	COLLIDER,
+	IDENTIFIER,
+	DYNAMIC,
+	ABSTRACT_SET,
+	DECIMAL_SET,
+	DIRECTION_SET,
+	DYNAMIC_SET,
+	CHOICE
+}
