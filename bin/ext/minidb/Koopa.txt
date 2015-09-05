@@ -37,7 +37,7 @@
 	}
 	.state0{
 		.seq0{
-			RunStraight(Get("direction",DynamicFilter("this")), 2, SurfaceInDir(DirectionComponent("x", Get("direction", DynamicFilter("this"))) ) );
+			RunStraight(Get("direction",DynamicFilter("this")), 2, SurfaceInDir(DirectionComponent("X", Get("direction", DynamicFilter("this"))) ) );
 			FlipDirection("H");
 		}
 	}
@@ -72,7 +72,7 @@
 			}
 		}
 		.seq1{
-			RunStraight(Get("direction",DynamicFilter("this")), 8, SurfaceInDir(DirectionComponent("x", Get("direction", DynamicFilter("this"))) ) );
+			RunStraight(Get("direction",DynamicFilter("this")), 8, SurfaceInDir(DirectionComponent("X", Get("direction", DynamicFilter("this"))) ) );
 			FlipDirection("H");			
 		}
 	}

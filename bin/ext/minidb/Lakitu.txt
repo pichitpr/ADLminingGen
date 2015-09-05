@@ -12,11 +12,11 @@
 	}
 	.state0{
 		.seq0{
-			RunStraight(Get("direction",DynamicFilter("this")), 6, SurfaceInDir(DirectionComponent("x", Get("direction", DynamicFilter("this"))) ) );
+			RunStraight(Get("direction",DynamicFilter("this")), 6, SurfaceInDir(DirectionComponent("X", Get("direction", DynamicFilter("this"))) ) );
 			FlipDirection("H");
 		}
 		.seq1{
-			if(Abs(DistanceToPlayer("x")) <= 5){
+			if(Abs(DistanceToPlayer("X")) <= 5){
 				Spawn(.SpinyEgg, Get("position",DynamicFilter("this")) );
 				Wait(TimePass() >= 100);
 			}
@@ -55,7 +55,7 @@
 	}
 	.state0{
 		.seq0{
-			RunStraight(Get("direction",DynamicFilter("this")), 2, SurfaceInDir(DirectionComponent("x", Get("direction", DynamicFilter("this"))) ) );
+			RunStraight(Get("direction",DynamicFilter("this")), 2, SurfaceInDir(DirectionComponent("X", Get("direction", DynamicFilter("this"))) ) );
 			FlipDirection("H");
 		}
 	}
