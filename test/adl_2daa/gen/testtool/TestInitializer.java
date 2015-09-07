@@ -72,9 +72,6 @@ public class TestInitializer {
 		GeneratorRegistry.registerFunctionSignature("Anchor",
 				new FunctionMainSignature(Datatype.POSITION, 
 						Datatype.POSITION));
-		GeneratorRegistry.registerFunctionSignature("AnchorPlayer",
-				new FunctionMainSignature(Datatype.POSITION, 
-						Datatype.POSITION));
 		GeneratorRegistry.registerFunctionSignature("Attack",
 				new FunctionMainSignature(Datatype.BOOL));
 		GeneratorRegistry.registerFunctionSignature("Attacked",
@@ -188,9 +185,6 @@ public class TestInitializer {
 		GeneratorRegistry.registerFunctionSignature("Rel", 
 				new FunctionMainSignature(Datatype.POSITION, 
 						Datatype.POSITION));
-		GeneratorRegistry.registerFunctionSignature("RelDirection", 
-				new FunctionMainSignature(Datatype.DIRECTION, 
-						Datatype.DIRECTION));
 		GeneratorRegistry.registerFunctionSignature("RelPlayer", 
 				new FunctionMainSignature(Datatype.POSITION, 
 						Datatype.POSITION));
@@ -210,6 +204,19 @@ public class TestInitializer {
 		GeneratorRegistry.registerFunctionSignature("VarGet", 
 				new FunctionMainSignature(Datatype.INT, 
 						Datatype.INT));
+		
+		//==============================
+		//v4
+		
+		GeneratorRegistry.registerFunctionSignature("AnchorPlayer",
+				new FunctionMainSignature(Datatype.POSITION, 
+						Datatype.POSITION));
+		GeneratorRegistry.registerFunctionSignature("RelDirection", 
+				new FunctionMainSignature(Datatype.DIRECTION, 
+						Datatype.DIRECTION));
+		GeneratorRegistry.registerFunctionSignature("Rel2Direction", 
+				new FunctionMainSignature(Datatype.DIRECTION, 
+						Datatype.DIRECTION));
 	}
 	
 	public static void init(){
