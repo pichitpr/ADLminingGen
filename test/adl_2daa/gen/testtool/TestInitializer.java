@@ -217,6 +217,9 @@ public class TestInitializer {
 		GeneratorRegistry.registerFunctionSignature("Rel2Direction", 
 				new FunctionMainSignature(Datatype.DIRECTION, 
 						Datatype.DIRECTION));
+		GeneratorRegistry.registerFunctionSignature("RandomPositionInRange", 
+				new FunctionMainSignature(Datatype.POSITION, 
+						Datatype.POSITION,Datatype.POSITION));
 	}
 	
 	public static void init(){
