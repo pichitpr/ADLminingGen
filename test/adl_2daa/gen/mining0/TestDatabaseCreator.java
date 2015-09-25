@@ -1,4 +1,4 @@
-package adl_2daa.gen.miner;
+package adl_2daa.gen.mining0;
 
 import static org.junit.Assert.assertEquals;
 
@@ -9,6 +9,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
+import adl_2daa.gen.mining0.DatabaseCreator;
 import adl_2daa.gen.testtool.TestInitializer;
 import de.parsemis.graph.Graph;
 

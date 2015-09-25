@@ -1,4 +1,4 @@
-package adl_2daa.gen.miner;
+package adl_2daa.gen.mining0;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;

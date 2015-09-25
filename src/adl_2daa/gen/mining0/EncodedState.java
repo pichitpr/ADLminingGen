@@ -1,4 +1,4 @@
-package adl_2daa.gen.miner;
+package adl_2daa.gen.mining0;
 
 import java.util.ArrayList;
 import java.util.LinkedList;

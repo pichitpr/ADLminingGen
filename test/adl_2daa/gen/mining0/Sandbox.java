@@ -1,7 +1,10 @@
-package adl_2daa.gen.miner;
+package adl_2daa.gen.mining0;
 
 import adl_2daa.ast.structure.Root;
 import adl_2daa.ast.structure.Sequence;
+import adl_2daa.gen.mining0.ADLSequenceEncoder;
+import adl_2daa.gen.mining0.EncodedAction;
+import adl_2daa.gen.mining0.EncodedSequence;
 import adl_2daa.gen.testtool.TestInitializer;
 import adl_2daa.gen.testtool.TestUtility;
 import adl_2daa.tool.Parser;
