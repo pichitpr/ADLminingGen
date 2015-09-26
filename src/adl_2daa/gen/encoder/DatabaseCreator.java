@@ -118,7 +118,7 @@ public class DatabaseCreator {
 				int stateCount = agent.getStates().size();
 				ADLAgent eAgent = new ADLAgent(agent);
 				for(ADLState eState : eAgent.states){
-					for(ADLSequence eSeq : eState.encodedSequences){
+					for(ADLSequence eSeq : eState.sequences){
 						for(ADLSequence eFlow : eSeq.allFlowToTerminal){
 							String targetState = eFlow.identifier;
 							if(targetState.equals("des")){
@@ -129,7 +129,7 @@ public class DatabaseCreator {
 							}else{
 								ADLState targetEstate = eAgent.getStateByIdentifier(targetState);
 								//System.out.println(eAgent.identifier+"."+eState.identifier+"."+eSeq.identifier+" -> ."+targetState+":"+targetEstate.sequences.size());
-								for(ADLSequence targetEseq : targetEstate.encodedSequences){
+								for(ADLSequence targetEseq : targetEstate.sequences){
 									leftdb.add(eFlow.toMinerSequence());
 									rightdb.add(targetEseq.toMinerSequence());
 									tag.add(stateCount);
@@ -159,13 +159,14 @@ public class DatabaseCreator {
 		GraphCreationHelper<String, Integer> graph = 
 				new GraphCreationHelper<String, Integer>();
 		
+		ADLSequenceEncoder.instance.setAnalyzeFlow(false);
 		for(Root root : agentFile){
 			ADLRoot eRoot = new ADLRoot(root);
 			for(ADLAgent eAgent : eRoot.agents){
 				for(ADLState eState : eAgent.states){
 					graph.createNewGraph(eState.identifier);
 					int rootNode = graph.addNode(ADLSequenceEncoder.impossibleAction);
-					for(ADLSequence eSeq : eState.encodedSequences){
+					for(ADLSequence eSeq : eState.sequences){
 						int seqRootNode = graph.addNode(ADLSequenceEncoder.impossibleAction);
 						graph.addEdge(rootNode, seqRootNode, 0, true);
 						for(String eAct : eSeq.encodedSequence){
@@ -195,27 +196,27 @@ public class DatabaseCreator {
 					for(String spawnableAgentName : eState.getAllSpawnableEntity()){
 						ADLAgent spawnableAgent = eRoot.getAgentByIdentifier(spawnableAgentName);
 						ADLState childInitialState = spawnableAgent.states.get(0);
-						if(childInitialState.encodedSequences.size() == 0)
+						if(childInitialState.sequences.size() == 0)
 							break;
 						
 						graph.createNewGraph(eState.identifier);
 						int rootNode = graph.addNode(ADLSequenceEncoder.impossibleAction);
 						
 						//Spawner parallel sequence
-						for(EncodedSequence eSeq : eState.sequences){
+						for(ADLSequence eSeq : eState.sequences){
 							int seqRootNode = graph.addNode(ADLSequenceEncoder.impossibleAction);
 							graph.addEdge(rootNode, seqRootNode, 0, true);
-							for(EncodedAction eAct : eSeq.eActList){
-								graph.addEdge(seqRootNode, graph.addNode(eAct.toItem()), 0, true);
+							for(String eAct : eSeq.encodedSequence){
+								graph.addEdge(seqRootNode, graph.addNode(eAct), 0, true);
 							}
 						}
 						
 						//Child parallel sequence
-						for(EncodedSequence eSeq : childInitialState.sequences){
+						for(ADLSequence eSeq : childInitialState.sequences){
 							int seqRootNode = graph.addNode(ADLSequenceEncoder.impossibleAction);
 							graph.addEdge(rootNode, seqRootNode, 1, true);
-							for(EncodedAction eAct : eSeq.eActList){
-								graph.addEdge(seqRootNode, graph.addNode(eAct.toItem()), 1, true);
+							for(String eAct : eSeq.encodedSequence){
+								graph.addEdge(seqRootNode, graph.addNode(eAct), 1, true);
 							}
 						}
 						
@@ -256,6 +257,7 @@ public class DatabaseCreator {
 					}
 				}
 			}
+			System.out.println(db.size());
 		}
 		
 		return db;
