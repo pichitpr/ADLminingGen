@@ -128,10 +128,8 @@ public class TestInitializer {
 		
 		FunctionMainSignature distPlayer = new FunctionMainSignature(Datatype.DECIMAL, 1, 0,
 				Datatype.CHOICE);
-		distPlayer.addChoiceSignature("X", new Signature(Datatype.DECIMAL, 
-				Datatype.POSITION));
-		distPlayer.addChoiceSignature("Y", new Signature(Datatype.DECIMAL, 
-				Datatype.POSITION));
+		distPlayer.addChoiceSignature("X", new Signature(Datatype.DECIMAL));
+		distPlayer.addChoiceSignature("Y", new Signature(Datatype.DECIMAL));
 		GeneratorRegistry.registerFunctionSignature("DistanceToPlayer", distPlayer);
 		
 		GeneratorRegistry.registerFunctionSignature("DynamicCount", 
