@@ -23,7 +23,7 @@ public class ADLSequenceEncoder {
 	
 	private Stack<String> expressionBuf = new Stack<String>();
 	private Stack<Byte> separatorBuf = new Stack<Byte>();
-	private List<String> result = new LinkedList<String>();
+	private List<String> result;
 	
 	private List<String> allSpawnableAgent;
 	
@@ -38,7 +38,7 @@ public class ADLSequenceEncoder {
 	public ADLSequence encode(Sequence sequence){
 		expressionBuf.clear();
 		separatorBuf.clear();
-		result.clear();
+		result = new LinkedList<String>();
 		allSpawnableAgent = new LinkedList<String>();
 		if(analyzeFlow){
 			analyzedNode = new FlowAnalyzableTree();
