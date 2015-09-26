@@ -27,7 +27,7 @@ public class TestSequenceEncoder {
 	public void setUp() throws Exception {
 		if(setup) return;
 		TestInitializer.init();
-		String script = TestUtility.readFileAsString("test/ext/Sample.txt");
+		String script = TestUtility.readFileAsString("test/ext/Sample0.txt");
 		Parser parser = new Parser();
 		Root agentFile = parser.parse(script);
 		sample = agentFile.getRelatedAgents().get(0);
@@ -44,12 +44,12 @@ public class TestSequenceEncoder {
 		encoded = ""+GeneratorRegistry.getActionSignature("Set").getChoiceSignature("texture").getId();
 		eAct = eSeq.eActList.get(0);
 		assertEquals(encoded, 
-				TestUtility.actionToString(eAct.actionID, eAct.nestingConditions, true)
+				TestUtility.actionToString0(eAct.actionID, eAct.nestingConditions, true)
 				);
 		encoded = ""+GeneratorRegistry.getActionSignature("Set").getChoiceSignature("position").getId();
 		eAct = eSeq.eActList.get(1);
 		assertEquals(encoded, 
-				TestUtility.actionToString(eAct.actionID, eAct.nestingConditions, true)
+				TestUtility.actionToString0(eAct.actionID, eAct.nestingConditions, true)
 				);
 		
 		
@@ -72,7 +72,7 @@ public class TestSequenceEncoder {
 		encoded = ""+GeneratorRegistry.getActionSignature("Wait").getMainSignature().getId();
 		eAct = eSeq.eActList.get(0);
 		assertEquals(encoded,
-				TestUtility.actionToString(eAct.actionID, eAct.nestingConditions, true)
+				TestUtility.actionToString0(eAct.actionID, eAct.nestingConditions, true)
 				);
 		
 		//if(cond) Despawn Else..
@@ -80,7 +80,7 @@ public class TestSequenceEncoder {
 				" | If-E | "+cond;
 		eAct = eSeq.eActList.get(1);
 		assertEquals(encoded,
-				TestUtility.actionToString(eAct.actionID, eAct.nestingConditions, true)
+				TestUtility.actionToString0(eAct.actionID, eAct.nestingConditions, true)
 				);
 		
 		//if(cond) Else RunStraight
@@ -88,7 +88,7 @@ public class TestSequenceEncoder {
 				" | Else | "+cond;
 		eAct = eSeq.eActList.get(2);
 		assertEquals(encoded,
-				TestUtility.actionToString(eAct.actionID, eAct.nestingConditions, true)
+				TestUtility.actionToString0(eAct.actionID, eAct.nestingConditions, true)
 				);
 		
 		//if(cond) Else FlipDirection
@@ -96,7 +96,7 @@ public class TestSequenceEncoder {
 				" | Else | "+cond;
 		eAct = eSeq.eActList.get(3);
 		assertEquals(encoded,
-				TestUtility.actionToString(eAct.actionID, eAct.nestingConditions, true)
+				TestUtility.actionToString0(eAct.actionID, eAct.nestingConditions, true)
 				);
 		
 		//if(cond) Else ... if(cond2) Spawn
@@ -104,7 +104,7 @@ public class TestSequenceEncoder {
 				" | Else | "+cond+" | If | "+cond2;
 		eAct = eSeq.eActList.get(4);
 		assertEquals(encoded,
-				TestUtility.actionToString(eAct.actionID, eAct.nestingConditions, true)
+				TestUtility.actionToString0(eAct.actionID, eAct.nestingConditions, true)
 				);
 		
 		//if(cond) Else ... if(cond2) Goto
@@ -112,7 +112,7 @@ public class TestSequenceEncoder {
 				" | Else | "+cond+" | If | "+cond2;;
 		eAct = eSeq.eActList.get(5);
 		assertEquals(encoded,
-				TestUtility.actionToString(eAct.actionID, eAct.nestingConditions, true)
+				TestUtility.actionToString0(eAct.actionID, eAct.nestingConditions, true)
 				);
 		
 		//if(cond) Spawn
@@ -120,7 +120,7 @@ public class TestSequenceEncoder {
 				" | If | "+cond;
 		eAct = eSeq.eActList.get(6);
 		assertEquals(encoded,
-				TestUtility.actionToString(eAct.actionID, eAct.nestingConditions, true)
+				TestUtility.actionToString0(eAct.actionID, eAct.nestingConditions, true)
 				);
 		
 		//if(cond) Despawn
@@ -128,7 +128,7 @@ public class TestSequenceEncoder {
 				" | If | "+cond;
 		eAct = eSeq.eActList.get(7);
 		assertEquals(encoded,
-				TestUtility.actionToString(eAct.actionID, eAct.nestingConditions, true)
+				TestUtility.actionToString0(eAct.actionID, eAct.nestingConditions, true)
 				);
 	}
 	

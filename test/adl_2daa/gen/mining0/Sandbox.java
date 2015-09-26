@@ -22,9 +22,9 @@ public class Sandbox {
 		Sequence seq = root.getRelatedAgents().get(0).getStates().get(0).getSequences().get(0);
 		EncodedSequence eSeq = ADLSequenceEncoder.instance.parseAsEncodedSequence(seq, false);
 		for(EncodedAction eAct : eSeq.eActList){
-			System.out.println(TestUtility.actionToString(eAct.actionID, 
+			System.out.println(TestUtility.actionToString0(eAct.actionID, 
 					eAct.nestingConditions, false));
-			System.out.println(TestUtility.actionToString(eAct.actionID, 
+			System.out.println(TestUtility.actionToString0(eAct.actionID, 
 					eAct.nestingConditions, true));
 		}
 	}
