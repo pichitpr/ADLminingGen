@@ -7,7 +7,11 @@ import java.util.List;
 import adl_2daa.ast.ASTExpression;
 import adl_2daa.ast.expression.ASTBinary;
 import adl_2daa.ast.expression.ASTUnary;
+import adl_2daa.ast.expression.And;
+import adl_2daa.ast.expression.Arithmetic;
+import adl_2daa.ast.expression.Comparison;
 import adl_2daa.ast.expression.Function;
+import adl_2daa.ast.expression.Or;
 import adl_2daa.ast.expression.StringConstant;
 import adl_2daa.gen.FunctionMainSignature;
 import adl_2daa.gen.GeneratorRegistry;
@@ -22,43 +26,103 @@ public class ADLExpressionEncoder {
 	
 	public String encode(ASTExpression astExp){
 		buf.clear();
-		encodeRecursively(astExp, 0);
+		encodeRecursively(astExp);
 		return new String(Utility.toByteArray(buf), StandardCharsets.US_ASCII);
 	}
 	
-	private void encodeRecursively(ASTExpression astExp, int depth){
-		buf.add((byte)depth);
+	private void encodeRecursively(ASTExpression astExp){
 		if(astExp instanceof ASTUnary){
-			buf.add((byte)123);
-			encodeRecursively(((ASTUnary)astExp).getNode(), depth+1);
+			encodeUnary((ASTUnary)astExp);
 		}else if(astExp instanceof ASTBinary){
-			buf.add((byte)122);
-			encodeRecursively(((ASTBinary)astExp).getLeft(), depth+1);
-			encodeRecursively(((ASTBinary)astExp).getRight(), depth+1);
+			encodeBinary((ASTBinary)astExp);
 		}else if(astExp instanceof Function){
-			encodeFunction((Function)astExp, depth);
+			encodeFunction((Function)astExp);
 		}else{
-			buf.add((byte)120);
+			buf.add(EncodeTable.EXP_LITERAL);
 		}
 	}
 	
-	private void encodeFunction(Function function, int depth){
-		buf.add((byte)121);
+	private void encodeUnary(ASTUnary astUnary){
+		if(astUnary.op == ASTUnary.UnaryOp.NOT){
+			buf.add(EncodeTable.EXP_UNARY_NOT);
+		}else{
+			buf.add(EncodeTable.EXP_UNARY_NEG);
+		}
+		encodeRecursively(astUnary.getNode());
+	}
+	
+	private void encodeBinary(ASTBinary astBinary){
+		buf.add(EncodeTable.EXP_BINARY);
+		if(astBinary instanceof And){
+			buf.add(EncodeTable.EXP_BINARY_AND);
+		}else if(astBinary instanceof Or){
+			buf.add(EncodeTable.EXP_BINARY_OR);
+		}else if(astBinary instanceof Comparison){
+			switch(((Comparison)astBinary).getOp()){
+			case EQ:
+				buf.add(EncodeTable.EXP_BINARY_COMP_EQ);
+				break;
+			case NEQ:
+				buf.add(EncodeTable.EXP_BINARY_COMP_NEQ);
+				break;
+			case GT:
+				buf.add(EncodeTable.EXP_BINARY_COMP_GT);
+				break;
+			case GE:
+				buf.add(EncodeTable.EXP_BINARY_COMP_GE);
+				break;
+			case LT:
+				buf.add(EncodeTable.EXP_BINARY_COMP_LT);
+				break;
+			case LE:
+				buf.add(EncodeTable.EXP_BINARY_COMP_LE);
+				break;
+			}
+		}else if(astBinary instanceof Arithmetic){
+			switch(((Arithmetic)astBinary).getOp()){
+			case ADD:
+				buf.add(EncodeTable.EXP_BINARY_ARITH_ADD);
+				break;
+			case SUB:
+				buf.add(EncodeTable.EXP_BINARY_ARITH_SUB);
+				break;
+			case MUL:
+				buf.add(EncodeTable.EXP_BINARY_ARITH_MUL);
+				break;
+			case DIV:
+				buf.add(EncodeTable.EXP_BINARY_ARITH_DIV);
+				break;
+			case MOD:
+				buf.add(EncodeTable.EXP_BINARY_ARITH_MOD);
+				break;
+			}
+		}
+		encodeRecursively(astBinary.getLeft());
+		encodeRecursively(astBinary.getRight());
+	}
+	
+	private void encodeFunction(Function function){
+		buf.add(EncodeTable.EXP_FUNCTION);
 		FunctionMainSignature sig = GeneratorRegistry.getFunctionSignature(function.getName());
 		byte functionID = (byte)sig.getMainSignature().getId();
+		byte paramsLength = (byte)sig.getMainSignature().getParamType().length;
 		if(sig.hasChoice()){
 			String choice = ((StringConstant)function.getParams()[0]).getValue();
 			functionID = (byte)sig.getChoiceSignature(choice).getId();
+			paramsLength = (byte)sig.getChoiceSignature(choice).getParamType().length;
 		}
 		if(function.hasSingleQuery()){
 			functionID = (byte)-functionID;
 		}
 		buf.add(functionID);
-		byte branchingIndex = 65;
+		buf.add(paramsLength);
+		boolean encodeChoice = false;
 		for(ASTExpression astExp : function.getParams()){
-			buf.add(branchingIndex);
-			encodeRecursively(astExp, depth+1);
-			branchingIndex++;
+			if(sig.hasChoice() && !encodeChoice){
+				encodeChoice = true;
+				continue;
+			}
+			encodeRecursively(astExp);
 		}
 	}
 }

@@ -25,7 +25,7 @@ public class ADLSequenceEncoder {
 	private Stack<Byte> separatorBuf = new Stack<Byte>();
 	private List<String> result = new LinkedList<String>();
 	
-	private List<String> allSpawnableAgent = new LinkedList<String>();
+	private List<String> allSpawnableAgent;
 	
 	private boolean analyzeFlow = false;
 	private FlowAnalyzableTree analyzedNode;
@@ -39,13 +39,19 @@ public class ADLSequenceEncoder {
 		expressionBuf.clear();
 		separatorBuf.clear();
 		result.clear();
-		allSpawnableAgent.clear();
+		allSpawnableAgent = new LinkedList<String>();
 		if(analyzeFlow){
 			analyzedNode = new FlowAnalyzableTree();
 			allPossibleFlowToTerminal = new LinkedList<ADLSequence>();
 		}
 		encodeRecursively(sequence.getStatements());
-		return new ADLSequence(sequence.getIdentifier(), result);
+		
+		ADLSequence resultSequence = new ADLSequence(sequence.getIdentifier(), result);
+		resultSequence.allSpawnableAgent = allSpawnableAgent;
+		if(analyzeFlow){
+			resultSequence.allFlowToTerminal = allPossibleFlowToTerminal;
+		}
+		return resultSequence;
 	}
 	
 	private void encodeRecursively(List<ASTStatement> statements){
@@ -74,7 +80,7 @@ public class ADLSequenceEncoder {
 		
 		String enc = new String(new byte[]{actionID}, StandardCharsets.US_ASCII);
 		for(int i=0; i<expressionBuf.size(); i++){
-			enc += separatorBuf.get(i);
+			enc += (char)separatorBuf.get(i).byteValue();
 			enc += expressionBuf.get(i);
 		}
 		result.add(enc);
@@ -103,11 +109,12 @@ public class ADLSequenceEncoder {
 	
 	private void encodeCondition(Condition cond){
 		expressionBuf.push(ADLExpressionEncoder.instance.encode(cond.getCondition()));
-		separatorBuf.push(cond.getElseblock() == null ? (byte)127 : (byte)126);
+		separatorBuf.push(cond.getElseblock() == null ? EncodeTable.COND_IF : 
+				EncodeTable.COND_IF_IFELSE);
 		encodeRecursively(cond.getIfblock());
 		separatorBuf.pop();
 		if(cond.getElseblock() != null){
-			separatorBuf.push((byte)125);
+			separatorBuf.push(EncodeTable.COND_ELSE_IFELSE);
 			encodeRecursively(cond.getElseblock());
 			separatorBuf.pop();
 		}
@@ -127,13 +134,14 @@ public class ADLSequenceEncoder {
 		
 		analyzedNode = ifBlock;
 
-		separatorBuf.push(cond.getElseblock() == null ? (byte)127 : (byte)126);
+		separatorBuf.push(cond.getElseblock() == null ? EncodeTable.COND_IF : 
+			EncodeTable.COND_IF_IFELSE);
 		encodeRecursively(cond.getIfblock());
 		separatorBuf.pop();
 		
 		if(cond.getElseblock() != null){
 			analyzedNode = elseBlock;
-			separatorBuf.push((byte)125);
+			separatorBuf.push(EncodeTable.COND_ELSE_IFELSE);
 			encodeRecursively(cond.getElseblock());
 			separatorBuf.pop();
 		}
@@ -145,7 +153,7 @@ public class ADLSequenceEncoder {
 	
 	private void encodeLoop(Loop loop){
 		expressionBuf.push(ADLExpressionEncoder.instance.encode(loop.getLoopCount()));
-		separatorBuf.push((byte)124);
+		separatorBuf.push(EncodeTable.LOOP);
 		encodeRecursively(loop.getContent());
 		separatorBuf.pop();
 		expressionBuf.pop();

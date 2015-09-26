@@ -9,19 +9,19 @@ import adl_2daa.ast.structure.State;
 public class ADLState {
 
 	protected String identifier;
-	protected List<ADLSequence> encodedSequences;
+	protected List<ADLSequence> sequences;
 	
 	public ADLState(State astState){
 		this.identifier = astState.getIdentifier();
-		this.encodedSequences = new LinkedList<ADLSequence>();
+		this.sequences = new LinkedList<ADLSequence>();
 		for(Sequence seq : astState.getSequences()){
-			this.encodedSequences.add(ADLSequenceEncoder.instance.encode(seq));
+			this.sequences.add(ADLSequenceEncoder.instance.encode(seq));
 		}
 	}
 
 	protected List<String> getAllSpawnableEntity(){
 		List<String> list = new LinkedList<String>();
-		for(ADLSequence eSeq : encodedSequences){
+		for(ADLSequence eSeq : sequences){
 			list.addAll(eSeq.allSpawnableAgent);
 		}
 		return list;
