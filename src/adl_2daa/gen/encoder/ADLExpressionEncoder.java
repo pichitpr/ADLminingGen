@@ -116,13 +116,9 @@ public class ADLExpressionEncoder {
 		}
 		buf.add(functionID);
 		buf.add(paramsLength);
-		boolean encodeChoice = false;
-		for(ASTExpression astExp : function.getParams()){
-			if(sig.hasChoice() && !encodeChoice){
-				encodeChoice = true;
-				continue;
-			}
-			encodeRecursively(astExp);
+		for(int i=0; i<function.getParams().length; i++){
+			if(i == 0 && sig.hasChoice()) continue;
+			encodeRecursively(function.getParams()[i]);
 		}
 	}
 }
