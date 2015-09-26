@@ -23,7 +23,7 @@ import de.parsemis.graph.Graph;
 public class ADLNestingEncoder {
 
 	protected static ADLNestingEncoder instance = new ADLNestingEncoder();
-	protected static final int offset = 128;
+	protected static final int offset = 256;
 	
 	//TODO: Should filter out single node?? (No nested function) -- now count
 	

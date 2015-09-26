@@ -1,0 +1,46 @@
+.Sample{
+	.init{
+		Set("texture", DynamicFilter("this"), 4);
+		Set("position", DynamicFilter("this"), "c(400,200)");
+	}
+
+	.state1{
+		.seq0{
+			Wait(TimePass() >= 60);
+			if(Abs(DistanceToPlayer("Y")) <= 30){
+				Despawn();
+			}else{
+				RunStraight(Get("direction", DynamicFilter("this")), 2, TimePass() >= 150);
+				FlipDirection("H");
+				if(DistanceToPlayer("X") <= 30){
+					Spawn(.Sample);
+					Goto(.state2);
+				}
+			}
+			if(Abs(DistanceToPlayer("Y")) <= 60){
+				Spawn(.Sample);
+				Despawn();
+			}
+		}
+
+		.seq1{
+			Wait(TimePass() >= 30);
+			FlipDirection("H");			
+		}
+	}
+
+	.state2{
+		.seq0{
+			Wait(TimePass() >= 60);
+			if(Random(DecimalSet(1,2,1)) == 1){
+				Spawn(.Sample);
+				Goto(.state1);
+			}
+			Wait(TimePass() >= 60);
+		}
+	}
+
+	.des{
+		Spawn(.Sample);
+	}
+}
