@@ -3,22 +3,25 @@ package adl_2daa.gen.testtool;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+
+import adl_2daa.gen.encoder.EncodeTable;
 
 public class TestUtility {
 
-	public static String byteArrayToString(byte[] ary, boolean decode){
+	public static String byteArrayToString0(byte[] ary, boolean decode){
 		String s = "";
 		for(int i=0; i<ary.length; i++){
 			if(decode)
-				s += decode(ary[i])+" ";
+				s += decode0(ary[i])+" ";
 			else
 				s += ary[i]+" ";
 		}
 		return s.trim();
 	}
 	
-	public static String decode(byte b){
+	public static String decode0(byte b){
 		if(b == 127) return "|";
 		else if(b >= 121) return "#"+(b-121);
 		else if(b >= 101) return "d"+(b-101);
@@ -33,14 +36,35 @@ public class TestUtility {
 		else return ""+b;
 	}
 	
-	public static String actionToString(byte actionID, List<byte[]> nestingConditions,
+	public static String actionToString0(byte actionID, List<byte[]> nestingConditions,
 			boolean decode){
 		String s = ""+actionID;
 		for(int i=0; i<nestingConditions.size(); i++){
 			s += (decode ? " | " : " 127 ")+
-					TestUtility.byteArrayToString(nestingConditions.get(i), decode);
+					TestUtility.byteArrayToString0(nestingConditions.get(i), decode);
 		}
 		return s;
+	}
+	
+	//======================================================
+	
+	public static String stringToByteString(String str){
+		String s = "";
+		for(byte b : str.getBytes(StandardCharsets.US_ASCII)){
+			switch(b){
+			case EncodeTable.COND_IF: s += "if "; break;
+			case EncodeTable.COND_IF_IFELSE: s += "if-e "; break;
+			case EncodeTable.COND_ELSE_IFELSE: s += "else "; break;
+			case EncodeTable.EXP_BINARY: s += "bin "; break;
+			case EncodeTable.EXP_UNARY_NEG: s += "- "; break;
+			case EncodeTable.EXP_UNARY_NOT: s += "! "; break;
+			case EncodeTable.EXP_FUNCTION: s += "func "; break;
+			case EncodeTable.EXP_LITERAL: s += "lit "; break;
+			default:
+				s += b+" ";
+			}
+		}
+		return s.trim();
 	}
 	
 	public static String readFileAsString(String dir) throws Exception{

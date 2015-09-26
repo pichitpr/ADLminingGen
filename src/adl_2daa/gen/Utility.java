@@ -11,4 +11,10 @@ public class Utility {
 		}
 		return ary;
 	}
+	
+	public static <T> void addArrayToList(List<T> list, T[] ary){
+		for(T element : ary){
+			list.add(element);
+		}
+	}
 }
