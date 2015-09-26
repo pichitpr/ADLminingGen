@@ -17,7 +17,7 @@
 					Goto(.state2);
 				}
 			}
-			if(Abs(DistanceToPlayer("Y")) <= 60){
+			if(Abs(DistanceToPlayer("Y"))$ <= 60){
 				Spawn(.Sample);
 				Despawn();
 			}
@@ -25,7 +25,7 @@
 
 		.seq1{
 			Wait(TimePass() >= 30);
-			FlipDirection("H");			
+			FlipDirection("H");
 		}
 	}
 
@@ -37,6 +37,24 @@
 				Goto(.state1);
 			}
 			Wait(TimePass() >= 60);
+			if(Random(DecimalSet(1,2,1)) == 1){
+				FlipDirection("H");				
+			}else{
+				Despawn();
+			}
+			Wait(TimePass() >= 60);
+			Despawn();
+		}
+	}
+
+	.state3{
+		.seq0{
+			loop(Random(DecimalSet(1,6,1))){
+				Wait(TimePass() >= 60);
+				if(Random(DecimalSet(1,2,1)) == 1){
+					FlipDirection("H");
+				}
+			}
 		}
 	}
 
