@@ -14,11 +14,24 @@ import adl_2daa.ast.structure.Agent;
 import adl_2daa.ast.structure.Root;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.ast.structure.State;
+import adl_2daa.gen.FileIterator;
 import adl_2daa.tool.Parser;
 import de.parsemis.graph.Graph;
 
 public class DatabaseCreator {
 
+	private FileIterator it = new FileIterator();
+	
+	public void load(String directory){
+		File dir = new File(directory);
+		if(!dir.isDirectory()){
+			System.out.println("Specified directory is not directory");
+			return;
+		}
+		it.trackFiles(dir);
+	}
+	
+	/*
 	private List<Root> agentFile;
 	
 	public DatabaseCreator(){
@@ -43,8 +56,9 @@ public class DatabaseCreator {
 			}
 		}
 	}
+	*/
 	
-	private void loadScriptAsAST(File file){
+	private Root loadScriptAsAST(File file){
 		try{
 			BufferedReader buf = new BufferedReader(new FileReader(file));
 			String script="",line;
@@ -54,10 +68,11 @@ public class DatabaseCreator {
 			buf.close();
 			script = script.trim();
 			Parser parser = new Parser();
-			agentFile.add(parser.parse(script));
+			return parser.parse(script);
 		}catch(Exception ex){
 			ex.printStackTrace();
 		}
+		return null;
 	}
 	
 	/**
@@ -69,7 +84,10 @@ public class DatabaseCreator {
 		List<List<List<String>>> db = new ArrayList<List<List<String>>>();
 		ADLSequence eSeq;
 		ADLSequenceEncoder.instance.setAnalyzeFlow(false);
-		for(Root root : agentFile){
+		it.reset();
+		
+		while(it.hasNext()){
+			Root root = loadScriptAsAST(it.next());
 			for(Agent agent : root.getRelatedAgents()){
 				switch(stateType){
 				case 0: //Init
@@ -94,6 +112,7 @@ public class DatabaseCreator {
 				}
 			}
 		}
+		
 		@SuppressWarnings("unchecked")
 		List<List<String>>[] dbAry = db.toArray(new List[db.size()]);
 		return dbAry;
@@ -113,7 +132,10 @@ public class DatabaseCreator {
 		List<Integer> tagDes = new ArrayList<Integer>();
 		
 		ADLSequenceEncoder.instance.setAnalyzeFlow(true);
-		for(Root root : agentFile){
+		it.reset();
+		
+		while(it.hasNext()){
+			Root root = loadScriptAsAST(it.next());
 			for(Agent agent : root.getRelatedAgents()){
 				int stateCount = agent.getStates().size();
 				ADLAgent eAgent = new ADLAgent(agent);
@@ -160,7 +182,10 @@ public class DatabaseCreator {
 				new GraphCreationHelper<String, Integer>();
 		
 		ADLSequenceEncoder.instance.setAnalyzeFlow(false);
-		for(Root root : agentFile){
+		it.reset();
+		
+		while(it.hasNext()){
+			Root root = loadScriptAsAST(it.next());
 			ADLRoot eRoot = new ADLRoot(root);
 			for(ADLAgent eAgent : eRoot.agents){
 				for(ADLState eState : eAgent.states){
@@ -186,10 +211,12 @@ public class DatabaseCreator {
 		GraphCreationHelper<String, Integer> graph = 
 				new GraphCreationHelper<String, Integer>();
 		
+		it.reset();
 		//TODO: A state that spawn the same agent multiple times will cause
 		//duplicate graph, is this acceptable???
 		//also, we do not consider Spawn in .des, is this Ok? -- now ok
-		for(Root root : agentFile){
+		while(it.hasNext()){
+			Root root = loadScriptAsAST(it.next());
 			ADLRoot eRoot = new ADLRoot(root);
 			for(ADLAgent eAgent : eRoot.agents){
 				for(ADLState eState : eAgent.states){
@@ -237,7 +264,9 @@ public class DatabaseCreator {
 	public Collection<Graph<Integer,Integer>> createDatabaseForNesting(){
 		Collection<Graph<Integer,Integer>> db = new LinkedList<Graph<Integer,Integer>>();
 		
-		for(Root root : agentFile){
+		it.reset();
+		while(it.hasNext()){
+			Root root = loadScriptAsAST(it.next());
 			for(Agent agent : root.getRelatedAgents()){
 				if(agent.getInit() != null){
 					db.addAll(

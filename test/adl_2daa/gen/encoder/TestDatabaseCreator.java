@@ -21,7 +21,7 @@ public class TestDatabaseCreator {
 		if(dbCreator == null){
 			TestInitializer.init();
 			dbCreator = new DatabaseCreator();
-			dbCreator.load("test/ext/minidb", true);
+			dbCreator.load("test/ext/minidb");
 		}
 	}
 
