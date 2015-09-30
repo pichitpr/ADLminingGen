@@ -45,12 +45,10 @@
 	}
 	.bullet{
 		.seq0{
-			Spawn(.FlameShot, Get("position", DynamicFilter("this")), TurnToPlayer(DirectionSet("h")) );
-			Wait(TimePass() >= 50);
-			Spawn(.FlameShot, Get("position", DynamicFilter("this")), TurnToPlayer(DirectionSet("h")) );
-			Wait(TimePass() >= 50);
-			Spawn(.FlameShot, Get("position", DynamicFilter("this")), TurnToPlayer(DirectionSet("h")) );
-			Wait(TimePass() >= 50);
+			loop(3){
+				Spawn(.FlameShot, Get("position", DynamicFilter("this")), TurnToPlayer(DirectionSet("h")) );
+				Wait(TimePass() >= 50);
+			}
 			Goto(.base);
 		}
 		.seq1{

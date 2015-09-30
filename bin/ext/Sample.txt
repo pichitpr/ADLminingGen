@@ -43,6 +43,7 @@
 				Despawn();
 			}
 			Wait(TimePass() >= 60);
+			Despawn();
 		}
 	}
 
