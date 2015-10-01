@@ -19,10 +19,10 @@ import adl_2daa.ast.expression.StringConstant;
 import adl_2daa.ast.statement.Action;
 import adl_2daa.ast.statement.Condition;
 import adl_2daa.ast.structure.Sequence;
-import adl_2daa.gen.ActionMainSignature;
-import adl_2daa.gen.FunctionMainSignature;
-import adl_2daa.gen.GeneratorRegistry;
-import adl_2daa.gen.Utility;
+import adl_2daa.gen.signature.ActionMainSignature;
+import adl_2daa.gen.signature.FunctionMainSignature;
+import adl_2daa.gen.signature.GeneratorRegistry;
+import adl_2daa.gen.signature.Utility;
 
 public class ADLSequenceEncoder {
 	

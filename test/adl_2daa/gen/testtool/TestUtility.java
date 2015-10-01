@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import adl_2daa.gen.encoder.EncodeTable;
+import adl_2daa.gen.signature.GeneratorRegistry;
 
 public class TestUtility {
 
@@ -50,7 +51,18 @@ public class TestUtility {
 	
 	public static String stringToByteString(String str){
 		String s = "";
+		boolean isAction = true;
+		boolean isFunction = false;
 		for(byte b : str.getBytes(StandardCharsets.US_ASCII)){
+			if(isAction){
+				isAction = false;
+				s += GeneratorRegistry.getActionName(b)+" ";
+				continue;
+			}else if(isFunction){
+				isFunction = false;
+				s += GeneratorRegistry.getFunctionName(b)+" ";
+				continue;
+			}
 			switch(b){
 			case EncodeTable.COND_IF: s += "if "; break;
 			case EncodeTable.COND_IF_IFELSE: s += "if-e "; break;
@@ -58,8 +70,11 @@ public class TestUtility {
 			case EncodeTable.EXP_BINARY: s += "bin "; break;
 			case EncodeTable.EXP_UNARY_NEG: s += "- "; break;
 			case EncodeTable.EXP_UNARY_NOT: s += "! "; break;
-			case EncodeTable.EXP_FUNCTION: s += "func "; break;
-			case EncodeTable.EXP_LITERAL: s += "lit "; break;
+			case EncodeTable.EXP_FUNCTION:
+				isFunction = true;
+				s += "func "; 
+				break;
+			case EncodeTable.EXP_LITERAL: s += "lit "; break;	
 			default:
 				s += b+" ";
 			}

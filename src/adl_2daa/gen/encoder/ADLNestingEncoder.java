@@ -15,10 +15,10 @@ import adl_2daa.ast.statement.Action;
 import adl_2daa.ast.statement.Condition;
 import adl_2daa.ast.statement.Loop;
 import adl_2daa.ast.structure.Sequence;
-import adl_2daa.gen.ActionMainSignature;
-import adl_2daa.gen.GeneratorRegistry;
-import adl_2daa.gen.MainSignature;
-import adl_2daa.gen.Signature;
+import adl_2daa.gen.signature.ActionMainSignature;
+import adl_2daa.gen.signature.GeneratorRegistry;
+import adl_2daa.gen.signature.MainSignature;
+import adl_2daa.gen.signature.Signature;
 import de.parsemis.graph.Graph;
 
 public class ADLNestingEncoder {

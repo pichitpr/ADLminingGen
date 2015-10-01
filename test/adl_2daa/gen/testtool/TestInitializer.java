@@ -1,11 +1,11 @@
 package adl_2daa.gen.testtool;
 
-import adl_2daa.gen.ActionMainSignature;
-import adl_2daa.gen.ActionSignature;
-import adl_2daa.gen.Datatype;
-import adl_2daa.gen.FunctionMainSignature;
-import adl_2daa.gen.GeneratorRegistry;
-import adl_2daa.gen.Signature;
+import adl_2daa.gen.signature.ActionMainSignature;
+import adl_2daa.gen.signature.ActionSignature;
+import adl_2daa.gen.signature.Datatype;
+import adl_2daa.gen.signature.FunctionMainSignature;
+import adl_2daa.gen.signature.GeneratorRegistry;
+import adl_2daa.gen.signature.Signature;
 
 public class TestInitializer {
 

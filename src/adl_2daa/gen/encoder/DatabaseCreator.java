@@ -14,7 +14,7 @@ import adl_2daa.ast.structure.Agent;
 import adl_2daa.ast.structure.Root;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.ast.structure.State;
-import adl_2daa.gen.FileIterator;
+import adl_2daa.gen.signature.FileIterator;
 import adl_2daa.tool.Parser;
 import de.parsemis.graph.Graph;
 

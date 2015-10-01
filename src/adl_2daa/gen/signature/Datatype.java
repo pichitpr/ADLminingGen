@@ -1,4 +1,4 @@
-package adl_2daa.gen;
+package adl_2daa.gen.signature;
 
 public enum Datatype {
 	VOID,

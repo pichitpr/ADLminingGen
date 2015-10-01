@@ -5,7 +5,7 @@ import java.util.List;
 
 import adl_2daa.ast.structure.Agent;
 import adl_2daa.ast.structure.State;
-import adl_2daa.gen.GeneratorRegistry;
+import adl_2daa.gen.signature.GeneratorRegistry;
 
 /**
  * An encoded version of the specified Agent. All flow to transition can be generated
