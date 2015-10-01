@@ -98,10 +98,11 @@ public class ADLSequenceEncoder {
 			}else{
 				targetState = ((Identifier)action.getParams()[0]).getValue();
 			}
-			List<String> enc2 = new LinkedList<String>();
-			analyzedNode.createFlowAndTrim(enc2);
-			Collections.reverse(enc2);
-			allPossibleFlowToTerminal.add(new ADLSequence(targetState, enc2));
+			List<String> eSeqtoTerminal = new LinkedList<String>();
+			eSeqtoTerminal.add(enc);
+			analyzedNode.createFlowAndTrim(eSeqtoTerminal);
+			Collections.reverse(eSeqtoTerminal);
+			allPossibleFlowToTerminal.add(new ADLSequence(targetState, eSeqtoTerminal));
 		}else{
 			analyzedNode.addAction(enc);
 		}
