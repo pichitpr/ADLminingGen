@@ -221,6 +221,7 @@ public class TestInitializer {
 	}
 	
 	public static void init(){
+		GeneratorRegistry.cleanup();
 		registerAction();
 		registerFunction();
 	}

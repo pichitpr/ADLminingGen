@@ -110,80 +110,80 @@ public class TestDatabaseCreator {
 		Iterator<Graph<String,Integer>> it = db.iterator();
 		while(it.hasNext()){
 			Graph<String,Integer> graph = it.next();
-			switch(graph.getID()){
-			case 0: //FlameMan.base
+			switch(graph.getName()){
+			case "FlameMan.base": //FlameMan.base
 				assertEquals(1+1+5, graph.getNodeCount());
 				assertEquals(graph.getNodeCount()-1, graph.getEdgeCount());
 				break;
-			case 1: //FlameMan.flame
+			case "FlameMan.flame": //FlameMan.flame
 				assertEquals(1+1+14, graph.getNodeCount());
 				assertEquals(graph.getNodeCount()-1, graph.getEdgeCount());
 				break;
-			case 2: //FlameMan.bullet
+			case "FlameMan.bullet": //FlameMan.bullet
 				assertEquals(1+2+3+1, graph.getNodeCount());
 				assertEquals(graph.getNodeCount()-1, graph.getEdgeCount());
 				break;
-			case 3: //FlameShield.state0
+			case "FlameShield.state0": //FlameShield.state0
 				assertEquals(1+1+6, graph.getNodeCount());
 				assertEquals(graph.getNodeCount()-1, graph.getEdgeCount());
 				break;
-			case 4: //FlameShot.state0
+			case "FlameShot.state0": //FlameShot.state0
 				assertEquals(1+1+1, graph.getNodeCount());
 				assertEquals(graph.getNodeCount()-1, graph.getEdgeCount());
 				break;
-			case 5: //ShellKoopa.state0
+			case "ShellKoopa.state0": //ShellKoopa.state0
 				assertEquals(1+2+1+1, graph.getNodeCount());
 				assertEquals(graph.getNodeCount()-1, graph.getEdgeCount());
 				break;
-			case 6: //Koopa.state0
+			case "Koopa.state0": //Koopa.state0
 				assertEquals(1+1+2, graph.getNodeCount());
 				assertEquals(graph.getNodeCount()-1, graph.getEdgeCount());
 				break;
-			case 7: //KoopaShell.state0
+			case "KoopaShell.state0": //KoopaShell.state0
 				assertEquals(1+1+2, graph.getNodeCount());
 				assertEquals(graph.getNodeCount()-1, graph.getEdgeCount());
 				break;
-			case 8: //KoopaShell.state1
+			case "KoopaShell.state1": //KoopaShell.state1
 				assertEquals(1+2+2+2, graph.getNodeCount());
 				assertEquals(graph.getNodeCount()-1, graph.getEdgeCount());
 				break;
-			case 9: //Lakitu.state0
+			case "Lakitu.state0": //Lakitu.state0
 				assertEquals(1+2+2+2, graph.getNodeCount());
 				assertEquals(graph.getNodeCount()-1, graph.getEdgeCount());
 				break;
-			case 10: //SpinyEgg.state0
+			case "SpinyEgg.state0": //SpinyEgg.state0
 				assertEquals(1+1+1, graph.getNodeCount());
 				assertEquals(graph.getNodeCount()-1, graph.getEdgeCount());
 				break;
-			case 11: //Spiny.state0
+			case "Spiny.state0": //Spiny.state0
 				assertEquals(1+1+2, graph.getNodeCount());
 				assertEquals(graph.getNodeCount()-1, graph.getEdgeCount());
 				break;
-			case 12: //TomahawkMan.base
+			case "TomahawkMan.base": //TomahawkMan.base
 				assertEquals(1+2+6+1, graph.getNodeCount());
 				assertEquals(graph.getNodeCount()-1, graph.getEdgeCount());
 				break;
-			case 13: //TomahawkMan.feather
+			case "TomahawkMan.feather": //TomahawkMan.feather
 				assertEquals(1+1+5, graph.getNodeCount());
 				assertEquals(graph.getNodeCount()-1, graph.getEdgeCount());
 				break;
-			case 14: //TomahawkMan.tomahawk
+			case "TomahawkMan.tomahawk": //TomahawkMan.tomahawk
 				assertEquals(1+1+3, graph.getNodeCount());
 				assertEquals(graph.getNodeCount()-1, graph.getEdgeCount());
 				break;
-			case 15: //FeatherBullet1.state0
+			case "FeatherBullet1.state0": //FeatherBullet1.state0
 				assertEquals(1+1+1, graph.getNodeCount());
 				assertEquals(graph.getNodeCount()-1, graph.getEdgeCount());
 				break;
-			case 16: //FeatherBullet2.state0
+			case "FeatherBullet2.state0": //FeatherBullet2.state0
 				assertEquals(1+1+1, graph.getNodeCount());
 				assertEquals(graph.getNodeCount()-1, graph.getEdgeCount());
 				break;
-			case 17: //FeatherBullet3.state0
+			case "FeatherBullet3.state0": //FeatherBullet3.state0
 				assertEquals(1+1+1, graph.getNodeCount());
 				assertEquals(graph.getNodeCount()-1, graph.getEdgeCount());
 				break;
-			case 18: //Tomahawk.state0
+			case "Tomahawk.state0": //Tomahawk.state0
 				assertEquals(1+1+1, graph.getNodeCount());
 				assertEquals(graph.getNodeCount()-1, graph.getEdgeCount());
 				break;

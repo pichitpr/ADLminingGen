@@ -67,4 +67,16 @@ public class GeneratorRegistry {
 	public static String getFunctionName(int id){
 		return functionIdNameMap.get(id);
 	}
+	
+	/**
+	 * Clean up all registered action/function, also reset starting ID
+	 */
+	public static void cleanup(){
+		actionSignatureMap.clear();
+		actionIdNameMap.clear();
+		ActionMainSignature.resetID();
+		functionSignatureMap.clear();
+		functionIdNameMap.clear();
+		FunctionMainSignature.resetID();
+	}
 }

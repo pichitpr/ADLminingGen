@@ -28,7 +28,10 @@ public class ADLNestingEncoder {
 	//TODO: Should filter out single node?? (No nested function) -- now count
 	
 	private List<Graph<Integer,Integer>> graphCollection;
-	private GraphCreationHelper<Integer, Integer> graph = new GraphCreationHelper<Integer, Integer>();
+	private GraphCreationHelper<Integer, Integer> graph; 
+	{
+		graph = new GraphCreationHelper<Integer, Integer>();
+	}
 	
 	/**
 	 * Parse a sequence as nesting relation graphs. The function ID used here differs
@@ -126,7 +129,7 @@ public class ADLNestingEncoder {
 	 */
 	private void parseFunction(Function function, int parentIndex, int edgeLabel){
 		if(parentIndex == -1){
-			graph.createNewGraph("Function root");
+			graph.createNewGraph("function");
 		}
 		
 		MainSignature mainSig = GeneratorRegistry.getFunctionSignature(function.getName());

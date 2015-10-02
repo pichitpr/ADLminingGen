@@ -3,6 +3,9 @@ package adl_2daa.gen.signature;
 public class ActionMainSignature extends MainSignature{
 
 	private static int ID_COUNT = 0;
+	protected static void resetID(){
+		ID_COUNT = 0;
+	}
 	
 	public ActionMainSignature(int minParamSize, int choiceParamIndex,
 			Datatype... param){

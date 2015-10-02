@@ -247,6 +247,8 @@ public class TestSequenceEncoder {
 				eSeq.encodedSequence.get(2).charAt(0));
 		assertEquals(GeneratorRegistry.getActionSignature("Spawn").getMainSignature().getId(), 
 				eSeq.encodedSequence.get(3).charAt(0));
+		assertEquals(GeneratorRegistry.getActionSignature("Goto").getMainSignature().getId(), 
+				eSeq.encodedSequence.get(4).charAt(0));
 		assertEquals("state2", eSeq.identifier);
 		
 		eSeq = eSeqs.get(2);
@@ -258,6 +260,8 @@ public class TestSequenceEncoder {
 				eSeq.encodedSequence.get(2).charAt(0));
 		assertEquals(GeneratorRegistry.getActionSignature("Spawn").getMainSignature().getId(), 
 				eSeq.encodedSequence.get(3).charAt(0));
+		assertEquals(GeneratorRegistry.getActionSignature("Despawn").getMainSignature().getId(), 
+				eSeq.encodedSequence.get(4).charAt(0));
 		assertEquals("des", eSeq.identifier);
 	}
 	
@@ -287,6 +291,8 @@ public class TestSequenceEncoder {
 				eSeq.encodedSequence.get(0).charAt(0));
 		assertEquals(GeneratorRegistry.getActionSignature("Spawn").getMainSignature().getId(), 
 				eSeq.encodedSequence.get(1).charAt(0));
+		assertEquals(GeneratorRegistry.getActionSignature("Goto").getMainSignature().getId(), 
+				eSeq.encodedSequence.get(2).charAt(0));
 		assertEquals("state1", eSeq.identifier);
 		
 		eSeq = eSeqs.get(1);
@@ -294,6 +300,8 @@ public class TestSequenceEncoder {
 				eSeq.encodedSequence.get(0).charAt(0));
 		assertEquals(GeneratorRegistry.getActionSignature("Wait").getMainSignature().getId(), 
 				eSeq.encodedSequence.get(1).charAt(0));
+		assertEquals(GeneratorRegistry.getActionSignature("Despawn").getMainSignature().getId(), 
+				eSeq.encodedSequence.get(2).charAt(0));
 		assertEquals("des", eSeq.identifier);
 		
 		eSeq = eSeqs.get(2);
@@ -305,6 +313,8 @@ public class TestSequenceEncoder {
 				eSeq.encodedSequence.get(2).charAt(0));
 		assertEquals(GeneratorRegistry.getActionSignature("Wait").getMainSignature().getId(), 
 				eSeq.encodedSequence.get(3).charAt(0));
+		assertEquals(GeneratorRegistry.getActionSignature("Despawn").getMainSignature().getId(), 
+				eSeq.encodedSequence.get(4).charAt(0));
 		assertEquals("des", eSeq.identifier);
 	}
 

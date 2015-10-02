@@ -22,6 +22,10 @@ public class DatabaseCreator {
 
 	private FileIterator it = new FileIterator();
 	
+	/**
+	 * This method must be called before performing mining process
+	 * to store all references to dataset
+	 */
 	public void load(String directory){
 		File dir = new File(directory);
 		if(!dir.isDirectory()){
@@ -189,7 +193,7 @@ public class DatabaseCreator {
 			ADLRoot eRoot = new ADLRoot(root);
 			for(ADLAgent eAgent : eRoot.agents){
 				for(ADLState eState : eAgent.states){
-					graph.createNewGraph(eState.identifier);
+					graph.createNewGraph(eAgent.identifier+"."+eState.identifier);
 					int rootNode = graph.addNode(ADLSequenceEncoder.impossibleAction);
 					for(ADLSequence eSeq : eState.sequences){
 						int seqRootNode = graph.addNode(ADLSequenceEncoder.impossibleAction);
@@ -286,7 +290,6 @@ public class DatabaseCreator {
 					}
 				}
 			}
-			System.out.println(db.size());
 		}
 		
 		return db;
