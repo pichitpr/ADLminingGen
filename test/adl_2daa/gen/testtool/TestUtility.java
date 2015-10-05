@@ -4,10 +4,16 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 import java.util.List;
 
+import spmf.extension.algorithm.seqgen.SequentialPatternGen;
+import spmf.extension.patterns.itemset_list_generic.ItemsetGen;
 import adl_2daa.gen.encoder.EncodeTable;
 import adl_2daa.gen.signature.GeneratorRegistry;
+import de.parsemis.graph.Edge;
+import de.parsemis.graph.Graph;
+import de.parsemis.graph.Node;
 
 public class TestUtility {
 
@@ -56,11 +62,11 @@ public class TestUtility {
 		for(byte b : str.getBytes(StandardCharsets.US_ASCII)){
 			if(isAction){
 				isAction = false;
-				s += GeneratorRegistry.getActionName(b)+" ";
+				s += "["+b+"] "+GeneratorRegistry.getActionName(b)+" ";
 				continue;
 			}else if(isFunction){
 				isFunction = false;
-				s += GeneratorRegistry.getFunctionName(b)+" ";
+				s += "["+b+"] "+GeneratorRegistry.getFunctionName(b)+" ";
 				continue;
 			}
 			switch(b){
@@ -98,4 +104,46 @@ public class TestUtility {
 		return str;
 	}
 	
+	public static String sequencePatternToByteString(SequentialPatternGen<String> seq){
+		String result = "";
+		for(ItemsetGen<String> itemset : seq.getItemsets()){
+			result += stringToByteString(itemset.get(0))+"\n";
+		}
+		return result.trim();
+	}
+	
+	public static String parallelGraphToByteString(Graph<String,Integer> validGraph){
+		String result = "";
+		Node<String,Integer> root = null;
+		Iterator<Node<String,Integer>> nodeIt = validGraph.nodeIterator();
+		while(nodeIt.hasNext()){
+			root = nodeIt.next();
+			if(root.getInDegree() == 0)
+				break;
+		}
+		Iterator<Edge<String,Integer>> edgeIt = root.outgoingEdgeIterator();
+		Edge<String,Integer> edge;
+		while(edgeIt.hasNext()){
+			edge = edgeIt.next();
+			Node<String,Integer> seqNode = edge.getOtherNode(root);
+			if(edge.getLabel() == EncodeTable.TAG_EDGE){
+				result += "TAG: "+(int)seqNode.getLabel().charAt(0)+"\n";
+				continue;
+			}
+			Iterator<Edge<String,Integer>> edgeIt2 = seqNode.outgoingEdgeIterator();
+			while(edgeIt2.hasNext()){
+				edge = edgeIt2.next();
+				if(edge.getLabel() == EncodeTable.SEQUENCE_ACTION_EDGE){
+					result += "SPAWNER ";
+				}else if(edge.getLabel() == EncodeTable.SEQUENCE_ACTION_OTHER_ENTITY_EDGE){
+					result += "CHILD ";
+				}
+				result += stringToByteString(
+						edge.getOtherNode(seqNode).getLabel()
+						)+"\n";
+			}
+			if(edgeIt.hasNext()) result += "////\n";
+		}
+		return result.trim();
+	}
 }
