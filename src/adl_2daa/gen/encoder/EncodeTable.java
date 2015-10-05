@@ -30,4 +30,11 @@ public class EncodeTable {
 	
 	//ID offset for mixing actionID and functionID under the same order
 	public static final int idOffset = 128;
+	
+	//===========================================
+	
+	public static final int STATE_SEQUENCE_EDGE = 0;
+	public static final int SEQUENCE_ACTION_EDGE = 1;
+	public static final int SEQUENCE_ACTION_OTHER_ENTITY_EDGE = 2;
+	public static final int TAG_EDGE = -1;
 }
