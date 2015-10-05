@@ -187,13 +187,14 @@ public class DatabaseCreator {
 		
 		ADLSequenceEncoder.instance.setAnalyzeFlow(false);
 		it.reset();
+		GraphCreationHelper.resetID();
 		
 		while(it.hasNext()){
 			Root root = loadScriptAsAST(it.next());
 			ADLRoot eRoot = new ADLRoot(root);
 			for(ADLAgent eAgent : eRoot.agents){
 				for(ADLState eState : eAgent.states){
-					graph.createNewGraph(eAgent.identifier+"."+eState.identifier);
+					graph.createNewGraph(GraphCreationHelper.getID());
 					int rootNode = graph.addNode(ADLSequenceEncoder.dummyEncodedAction);
 					for(ADLSequence eSeq : eState.sequences){
 						int seqRootNode = graph.addNode(ADLSequenceEncoder.dummyEncodedAction);
@@ -218,6 +219,7 @@ public class DatabaseCreator {
 				new GraphCreationHelper<String, Integer>();
 		
 		it.reset();
+		GraphCreationHelper.resetID();
 		//TODO: A state that spawn the same agent multiple times will cause
 		//duplicate graph, is this acceptable???
 		//also, we do not consider Spawn in .des, is this Ok? -- now ok
@@ -232,7 +234,7 @@ public class DatabaseCreator {
 						if(childInitialState.sequences.size() == 0)
 							break;
 						
-						graph.createNewGraph(eState.identifier);
+						graph.createNewGraph(GraphCreationHelper.getID());
 						int rootNode = graph.addNode(ADLSequenceEncoder.dummyEncodedAction);
 						
 						//Spawner parallel sequence
@@ -271,6 +273,8 @@ public class DatabaseCreator {
 		Collection<Graph<Integer,Integer>> db = new LinkedList<Graph<Integer,Integer>>();
 		
 		it.reset();
+		GraphCreationHelper.resetID();
+		
 		while(it.hasNext()){
 			Root root = loadScriptAsAST(it.next());
 			for(Agent agent : root.getRelatedAgents()){

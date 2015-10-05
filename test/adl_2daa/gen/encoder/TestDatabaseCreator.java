@@ -1,6 +1,6 @@
 package adl_2daa.gen.encoder;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -105,6 +105,7 @@ public class TestDatabaseCreator {
 		
 		//19 states across 4 files
 		assertEquals(19, db.size());
+		assertTrue(isGraphIDConsistent(db));
 		
 		//Agent files are converted to graph in lexicographical order
 		Iterator<Graph<String,Integer>> it = db.iterator();
@@ -194,7 +195,7 @@ public class TestDatabaseCreator {
 	@Test
 	public void testCreateDBForInterEntityParallel(){
 		Collection<Graph<String,Integer>> db = dbCreator.createDatabaseForInterEntityParallel();
-
+		
 		/*
 		 * minidb inter-entity profile
 		 * 
@@ -221,6 +222,7 @@ public class TestDatabaseCreator {
 		
 		//14 inter-entity including duplication, excluding spawn in .des
 		assertEquals(12, db.size());
+		assertTrue(isGraphIDConsistent(db));
 		
 		//Agent files are converted to graph in lexicographical order
 		Iterator<Graph<String,Integer>> it = db.iterator();
@@ -267,5 +269,16 @@ public class TestDatabaseCreator {
 		int lakituGraph = (9+5)+(3+2+1)+(8+2);
 		int tomahawkManGraph = (9+9+5+3)+(6+1)+(6+1)+(6+1)+(7+1);
 		assertEquals(flameManGraph+koopaGraph+lakituGraph+tomahawkManGraph, db.size());
+		assertTrue(isGraphIDConsistent(db));
+	}
+	
+	private <N,E> boolean isGraphIDConsistent(Collection<Graph<N,E>> graphDB){
+		int id = 0;
+		int fault = 0;
+		for(Graph<N,E> g : graphDB){
+			if(!g.getName().equals(""+id)) fault++;
+			id++;
+		}
+		return fault == 0;
 	}
 }

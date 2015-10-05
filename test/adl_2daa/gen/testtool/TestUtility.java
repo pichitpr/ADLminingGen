@@ -146,4 +146,36 @@ public class TestUtility {
 		}
 		return result.trim();
 	}
+	
+	public static String nestingGraphToString(Graph<Integer,Integer> graph){
+		Node<Integer,Integer> root = null;
+		Iterator<Node<Integer,Integer>> nodeIt = graph.nodeIterator();
+		while(nodeIt.hasNext()){
+			root = nodeIt.next();
+			if(root.getInDegree() == 0) break;
+		}
+		return nestingNodeToString(root, 0, 0).trim();
+	}
+	
+	private static String nestingNodeToString(Node<Integer,Integer> root, int depth,
+			int branchingIndex){
+		String result = "";
+		for(int i=1; i<=depth; i++) result += "-";
+		if(depth > 0)
+			result += " "+branchingIndex+": ";
+		if(root.getLabel() >= EncodeTable.idOffset){
+			result += GeneratorRegistry.getFunctionName(root.getLabel()-EncodeTable.idOffset);
+		}else{
+			result += GeneratorRegistry.getActionName(root.getLabel());
+		}
+		result += "\n";
+		Iterator<Edge<Integer,Integer>> edgeIt = root.outgoingEdgeIterator();
+		Edge<Integer,Integer> edge;
+		while(edgeIt.hasNext()){
+			edge = edgeIt.next();
+			result += nestingNodeToString(edge.getOtherNode(root), depth+1, edge.getLabel());
+		}
+		return result;
+	}
+	
 }

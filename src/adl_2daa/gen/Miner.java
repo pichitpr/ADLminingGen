@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import parsemis.extension.GraphPattern;
 import parsemis.extension.SimpleMiner;
 import spmf.extension.algorithm.seqgen.AlgoPrefixSpanGen;
 import spmf.extension.algorithm.seqgen.AlgoPrefixSpanJSGen;
@@ -20,15 +21,19 @@ import de.parsemis.graph.Edge;
 import de.parsemis.graph.Graph;
 import de.parsemis.graph.Node;
 
+/**
+ * This class mines interesting relations and other information
+ * from specified dataset and store in memory
+ */
 public class Miner {
 
 	private DatabaseCreator dbCreator;
 	private SequentialPatternsGen<String> frequentOrder;
 	private List<JSPatternGen<String>> frequentInterStateOrder_Goto;
 	private List<JSPatternGen<String>> frequentInterStateOrder_Despawn;
-	private Collection<Graph<String,Integer>> frequentParallel;
-	private Collection<Graph<String,Integer>> frequentInterEntityParallel;
-	private Collection<Graph<Integer,Integer>> frequentNesting;
+	private List<GraphPattern<String,Integer>> frequentParallel;
+	private List<GraphPattern<String,Integer>> frequentInterEntityParallel;
+	private List<GraphPattern<Integer,Integer>> frequentNesting;
 	
 	public SequentialPatternsGen<String> getFrequentOrder() {
 		return frequentOrder;
@@ -42,15 +47,15 @@ public class Miner {
 		return frequentInterStateOrder_Despawn;
 	}
 
-	public Collection<Graph<String, Integer>> getFrequentParallel() {
+	public List<GraphPattern<String,Integer>> getFrequentParallel() {
 		return frequentParallel;
 	}
 
-	public Collection<Graph<String, Integer>> getFrequentInterEntityParallel() {
+	public List<GraphPattern<String,Integer>> getFrequentInterEntityParallel() {
 		return frequentInterEntityParallel;
 	}
 
-	public Collection<Graph<Integer, Integer>> getFrequentNesting() {
+	public List<GraphPattern<Integer,Integer>> getFrequentNesting() {
 		return frequentNesting;
 	}
 
@@ -158,13 +163,14 @@ public class Miner {
 				graphDB, (int)(graphDB.size()*relativeMinSup)
 				);
 		System.out.println("Patterns found : "+frequentParallel.size());
-		frequentParallel.removeIf( graph -> !isValidParallelGraph(graph) );
+		frequentParallel.removeIf( pattern -> !isValidParallelGraph(pattern.getGraph()) );
 		System.out.println("Valid pattern : "+frequentParallel.size());
 		
 		if(verbose){
-			for(Graph<String,Integer> graph : frequentParallel){
+			for(GraphPattern<String,Integer> pattern : frequentParallel){
 				System.out.println("===============");
-				System.out.println(TestUtility.parallelGraphToByteString(graph));
+				System.out.println(TestUtility.parallelGraphToByteString(pattern.getGraph()));
+				System.out.println(pattern.getGraphIDs());
 				System.out.println("===============\n");
 			}
 		}
@@ -193,13 +199,13 @@ public class Miner {
 				graphDB, (int)(graphDB.size()*relativeMinSup)
 				);
 		System.out.println("Patterns found : "+frequentInterEntityParallel.size());
-		frequentInterEntityParallel.removeIf( graph -> !isValidInterEntityParallelGraph(graph) );
+		frequentInterEntityParallel.removeIf( pattern -> !isValidInterEntityParallelGraph(pattern.getGraph()) );
 		System.out.println("Valid pattern : "+frequentInterEntityParallel.size());
 		
 		if(verbose){
-			for(Graph<String,Integer> graph : frequentInterEntityParallel){
+			for(GraphPattern<String,Integer> pattern : frequentInterEntityParallel){
 				System.out.println("===============");
-				System.out.println(TestUtility.parallelGraphToByteString(graph));
+				System.out.println(TestUtility.parallelGraphToByteString(pattern.getGraph()));
 				System.out.println("===============\n");
 			}
 		}
@@ -237,5 +243,14 @@ public class Miner {
 				graphDB, (int)(graphDB.size()*relativeMinSup)
 				);
 		System.out.println("Patterns found : "+frequentNesting.size());
+		
+		if(verbose){
+			for(GraphPattern<Integer,Integer> pattern : frequentNesting){
+				System.out.println("===============");
+				System.out.println(TestUtility.nestingGraphToString(pattern.getGraph()));
+				System.out.println(pattern.getGraphIDs());
+				System.out.println("===============\n");
+			}
+		}
 	}
 }

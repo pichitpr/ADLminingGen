@@ -58,7 +58,7 @@ public class ADLNestingEncoder {
 	}
 	
 	private void parseAction(Action action){
-		graph.createNewGraph("action");
+		graph.createNewGraph(GraphCreationHelper.getID());
 		
 		ActionMainSignature mainSig = GeneratorRegistry.getActionSignature(action.getName());
 		Signature sig = mainSig.getMainSignature();
@@ -129,7 +129,7 @@ public class ADLNestingEncoder {
 	 */
 	private void parseFunction(Function function, int parentIndex, int edgeLabel){
 		if(parentIndex == -1){
-			graph.createNewGraph("function");
+			graph.createNewGraph(GraphCreationHelper.getID());
 		}
 		
 		MainSignature mainSig = GeneratorRegistry.getFunctionSignature(function.getName());
