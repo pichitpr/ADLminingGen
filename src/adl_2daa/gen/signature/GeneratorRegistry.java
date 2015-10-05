@@ -5,7 +5,10 @@ import java.util.Map.Entry;
 
 public class GeneratorRegistry {
 
-	public static final ActionMainSignature dummyAction = new ActionMainSignature();
+	private static ActionMainSignature dummyActionSignature;
+	public static ActionMainSignature getDummyActionSignature(){
+		return dummyActionSignature;
+	}
 	
 	private static HashMap<String,ActionMainSignature> actionSignatureMap = 
 			new HashMap<String,ActionMainSignature>();
@@ -70,6 +73,7 @@ public class GeneratorRegistry {
 	
 	/**
 	 * Clean up all registered action/function, also reset starting ID
+	 * This method MUST be called once before registering action/function
 	 */
 	public static void cleanup(){
 		actionSignatureMap.clear();
@@ -78,5 +82,8 @@ public class GeneratorRegistry {
 		functionSignatureMap.clear();
 		functionIdNameMap.clear();
 		FunctionMainSignature.resetID();
+		
+		dummyActionSignature = new ActionMainSignature();
+		registerActionSignature("#dummy", dummyActionSignature);
 	}
 }

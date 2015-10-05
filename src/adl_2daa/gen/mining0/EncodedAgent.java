@@ -28,7 +28,7 @@ public class EncodedAgent {
 		//this will ensure that we can still capture "despawn without .des"
 		if(des.eActList.size() == 0){
 			des.eActList.add(new EncodedAction(
-					(byte)GeneratorRegistry.dummyAction.getMainSignature().getId(), null, 0));
+					(byte)GeneratorRegistry.getDummyActionSignature().getMainSignature().getId(), null, 0));
 		}
 		states = new ArrayList<EncodedState>();
 		for(State st : agent.getStates()){

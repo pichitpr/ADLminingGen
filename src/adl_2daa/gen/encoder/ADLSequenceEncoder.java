@@ -19,7 +19,16 @@ import adl_2daa.gen.signature.GeneratorRegistry;
 public class ADLSequenceEncoder {
 
 	public static final ADLSequenceEncoder instance = new ADLSequenceEncoder();
-	public static final String impossibleAction = new String(new byte[]{0}, StandardCharsets.US_ASCII);
+	public static final String dummyEncodedAction = new String(
+			new byte[]{
+					(byte)GeneratorRegistry.getDummyActionSignature().getMainSignature().getId()
+					}, 
+			StandardCharsets.US_ASCII);
+	public static final List<String> dummyEncodedSequence;
+	static{
+		dummyEncodedSequence = new LinkedList<String>();
+		dummyEncodedSequence.add(ADLSequenceEncoder.dummyEncodedAction);
+	}
 	
 	private Stack<String> expressionBuf = new Stack<String>();
 	private Stack<Byte> separatorBuf = new Stack<Byte>();
@@ -99,7 +108,6 @@ public class ADLSequenceEncoder {
 				targetState = ((Identifier)action.getParams()[0]).getValue();
 			}
 			List<String> eSeqtoTerminal = new LinkedList<String>();
-			eSeqtoTerminal.add(enc);
 			analyzedNode.createFlowAndTrim(eSeqtoTerminal);
 			Collections.reverse(eSeqtoTerminal);
 			allPossibleFlowToTerminal.add(new ADLSequence(targetState, eSeqtoTerminal));

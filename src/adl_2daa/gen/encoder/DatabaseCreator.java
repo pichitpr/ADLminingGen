@@ -194,12 +194,14 @@ public class DatabaseCreator {
 			for(ADLAgent eAgent : eRoot.agents){
 				for(ADLState eState : eAgent.states){
 					graph.createNewGraph(eAgent.identifier+"."+eState.identifier);
-					int rootNode = graph.addNode(ADLSequenceEncoder.impossibleAction);
+					int rootNode = graph.addNode(ADLSequenceEncoder.dummyEncodedAction);
 					for(ADLSequence eSeq : eState.sequences){
-						int seqRootNode = graph.addNode(ADLSequenceEncoder.impossibleAction);
-						graph.addEdge(rootNode, seqRootNode, 0, true);
+						int seqRootNode = graph.addNode(ADLSequenceEncoder.dummyEncodedAction);
+						graph.addEdge(rootNode, seqRootNode, 
+								EncodeTable.STATE_SEQUENCE_EDGE, true);
 						for(String eAct : eSeq.encodedSequence){
-							graph.addEdge(seqRootNode, graph.addNode(eAct), 0, true);
+							graph.addEdge(seqRootNode, graph.addNode(eAct), 
+									EncodeTable.SEQUENCE_ACTION_EDGE, true);
 						}
 					}
 					db.add(graph.finishGraph());
@@ -231,30 +233,30 @@ public class DatabaseCreator {
 							break;
 						
 						graph.createNewGraph(eState.identifier);
-						int rootNode = graph.addNode(ADLSequenceEncoder.impossibleAction);
+						int rootNode = graph.addNode(ADLSequenceEncoder.dummyEncodedAction);
 						
 						//Spawner parallel sequence
 						for(ADLSequence eSeq : eState.sequences){
-							int seqRootNode = graph.addNode(ADLSequenceEncoder.impossibleAction);
-							graph.addEdge(rootNode, seqRootNode, 0, true);
+							int seqRootNode = graph.addNode(ADLSequenceEncoder.dummyEncodedAction);
+							graph.addEdge(rootNode, seqRootNode, EncodeTable.STATE_SEQUENCE_EDGE, true);
 							for(String eAct : eSeq.encodedSequence){
-								graph.addEdge(seqRootNode, graph.addNode(eAct), 0, true);
+								graph.addEdge(seqRootNode, graph.addNode(eAct), EncodeTable.SEQUENCE_ACTION_EDGE, true);
 							}
 						}
 						
 						//Child parallel sequence
 						for(ADLSequence eSeq : childInitialState.sequences){
-							int seqRootNode = graph.addNode(ADLSequenceEncoder.impossibleAction);
-							graph.addEdge(rootNode, seqRootNode, 1, true);
+							int seqRootNode = graph.addNode(ADLSequenceEncoder.dummyEncodedAction);
+							graph.addEdge(rootNode, seqRootNode, EncodeTable.STATE_SEQUENCE_EDGE, true);
 							for(String eAct : eSeq.encodedSequence){
-								graph.addEdge(seqRootNode, graph.addNode(eAct), 1, true);
+								graph.addEdge(seqRootNode, graph.addNode(eAct), EncodeTable.SEQUENCE_ACTION_OTHER_ENTITY_EDGE, true);
 							}
 						}
 						
 						//Additional info
 						graph.addEdge(rootNode, 
 								graph.addNode(new String(new byte[]{(byte)childInitialState.sequences.size()}, StandardCharsets.US_ASCII)), 
-								2, true);
+								EncodeTable.TAG_EDGE, true);
 						
 						db.add(graph.finishGraph());
 					}

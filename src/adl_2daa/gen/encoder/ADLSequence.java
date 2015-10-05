@@ -1,16 +1,9 @@
 package adl_2daa.gen.encoder;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 public class ADLSequence {
-
-	public static final List<String> dummySequence;
-	static{
-		dummySequence = new LinkedList<String>();
-		dummySequence.add(ADLSequenceEncoder.impossibleAction);
-	}
 	
 	protected String identifier;
 	protected List<String> encodedSequence;

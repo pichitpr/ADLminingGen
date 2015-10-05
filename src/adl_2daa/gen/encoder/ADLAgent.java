@@ -25,7 +25,7 @@ public class ADLAgent {
 			this.des = new ADLSequence("des", new LinkedList<String>());
 		}
 		if(this.des.encodedSequence.size() == 0){
-			this.des.encodedSequence = ADLSequence.dummySequence;
+			this.des.encodedSequence = ADLSequenceEncoder.dummyEncodedSequence;
 		}
 		
 		states = new LinkedList<ADLState>();
