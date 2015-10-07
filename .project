@@ -16,6 +16,16 @@
 	</natures>
 	<linkedResources>
 		<link>
+			<name>parsemis_ext</name>
+			<type>2</type>
+			<location>G:/eclipse luna/eclipse/work/ParsemisExtension/src</location>
+		</link>
+		<link>
+			<name>spmf_reduce</name>
+			<type>2</type>
+			<location>G:/eclipse luna/eclipse/work/SPMF_reduce/src</location>
+		</link>
+		<link>
 			<name>src_adl2daa</name>
 			<type>2</type>
 			<location>G:/eclipse luna/eclipse/work/ADLfor2DAA/src</location>

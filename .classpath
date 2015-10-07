@@ -3,16 +3,16 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="src_adl2daa"/>
 	<classpathentry kind="src" path="test"/>
+	<classpathentry kind="src" path="parsemis_ext"/>
+	<classpathentry kind="src" path="spmf_reduce"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
-	<classpathentry kind="lib" path="G:/libgdx/lib/ParsemisExtension.jar"/>
-	<classpathentry kind="lib" path="G:/libgdx/lib/SPMFreduce.jar"/>
 	<classpathentry kind="lib" path="D:/Users/angelix/Documents/CU Doc/Graduated/Game/Monster generation/Data Mining/ParSeMiS/parsemis-2008-09-04.jar"/>
-	<classpathentry kind="lib" path="D:/Users/angelix/Documents/CU Doc/Graduated/Game/Monster generation/Data Mining/ParSeMiS/lib/antlr-2.7.5.jar"/>
 	<classpathentry kind="lib" path="D:/Users/angelix/Documents/CU Doc/Graduated/Game/Monster generation/Data Mining/ParSeMiS/lib/grappa1_2.jar"/>
 	<classpathentry kind="lib" path="D:/Users/angelix/Documents/CU Doc/Graduated/Game/Monster generation/Data Mining/ParSeMiS/lib/libsvm.jar"/>
 	<classpathentry kind="lib" path="D:/Users/angelix/Documents/CU Doc/Graduated/Game/Monster generation/Data Mining/ParSeMiS/lib/prefuse.jar"/>
 	<classpathentry kind="lib" path="D:/Users/angelix/Documents/CU Doc/Graduated/Game/Monster generation/Data Mining/ParSeMiS/lib/weka.jar"/>
 	<classpathentry kind="lib" path="D:/Users/angelix/Documents/CU Doc/Graduated/Game/Monster generation/Data Mining/ParSeMiS/lib/wlsvm.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="D:/Users/angelix/Documents/CU Doc/Graduated/Game/Monster generation/Data Mining/ParSeMiS/lib/antlr-2.7.5.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
