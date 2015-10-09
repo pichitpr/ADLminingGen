@@ -14,6 +14,7 @@ import adl_2daa.ast.structure.Agent;
 import adl_2daa.ast.structure.Root;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.ast.structure.State;
+import adl_2daa.gen.profile.AgentProfile;
 import adl_2daa.gen.signature.FileIterator;
 import adl_2daa.tool.Parser;
 import de.parsemis.graph.Graph;
@@ -21,10 +22,16 @@ import de.parsemis.graph.Graph;
 public class DatabaseCreator {
 
 	private FileIterator it = new FileIterator();
+	private List<AgentProfile> profile = new ArrayList<AgentProfile>();
+	
+	public AgentProfile getProfile(int agentID){
+		return profile.get(agentID);
+	}
 	
 	/**
 	 * This method must be called before performing mining process
-	 * to store all references to dataset
+	 * to store all references to dataset. Also create agent profile
+	 * for information retrieving
 	 */
 	public void load(String directory){
 		File dir = new File(directory);
@@ -33,6 +40,23 @@ public class DatabaseCreator {
 			return;
 		}
 		it.trackFiles(dir);
+		
+		File rootFile;
+		Root root;
+		AgentProfile agentProfile;
+		while(it.hasNext()){
+			rootFile = it.next();
+			root = loadScriptAsAST(rootFile);
+			for(int i=0; i<root.getRelatedAgents().size(); i++){
+				agentProfile = new AgentProfile();
+				agentProfile.setId(profile.size());
+				agentProfile.setRootName(rootFile.getName());
+				agentProfile.setComplexAgent(false);
+				agentProfile.setMainAgent(i == 0);
+				profile.add(agentProfile);
+			}
+		}
+		it.reset();
 	}
 	
 	/*
@@ -83,13 +107,16 @@ public class DatabaseCreator {
 	 * Create database for order mining from loaded agent file. There are 3 types of DB
 	 * depends on sequences used in creation.
 	 * @param stateType 0:.init 1:.des 2:states
+	 * @return 0:DB 1:agentIDMap
 	 */
-	public List<List<String>>[] createDatabaseForOrder(int stateType){
-		List<List<List<String>>> db = new ArrayList<List<List<String>>>();
+	public Object[] createDatabaseForOrder(int stateType){
+		List<List<List<String>>> db = new LinkedList<List<List<String>>>();
+		List<Integer> agentIDMap = new LinkedList<Integer>();
 		ADLSequence eSeq;
 		ADLSequenceEncoder.instance.setAnalyzeFlow(false);
 		it.reset();
 		
+		int agentID = 0;
 		while(it.hasNext()){
 			Root root = loadScriptAsAST(it.next());
 			for(Agent agent : root.getRelatedAgents()){
@@ -98,12 +125,14 @@ public class DatabaseCreator {
 					if(agent.getInit() != null){
 						eSeq = ADLSequenceEncoder.instance.encode(agent.getInit());
 						db.add(eSeq.toMinerSequence());
+						agentIDMap.add(agentID);
 					}
 					break;
 				case 1: //Des
 					if(agent.getDes() != null){
 						eSeq = ADLSequenceEncoder.instance.encode(agent.getDes());
 						db.add(eSeq.toMinerSequence());
+						agentIDMap.add(agentID);
 					}
 					break;
 				default: //Update
@@ -111,21 +140,25 @@ public class DatabaseCreator {
 						for(Sequence astSeq : state.getSequences()){
 							eSeq = ADLSequenceEncoder.instance.encode(astSeq);
 							db.add(eSeq.toMinerSequence());
+							agentIDMap.add(agentID);
 						}
 					}
 				}
+				agentID++;
 			}
 		}
 		
-		@SuppressWarnings("unchecked")
-		List<List<String>>[] dbAry = db.toArray(new List[db.size()]);
+		Object[] dbAry = new Object[2];
+		dbAry[0] = db.toArray(new List[db.size()]);
+		dbAry[1] = agentIDMap;
+		
 		return dbAry;
 	}
 	
 	/**
 	 * Create database for inter-state order mining. Return Object[6] where <br/>
-	 * 0,1,2: left,right,tag db for flows that end with "goto"
-	 * 3,4,5: flows end with "despawn"
+	 * 0,1,2,3: left,right,tag db,agentIDMap for flows that end with "goto"
+	 * 4,5,6,7: flows end with "despawn"
 	 */
 	public Object[] createDatabaseForInterStateOrder(){
 		List<List<List<String>>> leftdb = new ArrayList<List<List<String>>>();
@@ -134,10 +167,13 @@ public class DatabaseCreator {
 		List<List<List<String>>> rightdbDes = new ArrayList<List<List<String>>>();
 		List<Integer> tag = new ArrayList<Integer>();
 		List<Integer> tagDes = new ArrayList<Integer>();
+		List<Integer> gotoAgentIDMap = new LinkedList<Integer>();
+		List<Integer> desAgentIDMap = new LinkedList<Integer>();
 		
 		ADLSequenceEncoder.instance.setAnalyzeFlow(true);
 		it.reset();
 		
+		int agentID = 0;
 		while(it.hasNext()){
 			Root root = loadScriptAsAST(it.next());
 			for(Agent agent : root.getRelatedAgents()){
@@ -152,6 +188,7 @@ public class DatabaseCreator {
 								leftdbDes.add(eFlow.toMinerSequence());
 								rightdbDes.add(eAgent.des.toMinerSequence());
 								tagDes.add(stateCount);
+								desAgentIDMap.add(agentID);
 							}else{
 								ADLState targetEstate = eAgent.getStateByIdentifier(targetState);
 								//System.out.println(eAgent.identifier+"."+eState.identifier+"."+eSeq.identifier+" -> ."+targetState+":"+targetEstate.sequences.size());
@@ -159,29 +196,38 @@ public class DatabaseCreator {
 									leftdb.add(eFlow.toMinerSequence());
 									rightdb.add(targetEseq.toMinerSequence());
 									tag.add(stateCount);
+									gotoAgentIDMap.add(agentID);
 								}
 							}
 						}
 					}
 				}
+				agentID++;
 			}
 		}
 		
-		Object[] dbAry = new Object[6];
+		Object[] dbAry = new Object[8];
 		
 		dbAry[0] = leftdb.toArray(new List[leftdb.size()]);
 		dbAry[1] = rightdb.toArray(new List[rightdb.size()]);
 		dbAry[2] = tag.toArray(new Integer[tag.size()]);
+		dbAry[3] = gotoAgentIDMap;
 		
-		dbAry[3] = leftdbDes.toArray(new List[leftdbDes.size()]);
-		dbAry[4] = rightdbDes.toArray(new List[rightdbDes.size()]);
-		dbAry[5] = tagDes.toArray(new Integer[tagDes.size()]);
+		dbAry[4] = leftdbDes.toArray(new List[leftdbDes.size()]);
+		dbAry[5] = rightdbDes.toArray(new List[rightdbDes.size()]);
+		dbAry[6] = tagDes.toArray(new Integer[tagDes.size()]);
+		dbAry[7] = desAgentIDMap;
 		
 		return dbAry;
 	}
 	
-	public Collection<Graph<String,Integer>> createDatabaseForParallel(){
+	/**
+	 * Create database for parallel relation
+	 * @return 0:DB 1:agentIDMap
+	 */
+	public Object[] createDatabaseForParallel(){
 		Collection<Graph<String,Integer>> db = new LinkedList<Graph<String,Integer>>();
+		List<Integer> agentIDMap = new LinkedList<Integer>();
 		GraphCreationHelper<String, Integer> graph = 
 				new GraphCreationHelper<String, Integer>();
 		
@@ -189,6 +235,7 @@ public class DatabaseCreator {
 		it.reset();
 		GraphCreationHelper.resetID();
 		
+		int agentID = 0;
 		while(it.hasNext()){
 			Root root = loadScriptAsAST(it.next());
 			ADLRoot eRoot = new ADLRoot(root);
@@ -206,15 +253,26 @@ public class DatabaseCreator {
 						}
 					}
 					db.add(graph.finishGraph());
+					agentIDMap.add(agentID);
 				}
+				agentID++;
 			}
 		}
 		
-		return db;
+		Object[] dbAry = new Object[2];
+		dbAry[0] = db;
+		dbAry[1] = agentIDMap;
+		
+		return dbAry;
 	}
 	
-	public Collection<Graph<String,Integer>> createDatabaseForInterEntityParallel(){
+	/**
+	 * Create database for inter-entity parallel relation
+	 * @return 0:DB 1:agentIDMap (spawner agent ID only)
+	 */
+	public Object[] createDatabaseForInterEntityParallel(){
 		Collection<Graph<String,Integer>> db = new LinkedList<Graph<String,Integer>>();
+		List<Integer> agentIDMap = new LinkedList<Integer>();
 		GraphCreationHelper<String, Integer> graph = 
 				new GraphCreationHelper<String, Integer>();
 		
@@ -223,6 +281,7 @@ public class DatabaseCreator {
 		//TODO: A state that spawn the same agent multiple times will cause
 		//duplicate graph, is this acceptable???
 		//also, we do not consider Spawn in .des, is this Ok? -- now ok
+		int agentID = 0;
 		while(it.hasNext()){
 			Root root = loadScriptAsAST(it.next());
 			ADLRoot eRoot = new ADLRoot(root);
@@ -261,23 +320,37 @@ public class DatabaseCreator {
 								EncodeTable.TAG_EDGE, true);
 						
 						db.add(graph.finishGraph());
+						agentIDMap.add(agentID);
 					}
 				}
+				agentID++;
 			}
 		}
 		
-		return db;
+		Object[] dbAry = new Object[2];
+		dbAry[0] = db;
+		dbAry[1] = agentIDMap;
+		
+		return dbAry;
 	}
 	
-	public Collection<Graph<Integer,Integer>> createDatabaseForNesting(){
+	/**
+	 * Create database for nesting relation mining
+	 * @return 0:DB 1:agentIDMap
+	 */
+	public Object[] createDatabaseForNesting(){
 		Collection<Graph<Integer,Integer>> db = new LinkedList<Graph<Integer,Integer>>();
+		List<Integer> agentIDMap = new LinkedList<Integer>();
 		
 		it.reset();
 		GraphCreationHelper.resetID();
 		
+		int agentID = 0;
+		int graphCounter;
 		while(it.hasNext()){
 			Root root = loadScriptAsAST(it.next());
 			for(Agent agent : root.getRelatedAgents()){
+				graphCounter = db.size();
 				if(agent.getInit() != null){
 					db.addAll(
 							ADLNestingEncoder.instance.parseAsGraphCollection(agent.getInit())
@@ -295,10 +368,18 @@ public class DatabaseCreator {
 								);
 					}
 				}
+				for(int i=1; i<=db.size()-graphCounter; i++){
+					agentIDMap.add(agentID);
+				}
+				agentID++;
 			}
 		}
 		
-		return db;
+		Object[] dbAry = new Object[2];
+		dbAry[0] = db;
+		dbAry[1] = agentIDMap;
+		
+		return dbAry;
 	}
 }
 

@@ -58,7 +58,16 @@ public class Miner {
 	public List<GraphPattern<Integer,Integer>> getFrequentNesting() {
 		return frequentNesting;
 	}
-
+	
+	public void clearResult(){
+		frequentOrder = null;
+		frequentInterStateOrder_Goto = null;
+		frequentInterStateOrder_Despawn = null;
+		frequentParallel = null;
+		frequentInterEntityParallel = null;
+		frequentNesting = null;
+	}
+	
 	/**
 	 * Setup dataset to be mined
 	 */
@@ -67,8 +76,11 @@ public class Miner {
 		dbCreator.load(directory);
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void mineSequenceOrdering(double relativeMinSup, boolean verbose){
-		List<List<String>>[] seqDB = dbCreator.createDatabaseForOrder(2);
+		Object[] db = dbCreator.createDatabaseForOrder(2);
+		List<List<String>>[] seqDB = (List[])db[0];
+		System.out.println("min_sup : "+relativeMinSup);
 		System.out.println("DB size : "+seqDB.length);
 		SequenceDatabaseGen<String> spmfDB = spmf.extension.prefixspan.Utility.<String>loadGen(seqDB);
 		AlgoPrefixSpanGen<String> ps = new AlgoPrefixSpanGen<String>();
@@ -101,6 +113,7 @@ public class Miner {
 				mapToInt(i -> (int)i).toArray();
 		AlgoPrefixSpanJSGen<String> jsps = new AlgoPrefixSpanJSGen<String>();
 		try {
+			System.out.println("min_sup : "+relativeMinSup);
 			System.out.println("Left DB size : "+spmfDBleft.size());
 			System.out.println("Right DB size : "+spmfDBright.size());
 			System.out.println("Tag DB size : "+tag.length);
@@ -125,14 +138,15 @@ public class Miner {
 		
 		//Despawn order
 		spmfDBleft = spmf.extension.prefixspan.Utility.<String>loadGen( 
-				(List<List<String>>[]) istateSeqDB[3] 
-				);
-		spmfDBright = spmf.extension.prefixspan.Utility.<String>loadGen( 
 				(List<List<String>>[]) istateSeqDB[4] 
 				);
-		tag = Arrays.<Integer>stream((Integer[])istateSeqDB[5]).
+		spmfDBright = spmf.extension.prefixspan.Utility.<String>loadGen( 
+				(List<List<String>>[]) istateSeqDB[5] 
+				);
+		tag = Arrays.<Integer>stream((Integer[])istateSeqDB[6]).
 				mapToInt(i -> (int)i).toArray();
 		try {
+			System.out.println("min_sup : "+relativeMinSup);
 			System.out.println("Left DB size : "+spmfDBleft.size());
 			System.out.println("Right DB size : "+spmfDBright.size());
 			System.out.println("Tag DB size : "+tag.length);
@@ -156,8 +170,11 @@ public class Miner {
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void mineParallelSequence(double relativeMinSup, boolean verbose){
-		Collection<Graph<String,Integer>> graphDB = dbCreator.createDatabaseForParallel();
+		Object[] db = dbCreator.createDatabaseForParallel();
+		Collection<Graph<String,Integer>> graphDB = (Collection<Graph<String,Integer>>)db[0];
+		System.out.println("min_sup : "+relativeMinSup);
 		System.out.println("DB size : "+graphDB.size());
 		frequentParallel = SimpleMiner.<String,Integer>mine(
 				graphDB, (int)(graphDB.size()*relativeMinSup)
@@ -192,11 +209,14 @@ public class Miner {
 		return sequenceCounter > 1;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void mineInterEntityParallelSequence(double relativeMinSup, boolean verbose){
-		Collection<Graph<String,Integer>> graphDB = dbCreator.createDatabaseForInterEntityParallel();
+		Object[] db = dbCreator.createDatabaseForInterEntityParallel();
+		Collection<Graph<String,Integer>> graphDB = (Collection<Graph<String,Integer>>)db[0];
+		System.out.println("min_sup : "+relativeMinSup);
 		System.out.println("DB size : "+graphDB.size());
 		frequentInterEntityParallel = SimpleMiner.<String,Integer>mine(
-				graphDB, (int)(graphDB.size()*relativeMinSup)
+				graphDB, (int)(graphDB.size()*relativeMinSup), 8
 				);
 		System.out.println("Patterns found : "+frequentInterEntityParallel.size());
 		frequentInterEntityParallel.removeIf( pattern -> !isValidInterEntityParallelGraph(pattern.getGraph()) );
@@ -236,8 +256,11 @@ public class Miner {
 		return hasChildSequence && hasSpawnerSequence && hasTag;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void mineNesting(double relativeMinSup, boolean verbose){
-		Collection<Graph<Integer,Integer>> graphDB = dbCreator.createDatabaseForNesting();
+		Object[] db = dbCreator.createDatabaseForNesting();
+		Collection<Graph<Integer,Integer>> graphDB = (Collection<Graph<Integer,Integer>>)db[0];
+		System.out.println("min_sup : "+relativeMinSup);
 		System.out.println("DB size : "+graphDB.size());
 		frequentNesting = SimpleMiner.<Integer,Integer>mine(
 				graphDB, (int)(graphDB.size()*relativeMinSup)
