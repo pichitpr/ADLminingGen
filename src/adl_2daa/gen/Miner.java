@@ -242,7 +242,7 @@ public class Miner {
 		
 		for(GraphPattern<String,Integer> pattern : frequentInterEntityParallel){
 			for(int id : pattern.getGraphIDs()){
-				dbCreator.getProfile(idMap.get(id)).addParallelInterEntityRelationUsage();
+				dbCreator.getProfile(idMap.get(id)).addInterEntityParallelRelationUsage();
 			}
 			if(verbose){
 				System.out.println("===============");

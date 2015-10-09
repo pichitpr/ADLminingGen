@@ -85,7 +85,7 @@ public class AgentProfile {
 		this.parallelRelationUsage++;
 	}
 
-	public void addParallelInterEntityRelationUsage() {
+	public void addInterEntityParallelRelationUsage() {
 		this.parallelInterEntityRelationUsage++;
 	}
 
