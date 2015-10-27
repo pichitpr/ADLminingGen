@@ -105,11 +105,9 @@ public class ADLExpressionEncoder {
 		buf.add(EncodeTable.EXP_FUNCTION);
 		FunctionMainSignature sig = GeneratorRegistry.getFunctionSignature(function.getName());
 		int functionID = (byte)sig.getMainSignature().getId();
-		//byte paramsLength = (byte)sig.getMainSignature().getParamType().length;
 		if(sig.hasChoice()){
 			String choice = ((StringConstant)function.getParams()[0]).getValue();
 			functionID = sig.getChoiceSignature(choice).getId();
-			//paramsLength = (byte)sig.getChoiceSignature(choice).getParamType().length;
 		}
 		if(function.hasSingleQuery()){
 			functionID = -functionID;
@@ -118,7 +116,6 @@ public class ADLExpressionEncoder {
 		for(byte b : encodedFunction){
 			buf.add(b);
 		}
-		//buf.add(paramsLength); //TODO: later work, remove paramCount if not used
 		for(int i=0; i<function.getParams().length; i++){
 			if(i == 0 && sig.hasChoice()) continue;
 			encodeRecursively(function.getParams()[i]);
