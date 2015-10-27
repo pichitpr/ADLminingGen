@@ -38,6 +38,11 @@ public class ADLSequenceEncoder {
 	
 	private boolean analyzeFlow = false;
 	private FlowAnalyzableTree analyzedNode;
+	/**
+	 * All possible flows to terminal (goto/despawn), the terminal action is discard
+	 * from the sequence. Terminal type (goto/despawn) can be checked by examining sequence's
+	 * identifier
+	 */
 	private List<ADLSequence> allPossibleFlowToTerminal;
 	
 	public void setAnalyzeFlow(boolean analyzeFlow) {

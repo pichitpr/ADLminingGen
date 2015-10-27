@@ -47,6 +47,11 @@ public abstract class MainSignature {
 		choiceSigMap.put(choice, signature);
 	}
 	
+	/**
+	 * Return choice signature. The choice signature will have its first parameter
+	 * (the choice) omitted thus the parameters length will be shorter than what
+	 * appears in code. If the signature has no choice, this method returns mainSignature  
+	 */
 	public Signature getChoiceSignature(String choice){
 		Signature sig = choiceSigMap.get(choice);
 		if(sig == null){
