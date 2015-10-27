@@ -23,18 +23,22 @@ public class GeneratorRegistry {
 		actionIdNameMap.put(sig.getMainSignature().getId(), funcname);
 		if(sig.hasChoice()){
 			for(Entry<String,Signature> choice : sig.choiceSigMap.entrySet()){
-				actionIdNameMap.put(choice.getValue().getId(), funcname+"#\""+choice.getKey()+"\"");
+				actionIdNameMap.put(choice.getValue().getId(), funcname+"#"+choice.getKey());
 			}
 		}
 	}
 	
+	/**
+	 * Return MainSignature of the given action. A choice parameter (if any, at index 0)
+	 * is trimmed from the MainSignature and the remaining parameters are shifted.
+	 */
 	public static ActionMainSignature getActionSignature(String funcCode){
 		return actionSignatureMap.get(funcCode);
 	}
 	
 	/**
 	 * Get action name by signature ID. If it is an ID for choice,
-	 * the action name will be in actionName#"choice" format
+	 * the action name will be in actionName#choice format
 	 */
 	public static String getActionName(int id){
 		return actionIdNameMap.get(id);
@@ -54,11 +58,15 @@ public class GeneratorRegistry {
 		functionIdNameMap.put(sig.getMainSignature().getId(), funcname);
 		if(sig.hasChoice()){
 			for(Entry<String,Signature> choice : sig.choiceSigMap.entrySet()){
-				functionIdNameMap.put(choice.getValue().getId(), funcname+"#\""+choice.getKey()+"\"");
+				functionIdNameMap.put(choice.getValue().getId(), funcname+"#"+choice.getKey());
 			}
 		}
 	}
 	
+	/**
+	 * Return MainSignature of the given function. A choice (if any, at index 0) is trimmed
+	 * from the MainSignature and the remaining parameters are shifted.
+	 */
 	public static FunctionMainSignature getFunctionSignature(String funcCode){
 		return functionSignatureMap.get(funcCode);
 	}
@@ -85,5 +93,9 @@ public class GeneratorRegistry {
 		
 		dummyActionSignature = new ActionMainSignature();
 		registerActionSignature("#dummy", dummyActionSignature);
+		
+		//This will increase function's ID count by 1, so the first function ID is 1
+		@SuppressWarnings("unused")
+		FunctionMainSignature dummyFunctionSignature = new FunctionMainSignature(Datatype.BOOL);
 	}
 }
