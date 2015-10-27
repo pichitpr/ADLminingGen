@@ -35,6 +35,8 @@ public class TestNestingEncoder {
 		script = TestUtility.readFileAsString("test/ext/Sample_nesting.txt");
 		agentFile = parser.parse(script);
 		sample2 = agentFile.getRelatedAgents().get(0);
+		
+		setup = true;
 	}
 	
 	@Test
