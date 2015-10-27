@@ -30,6 +30,7 @@ public class TestExpressionEncoder {
 		Parser parser = new Parser();
 		Root agentFile = parser.parse(script);
 		sample = agentFile.getRelatedAgents().get(0);
+		setup = true;
 	}
 	
 	@Test
@@ -38,19 +39,24 @@ public class TestExpressionEncoder {
 		ASTExpression cond;
 		String eExp;
 		byte[] expectedCond;
+		byte[] id0, id1;
 		
 		//(Abs(DistanceToPlayer("Y")) <= 30)
 		cond = ((Condition)seq.getStatements().get(1)).getCondition();
 		eExp = ADLExpressionEncoder.instance.encode(cond);
+		id0 = EncodeTable.encodeSignatureID(
+				GeneratorRegistry.getFunctionSignature("Abs").getMainSignature().getId()
+				);
+		id1 = EncodeTable.encodeSignatureID(
+				GeneratorRegistry.getFunctionSignature("DistanceToPlayer").getChoiceSignature("Y").getId()
+				);
 		expectedCond = new byte[]{
 				EncodeTable.EXP_BINARY,
 				EncodeTable.EXP_BINARY_COMP_LE,
 				EncodeTable.EXP_FUNCTION,
-				(byte)GeneratorRegistry.getFunctionSignature("Abs").getMainSignature().getId(),
-				1,
+				id0[0], id0[1],
 				EncodeTable.EXP_FUNCTION,
-				(byte)GeneratorRegistry.getFunctionSignature("DistanceToPlayer").getChoiceSignature("Y").getId(),
-				0,
+				id1[0], id1[1],
 				EncodeTable.EXP_LITERAL
 				};
 		assertEquals(new String(expectedCond,StandardCharsets.US_ASCII), eExp);
@@ -58,15 +64,19 @@ public class TestExpressionEncoder {
 		//Abs(DistanceToPlayer("Y"))$ <= 60
 		cond = ((Condition)seq.getStatements().get(2)).getCondition();
 		eExp = ADLExpressionEncoder.instance.encode(cond);
+		id0 = EncodeTable.encodeSignatureID(
+				-GeneratorRegistry.getFunctionSignature("Abs").getMainSignature().getId()
+				);
+		id1 = EncodeTable.encodeSignatureID(
+				GeneratorRegistry.getFunctionSignature("DistanceToPlayer").getChoiceSignature("Y").getId()
+				);
 		expectedCond = new byte[]{
 				EncodeTable.EXP_BINARY,
 				EncodeTable.EXP_BINARY_COMP_LE,
 				EncodeTable.EXP_FUNCTION,
-				(byte)-GeneratorRegistry.getFunctionSignature("Abs").getMainSignature().getId(),
-				1,
+				id0[0], id0[1],
 				EncodeTable.EXP_FUNCTION,
-				(byte)GeneratorRegistry.getFunctionSignature("DistanceToPlayer").getChoiceSignature("Y").getId(),
-				0,
+				id1[0], id1[1],
 				EncodeTable.EXP_LITERAL
 				};
 		assertEquals(new String(expectedCond,StandardCharsets.US_ASCII), eExp);

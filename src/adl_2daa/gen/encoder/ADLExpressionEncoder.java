@@ -13,9 +13,9 @@ import adl_2daa.ast.expression.Comparison;
 import adl_2daa.ast.expression.Function;
 import adl_2daa.ast.expression.Or;
 import adl_2daa.ast.expression.StringConstant;
+import adl_2daa.gen.Utility;
 import adl_2daa.gen.signature.FunctionMainSignature;
 import adl_2daa.gen.signature.GeneratorRegistry;
-import adl_2daa.gen.signature.Utility;
 
 
 public class ADLExpressionEncoder {
@@ -104,18 +104,21 @@ public class ADLExpressionEncoder {
 	private void encodeFunction(Function function){
 		buf.add(EncodeTable.EXP_FUNCTION);
 		FunctionMainSignature sig = GeneratorRegistry.getFunctionSignature(function.getName());
-		byte functionID = (byte)sig.getMainSignature().getId();
-		byte paramsLength = (byte)sig.getMainSignature().getParamType().length;
+		int functionID = (byte)sig.getMainSignature().getId();
+		//byte paramsLength = (byte)sig.getMainSignature().getParamType().length;
 		if(sig.hasChoice()){
 			String choice = ((StringConstant)function.getParams()[0]).getValue();
-			functionID = (byte)sig.getChoiceSignature(choice).getId();
-			paramsLength = (byte)sig.getChoiceSignature(choice).getParamType().length;
+			functionID = sig.getChoiceSignature(choice).getId();
+			//paramsLength = (byte)sig.getChoiceSignature(choice).getParamType().length;
 		}
 		if(function.hasSingleQuery()){
-			functionID = (byte)-functionID;
+			functionID = -functionID;
 		}
-		buf.add(functionID);
-		buf.add(paramsLength);
+		byte[] encodedFunction = EncodeTable.encodeSignatureID(functionID);
+		for(byte b : encodedFunction){
+			buf.add(b);
+		}
+		//buf.add(paramsLength); //TODO: later work, remove paramCount if not used
 		for(int i=0; i<function.getParams().length; i++){
 			if(i == 0 && sig.hasChoice()) continue;
 			encodeRecursively(function.getParams()[i]);
