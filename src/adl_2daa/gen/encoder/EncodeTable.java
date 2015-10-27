@@ -37,4 +37,19 @@ public class EncodeTable {
 	public static final int SEQUENCE_ACTION_EDGE = 1;
 	public static final int SEQUENCE_ACTION_OTHER_ENTITY_EDGE = 2;
 	public static final int TAG_EDGE = -1;
+	
+	//===========================================
+	
+	//Support ID up to 127 (0..127)
+	public static byte[] encodeSignatureID(int id){
+		boolean minus = id < 0;
+		byte[] data = new byte[2];
+		data[0] = (byte)(minus ? 1 : 0);
+		data[1] = (byte)(minus ? -id : id);
+		return data;
+	}
+	
+	public static int decodeSignatureID(byte b0, byte b1){
+		return b0 == 1 ? -(int)b1 : b1;
+	}
 }
