@@ -12,8 +12,8 @@ import org.junit.Test;
 import adl_2daa.ast.structure.Agent;
 import adl_2daa.ast.structure.Root;
 import adl_2daa.ast.structure.State;
+import adl_2daa.gen.Utility;
 import adl_2daa.gen.signature.GeneratorRegistry;
-import adl_2daa.gen.signature.Utility;
 import adl_2daa.gen.testtool.TestInitializer;
 import adl_2daa.gen.testtool.TestUtility;
 import adl_2daa.tool.Parser;
@@ -31,6 +31,7 @@ public class TestSequenceEncoder {
 		Parser parser = new Parser();
 		Root agentFile = parser.parse(script);
 		sample = agentFile.getRelatedAgents().get(0);
+		setup = true;
 	}
 	
 	@Test
@@ -62,6 +63,7 @@ public class TestSequenceEncoder {
 		String eAct;
 		List<Byte> expected = new LinkedList<Byte>();
 		Byte[] cond1,cond2;
+		byte[] id0, id1;
 		
 		assertEquals(8, eSeq.size());
 		
@@ -71,15 +73,19 @@ public class TestSequenceEncoder {
 		assertEquals(new String(Utility.toByteArray(expected), StandardCharsets.US_ASCII), eAct);
 		
 		//cond1 ( Abs(DistanceToPlayer("Y")) <= 30 )
+		id0 = EncodeTable.encodeSignatureID(
+				GeneratorRegistry.getFunctionSignature("Abs").getMainSignature().getId()
+				);
+		id1 = EncodeTable.encodeSignatureID(
+				GeneratorRegistry.getFunctionSignature("DistanceToPlayer").getChoiceSignature("Y").getId()
+				);
 		cond1 = new Byte[]{
 				EncodeTable.EXP_BINARY,
 				EncodeTable.EXP_BINARY_COMP_LE,
 				EncodeTable.EXP_FUNCTION,
-				(byte)GeneratorRegistry.getFunctionSignature("Abs").getMainSignature().getId(),
-				1,
+				id0[0], id0[1],
 				EncodeTable.EXP_FUNCTION,
-				(byte)GeneratorRegistry.getFunctionSignature("DistanceToPlayer").getChoiceSignature("Y").getId(),
-				0,
+				id1[0], id1[1],
 				EncodeTable.EXP_LITERAL
 				};
 		
@@ -108,12 +114,14 @@ public class TestSequenceEncoder {
 		assertEquals(new String(Utility.toByteArray(expected), StandardCharsets.US_ASCII), eAct);
 		
 		//cond2 (DistanceToPlayer("X") <= 30)
+		id0 = EncodeTable.encodeSignatureID(
+				GeneratorRegistry.getFunctionSignature("DistanceToPlayer").getChoiceSignature("X").getId()
+				);
 		cond2 = new Byte[]{
 				EncodeTable.EXP_BINARY,
 				EncodeTable.EXP_BINARY_COMP_LE,
 				EncodeTable.EXP_FUNCTION,
-				(byte)GeneratorRegistry.getFunctionSignature("DistanceToPlayer").getChoiceSignature("X").getId(),
-				0,
+				id0[0],id0[1],
 				EncodeTable.EXP_LITERAL
 				};
 		
@@ -138,15 +146,19 @@ public class TestSequenceEncoder {
 		assertEquals(new String(Utility.toByteArray(expected), StandardCharsets.US_ASCII), eAct);
 		
 		//cond1 (Abs(DistanceToPlayer("Y"))$ <= 60)
+		id0 = EncodeTable.encodeSignatureID(
+				-GeneratorRegistry.getFunctionSignature("Abs").getMainSignature().getId()
+				);
+		id1 = EncodeTable.encodeSignatureID(
+				GeneratorRegistry.getFunctionSignature("DistanceToPlayer").getChoiceSignature("Y").getId()
+				);
 		cond1 = new Byte[]{
 				EncodeTable.EXP_BINARY,
 				EncodeTable.EXP_BINARY_COMP_LE,
 				EncodeTable.EXP_FUNCTION,
-				(byte)-GeneratorRegistry.getFunctionSignature("Abs").getMainSignature().getId(),
-				1,
+				id0[0], id0[1],
 				EncodeTable.EXP_FUNCTION,
-				(byte)GeneratorRegistry.getFunctionSignature("DistanceToPlayer").getChoiceSignature("Y").getId(),
-				0,
+				id1[0], id1[1],
 				EncodeTable.EXP_LITERAL
 				};
 		
@@ -175,15 +187,20 @@ public class TestSequenceEncoder {
 		String eAct;
 		List<Byte> expected = new LinkedList<Byte>();
 		Byte[] loop1,cond1;
+		byte[] id0, id1;
 		
 		//loop1 (Random(DecimalSet(1,6,1)))
+		id0 = EncodeTable.encodeSignatureID(
+				GeneratorRegistry.getFunctionSignature("Random").getMainSignature().getId()
+				);
+		id1 = EncodeTable.encodeSignatureID(
+				GeneratorRegistry.getFunctionSignature("DecimalSet").getMainSignature().getId()
+				);
 		loop1 = new Byte[]{
 			EncodeTable.EXP_FUNCTION,
-			(byte)GeneratorRegistry.getFunctionSignature("Random").getMainSignature().getId(),
-			1,
+			id0[0], id0[1],
 			EncodeTable.EXP_FUNCTION,
-			(byte)GeneratorRegistry.getFunctionSignature("DecimalSet").getMainSignature().getId(),
-			3,
+			id1[0], id1[1],
 			EncodeTable.EXP_LITERAL,
 			EncodeTable.EXP_LITERAL,
 			EncodeTable.EXP_LITERAL
@@ -197,15 +214,19 @@ public class TestSequenceEncoder {
 		assertEquals(new String(Utility.toByteArray(expected), StandardCharsets.US_ASCII), eAct);
 		
 		//cond1 (Random(DecimalSet(1,2,1)) == 1)
+		id0 = EncodeTable.encodeSignatureID(
+				GeneratorRegistry.getFunctionSignature("Random").getMainSignature().getId()
+				);
+		id1 = EncodeTable.encodeSignatureID(
+				GeneratorRegistry.getFunctionSignature("DecimalSet").getMainSignature().getId()
+				);
 		cond1 = new Byte[]{
 				EncodeTable.EXP_BINARY,
 				EncodeTable.EXP_BINARY_COMP_EQ,
 				EncodeTable.EXP_FUNCTION,
-				(byte)GeneratorRegistry.getFunctionSignature("Random").getMainSignature().getId(),
-				1,
+				id0[0], id0[1],
 				EncodeTable.EXP_FUNCTION,
-				(byte)GeneratorRegistry.getFunctionSignature("DecimalSet").getMainSignature().getId(),
-				3,
+				id1[0], id1[1],
 				EncodeTable.EXP_LITERAL,
 				EncodeTable.EXP_LITERAL,
 				EncodeTable.EXP_LITERAL,
