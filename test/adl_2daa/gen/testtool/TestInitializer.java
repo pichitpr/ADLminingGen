@@ -47,7 +47,7 @@ public class TestInitializer {
 		set.addChoiceSignature("invul", new ActionSignature(Datatype.DYNAMIC, Datatype.BOOL));
 		set.addChoiceSignature("projectile", new ActionSignature(Datatype.DYNAMIC, Datatype.BOOL));
 		set.addChoiceSignature("phasing", new ActionSignature(Datatype.DYNAMIC, Datatype.BOOL));
-		set.addChoiceSignature("texture", new ActionSignature(Datatype.DYNAMIC, Datatype.BOOL));
+		set.addChoiceSignature("texture", new ActionSignature(Datatype.DYNAMIC, Datatype.INT));
 		GeneratorRegistry.registerActionSignature("Set", set);
 		
 		GeneratorRegistry.registerActionSignature("Spawn",
