@@ -1,6 +1,7 @@
 package adl_2daa.gen;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -28,14 +29,14 @@ import de.parsemis.graph.Node;
 public class Miner {
 
 	private DatabaseCreator dbCreator;
-	private SequentialPatternsGen<String> frequentOrder;
+	private List<SequentialPatternGen<String>> frequentOrder;
 	private List<JSPatternGen<String>> frequentInterStateOrder_Goto;
 	private List<JSPatternGen<String>> frequentInterStateOrder_Despawn;
 	private List<GraphPattern<String,Integer>> frequentParallel;
 	private List<GraphPattern<String,Integer>> frequentInterEntityParallel;
 	private List<GraphPattern<Integer,Integer>> frequentNesting;
 	
-	public SequentialPatternsGen<String> getFrequentOrder() {
+	public List<SequentialPatternGen<String>> getFrequentOrder() {
 		return frequentOrder;
 	}
 
@@ -76,8 +77,12 @@ public class Miner {
 		dbCreator.load(directory);
 	}
 	
+	/**
+	 * Mine ADL as sequence and stored in memory 
+	 */
 	@SuppressWarnings("unchecked")
-	public void mineSequenceOrdering(double relativeMinSup, boolean verbose){
+	public void mineSequenceOrdering(double relativeMinSup, boolean verbose, 
+			boolean filterOutLength1){
 		Object[] db = dbCreator.createDatabaseForOrder(2);
 		List<List<String>>[] seqDB = (List[])db[0];
 		List<Integer> idMap = (List<Integer>)db[1];
@@ -86,16 +91,23 @@ public class Miner {
 		SequenceDatabaseGen<String> spmfDB = spmf.extension.prefixspan.Utility.<String>loadGen(seqDB);
 		AlgoPrefixSpanGen<String> ps = new AlgoPrefixSpanGen<String>();
 		try {
-			frequentOrder = ps.runAlgorithm(spmfDB, relativeMinSup, null);
-			System.out.println("Patterns found : "+frequentOrder.sequenceCount);
-			for(List<SequentialPatternGen<String>> level : frequentOrder.levels){
+			SequentialPatternsGen<String> frequentOrderSeq = 
+					ps.runAlgorithm(spmfDB, relativeMinSup, null);
+			System.out.println("Patterns found : "+frequentOrderSeq.sequenceCount);
+			frequentOrder = new ArrayList<SequentialPatternGen<String>>();
+			for(List<SequentialPatternGen<String>> level : frequentOrderSeq.levels){
 				for(SequentialPatternGen<String> seq : level){
-					for(int seqID : seq.getSequenceIDs()){
-						dbCreator.getProfile(idMap.get(seqID)).addOrderRelationUsage();;
-					}
-					if(verbose){
-						System.out.println(TestUtility.sequencePatternToByteString(seq));
-					}
+					if(filterOutLength1 && seq.getItemsets().size() > 1)
+						frequentOrder.add(seq);
+				}
+			}
+			System.out.println("Valid patterns : "+frequentOrder.size());
+			for(SequentialPatternGen<String> seq : frequentOrder){
+				for(int seqID : seq.getSequenceIDs()){
+					dbCreator.getProfile(idMap.get(seqID)).addOrderRelationUsage();
+				}
+				if(verbose){
+					System.out.println(TestUtility.sequencePatternToByteString(seq));
 				}
 			}
 		} catch (IOException e) {
@@ -126,6 +138,12 @@ public class Miner {
 			frequentInterStateOrder_Goto = jsps.getResult();
 			System.out.println("Patterns found : "+frequentInterStateOrder_Goto.size());
 			
+			//Filter out invalid pattern
+			frequentInterStateOrder_Goto.removeIf(
+					jspattern -> jspattern.getRightSide().getItemsets().isEmpty()
+					);
+			
+			System.out.println("Valid patterns : "+frequentInterStateOrder_Goto.size());
 			for(JSPatternGen<String> jspattern : frequentInterStateOrder_Goto){
 				for(int seqID : jspattern.getSequenceIds()){
 					dbCreator.getProfile(idMap.get(seqID)).addInterStateGotoRelationUsage();
@@ -163,6 +181,12 @@ public class Miner {
 			frequentInterStateOrder_Despawn = jsps.getResult();
 			System.out.println("Patterns found : "+frequentInterStateOrder_Despawn.size());
 			
+			//Filter out invalid pattern
+			frequentInterStateOrder_Despawn.removeIf(
+					jspattern -> jspattern.getRightSide().getItemsets().isEmpty()
+					);
+			
+			System.out.println("Valid patterns : "+frequentInterStateOrder_Despawn.size());
 			for(JSPatternGen<String> jspattern : frequentInterStateOrder_Despawn){
 				for(int seqID : jspattern.getSequenceIds()){
 					dbCreator.getProfile(idMap.get(seqID)).addInterStateDespawnRelationUsage();;
@@ -191,11 +215,11 @@ public class Miner {
 		System.out.println("min_sup : "+relativeMinSup);
 		System.out.println("DB size : "+graphDB.size());
 		frequentParallel = SimpleMiner.<String,Integer>mine(
-				graphDB, (int)(graphDB.size()*relativeMinSup)
+				graphDB, (int)(graphDB.size()*relativeMinSup), 8
 				);
 		System.out.println("Patterns found : "+frequentParallel.size());
 		frequentParallel.removeIf( pattern -> !isValidParallelGraph(pattern.getGraph()) );
-		System.out.println("Valid pattern : "+frequentParallel.size());
+		System.out.println("Valid patterns : "+frequentParallel.size());
 		
 		for(GraphPattern<String,Integer> pattern : frequentParallel){
 			for(int id : pattern.getGraphIDs()){
@@ -238,7 +262,7 @@ public class Miner {
 				);
 		System.out.println("Patterns found : "+frequentInterEntityParallel.size());
 		frequentInterEntityParallel.removeIf( pattern -> !isValidInterEntityParallelGraph(pattern.getGraph()) );
-		System.out.println("Valid pattern : "+frequentInterEntityParallel.size());
+		System.out.println("Valid patterns : "+frequentInterEntityParallel.size());
 		
 		for(GraphPattern<String,Integer> pattern : frequentInterEntityParallel){
 			for(int id : pattern.getGraphIDs()){
@@ -285,9 +309,11 @@ public class Miner {
 		System.out.println("min_sup : "+relativeMinSup);
 		System.out.println("DB size : "+graphDB.size());
 		frequentNesting = SimpleMiner.<Integer,Integer>mine(
-				graphDB, (int)(graphDB.size()*relativeMinSup)
+				graphDB, (int)(graphDB.size()*relativeMinSup), 8
 				);
 		System.out.println("Patterns found : "+frequentNesting.size());
+		frequentNesting.removeIf(graph -> graph.getGraph().getNodeCount() <= 1);
+		System.out.println("Valid patterns : "+frequentNesting.size());
 		
 		for(GraphPattern<Integer,Integer> pattern : frequentNesting){
 			for(int id : pattern.getGraphIDs()){
