@@ -14,9 +14,11 @@ import spmf.extension.algorithm.seqgen.AlgoPrefixSpanJSGen;
 import spmf.extension.algorithm.seqgen.SequentialPatternGen;
 import spmf.extension.algorithm.seqgen.SequentialPatternsGen;
 import spmf.extension.input.sequence_db_generic.SequenceDatabaseGen;
+import spmf.extension.patterns.itemset_list_generic.ItemsetGen;
 import spmf.extension.prefixspan.JSPatternGen;
 import adl_2daa.gen.encoder.DatabaseCreator;
 import adl_2daa.gen.encoder.EncodeTable;
+import adl_2daa.gen.signature.GeneratorRegistry;
 import adl_2daa.gen.testtool.TestUtility;
 import de.parsemis.graph.Edge;
 import de.parsemis.graph.Graph;
@@ -97,7 +99,7 @@ public class Miner {
 			frequentOrder = new ArrayList<SequentialPatternGen<String>>();
 			for(List<SequentialPatternGen<String>> level : frequentOrderSeq.levels){
 				for(SequentialPatternGen<String> seq : level){
-					if(filterOutLength1 && seq.getItemsets().size() > 1)
+					if(isValidSequenceOrdering(seq, filterOutLength1))
 						frequentOrder.add(seq);
 				}
 			}
@@ -113,6 +115,21 @@ public class Miner {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private boolean isValidSequenceOrdering(SequentialPatternGen<String> seq, 
+			boolean filterOutLength1){
+		if(filterOutLength1 && seq.getItemsets().size() == 1){
+			return false;
+		}
+		for(ItemsetGen<String> iset : seq.getItemsets()){
+			int eActID = iset.get(0).charAt(0);
+			String actionName = GeneratorRegistry.getActionName(eActID);
+			if(actionName.equals("Goto") || actionName.equals("Despawn")){
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	@SuppressWarnings("unchecked")
