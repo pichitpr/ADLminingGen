@@ -53,6 +53,7 @@ public class DatabaseCreator {
 				agentProfile.setRootName(rootFile.getName());
 				agentProfile.setComplexAgent(false);
 				agentProfile.setMainAgent(i == 0);
+				agentProfile.createStructureProfile(root.getRelatedAgents().get(i));
 				profile.add(agentProfile);
 			}
 		}

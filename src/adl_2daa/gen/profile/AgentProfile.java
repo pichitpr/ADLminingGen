@@ -1,5 +1,11 @@
 package adl_2daa.gen.profile;
 
+import adl_2daa.ast.structure.Agent;
+import adl_2daa.ast.structure.State;
+
+/**
+ * Store profile of individual agent in the dataset
+ */
 public class AgentProfile {
 
 	private int id;
@@ -12,6 +18,10 @@ public class AgentProfile {
 	private int parallelRelationUsage;
 	private int parallelInterEntityRelationUsage;
 	private int nestingRelationUsage;
+	
+	//Structure info
+	private boolean hasDes;
+	private int[] structureInfo;
 	
 	public int getId() {
 		return id;
@@ -93,5 +103,26 @@ public class AgentProfile {
 		this.nestingRelationUsage++;
 	}
 	
+	public void createStructureProfile(Agent agent){
+		this.hasDes = agent.getDes() != null;
+		this.structureInfo = new int[agent.getStates().size()];
+		for(int i=0; i<agent.getStates().size(); i++){
+			State state = agent.getStates().get(i);
+			this.structureInfo[i] = state.getSequences().size();
+		}
+	}
+	
+	public void setStructureInfo(boolean hasDes, int[] info){
+		this.hasDes = hasDes;
+		this.structureInfo = info;
+	}
+
+	public boolean hasDes() {
+		return hasDes;
+	}
+
+	public int[] getStructureInfo() {
+		return structureInfo;
+	}
 	
 }
