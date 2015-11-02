@@ -16,7 +16,7 @@ import adl_2daa.ast.expression.Comparison.Comp;
 import adl_2daa.ast.expression.Function;
 import adl_2daa.ast.expression.Or;
 import adl_2daa.ast.expression.StringConstant;
-import adl_2daa.gen.generator.LiteralSkeleton;
+import adl_2daa.gen.generator.ExpressionSkeleton;
 import adl_2daa.gen.signature.Datatype;
 import adl_2daa.gen.signature.GeneratorRegistry;
 import adl_2daa.gen.signature.Signature;
@@ -29,7 +29,11 @@ public class ADLExpressionDecoder {
 	private int bufPointer;
 	
 	public ASTExpression decode(String exp, Datatype expectingType){
-		buf = exp.getBytes(StandardCharsets.US_ASCII);
+		return decode(exp.getBytes(StandardCharsets.US_ASCII), expectingType);
+	}
+	
+	public ASTExpression decode(byte[] buf, Datatype expectingType){
+		this.buf = buf;
 		bufPointer = -1;
 		return decodeRecursively(expectingType);
 	}
@@ -46,7 +50,7 @@ public class ADLExpressionDecoder {
 		case EncodeTable.EXP_FUNCTION:
 			return decodeFunction();
 		case EncodeTable.EXP_LITERAL:
-			return new LiteralSkeleton(parentExpectingType);
+			return new ExpressionSkeleton(parentExpectingType);
 		}
 		return null;
 	}

@@ -7,11 +7,11 @@ import adl_2daa.gen.signature.Datatype;
 import adl_2daa.internal.Instruction;
 import adl_2daa.tool.ADLCompiler;
 
-public class LiteralSkeleton extends ASTExpression{
+public class ExpressionSkeleton extends ASTExpression{
 	
 	private Datatype type;
 	
-	public LiteralSkeleton(Datatype type) {
+	public ExpressionSkeleton(Datatype type) {
 		super();
 		this.type = type;
 	}
@@ -24,5 +24,7 @@ public class LiteralSkeleton extends ASTExpression{
 	public void compile(List<Instruction> ins, ADLCompiler compiler) {}
 
 	@Override
-	public void toScript(StringBuilder str, int indent) {}
+	public void toScript(StringBuilder str, int indent) {
+		str.append("#"+type.name());
+	}
 }
