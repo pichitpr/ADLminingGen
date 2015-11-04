@@ -1,5 +1,7 @@
 package adl_2daa.gen.generator;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 
 import adl_2daa.ast.ASTStatement;
@@ -41,5 +43,28 @@ public class ASTUtility {
 		int index = randomRange(startIndex, endIndex);
 		sequence.getStatements().add(index, statement);
 		return index;
+	}
+	
+	public static Agent createEmptyAgent(String identifier){
+		List<State> states = new LinkedList<State>();
+		states.add(createEmptyState("state0"));
+		Agent agent = new Agent(identifier, 
+				createEmptySequence("init"), 
+				createEmptySequence("des"), 
+				states);
+		return agent;
+	}
+	
+	public static State createEmptyState(String identifier){
+		List<Sequence> sequences = new LinkedList<Sequence>();
+		sequences.add(createEmptySequence("seq0"));
+		State state = new State(identifier, sequences);
+		return state;
+	}
+	
+	public static Sequence createEmptySequence(String identifier){
+		List<ASTStatement> statement = new LinkedList<ASTStatement>();
+		Sequence seq = new Sequence(identifier, statement);
+		return seq;
 	}
 }
