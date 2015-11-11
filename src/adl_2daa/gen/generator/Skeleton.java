@@ -1,12 +1,13 @@
 package adl_2daa.gen.generator;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.jacop.constraints.XltY;
+import org.jacop.constraints.XlteqY;
 import org.jacop.core.IntVar;
 import org.jacop.core.Store;
 import org.jacop.search.DepthFirstSearch;
@@ -16,7 +17,11 @@ import org.jacop.search.Search;
 
 import spmf.extension.algorithm.seqgen.SequentialPatternGen;
 import spmf.extension.patterns.itemset_list_generic.ItemsetGen;
+import spmf.extension.prefixspan.JSPatternGen;
+import adl_2daa.ast.ASTExpression;
 import adl_2daa.ast.ASTStatement;
+import adl_2daa.ast.expression.Identifier;
+import adl_2daa.ast.statement.Action;
 import adl_2daa.ast.structure.Agent;
 import adl_2daa.ast.structure.Root;
 import adl_2daa.ast.structure.Sequence;
@@ -26,10 +31,12 @@ import adl_2daa.gen.profile.AgentProfile;
 
 public class Skeleton {
 
+	private String identifier;
 	private Root skel;
 	
 	public void generateInitialSkeleton(AgentProfile[] profiles){
 		List<Agent> agents = new LinkedList<Agent>();
+		identifier = profiles[0].getRootName();
 		skel = new Root(agents);
 		
 		for(int i=0; i<profiles.length; i++){
@@ -63,49 +70,158 @@ public class Skeleton {
 		//Solve
 		//Realize [assignment] --> need to know "location in AST" for each slot value
 		
+		//Prepare skeleton
 		Agent agent = ASTUtility.randomUniformAgent(skel);
 		State state = ASTUtility.randomUniformState(agent);
 		Sequence sequence = ASTUtility.randomUniformSequence(state);
 		List<ASTStatement> skelStatements = sequence.getStatements();
 		
+		
+		//Decode relation
 		List<String> eSeq = new LinkedList<String>();
 		for(ItemsetGen<String> iset : relation.getItemsets()){
 			eSeq.add(iset.get(0));
 		}
 		List<ASTStatement> statements = ADLSequenceDecoder.instance.decode(eSeq);
 		
+		
 		//Generate CSP and solve
 		Store store = new Store();
 		IntVar[] var = new IntVar[statements.size()];
 		for(int i=0; i<var.length; i++){
-			var[i] = new IntVar(store, i, var.length+i);
+			var[i] = new IntVar(store, i, skelStatements.size()+i);
 			if(i > 0){
 				store.impose(new XltY(var[i-1], var[i]));
 			}
 		}
-		Search<IntVar> search = new DepthFirstSearch<IntVar>();
-        RandomSelect<IntVar> select = 
-            new RandomSelect<IntVar>(var, new IndomainMin<IntVar>());
-        search.labeling(store, select); //No result check, impossible that no result found
+        int[] result = JaCopUtility.randomUniformAssignment(store, var);
         
         //Assign CSP result to AST
         int i=0;
         for(ASTStatement statement : statements){
-        	skelStatements.add(var[i].value(), statement);
+        	skelStatements.add(result[i], statement);
         	i++;
         }
 	}
 	
 	//Inter-state order
-	public void merge(Agent agent){
-		//Random agent (agent with available states has more chance)
-		//If agent slot not sufficient: grow
+	public void merge(boolean des, JSPatternGen<String> relation, boolean useTag){
+		//Random agent -- If agent slot not sufficient: grow
 		//Pick 2 state -> 1 sequence from each
 		//Generate [slot] from sequence 1 as domain 1
 		//Generate [slot] from sequence 2 as domain 2
 		//Generate [constraint] from relation
 		//Solve
 		//Realize [assignment]
+		
+		System.out.println("Tag: "+relation.getTag());
+		
+		//Prepare skeleton
+		int requiredStateCount = des ? 1 : 2;
+		if(useTag && relation.getTag() > requiredStateCount)
+			requiredStateCount = relation.getTag();
+		Agent agent = ASTUtility.randomAgentAndGen(skel, requiredStateCount);
+		List<ASTStatement> starting= null, target = null;
+		String targetStateIdentifier = null;
+		if(des){
+			starting = ASTUtility.randomUniformSequence(
+					ASTUtility.randomUniformState(agent)
+					).getStatements();
+			target = agent.getDes().getStatements();
+		}else{
+			assert(agent.getStates().size() >= 2);
+			State startingState = ASTUtility.randomUniformState(agent);
+			State targetState = ASTUtility.randomUniformState(agent);
+			while(startingState == targetState){
+				targetState = ASTUtility.randomUniformState(agent);
+			}
+			targetStateIdentifier = targetState.getIdentifier();
+			starting = ASTUtility.randomUniformSequence(startingState).getStatements();
+			target = ASTUtility.randomUniformSequence(targetState).getStatements();
+		}
+		
+		
+		//Decode relation
+		List<String> startESeq = new LinkedList<String>();
+		for(ItemsetGen<String> iset : relation.getLeftSide().getItemsets()){
+			startESeq.add(iset.get(0));
+		}
+		List<ASTStatement> startStatements = ADLSequenceDecoder.instance.decode(startESeq);
+		List<ASTExpression> params = new ArrayList<ASTExpression>();
+		if(des){
+			startStatements.add(new Action("Despawn", params));
+		}else{
+			params.add(new Identifier("."+targetStateIdentifier));
+			startStatements.add(new Action("Goto", params));
+		}
+		
+		List<String> targetESeq = new LinkedList<String>(); //Target can be empty
+		String eAct;
+		for(ItemsetGen<String> iset : relation.getRightSide().getItemsets()){
+			eAct = iset.get(0).trim();
+			if(!eAct.isEmpty()) targetESeq.add(eAct);
+		}
+		List<ASTStatement> targetStatements = ADLSequenceDecoder.instance.decode(targetESeq);
+		
+		
+		// ============================ Target
+		//Generate CSP and solve
+		Store store;
+		IntVar[] var;
+		int[] result;
+		int varIndex;
+		if(targetStatements.size() > 0){
+			store = new Store();
+			var = new IntVar[targetStatements.size()];
+			for(int i=0; i<var.length; i++){
+				var[i] = new IntVar(store, i, target.size()+i);
+				if(i > 0){
+					store.impose(new XltY(var[i-1], var[i]));
+				}
+			}
+			result = JaCopUtility.randomUniformAssignment(store, var);
+	        //Assign
+			varIndex = 0;
+	        for(ASTStatement statement : targetStatements){
+	        	target.add(result[varIndex], statement);
+	        	varIndex++;
+	        }
+		}
+        
+        //============================ Starting
+        //Generate CSP and solve
+        ASTSlotManager slotManager = new ASTSlotManager();
+        slotManager.label(starting);
+        List<Integer> endOfASTBlock = slotManager.getValidSlots( 
+        	node -> {
+        		return node.isEndOfStatement();
+        	});
+        List<Integer> rootStatements = slotManager.getValidSlots(
+        	node -> {
+        		return node.getParent() == null;
+			});
+        store = new Store();
+		var = new IntVar[startStatements.size()];
+		var[var.length-1] = new IntVar(store);
+		for(Integer index : endOfASTBlock){
+			var[var.length-1].addDom(index, index);
+		}
+		for(int i=0; i<var.length-1; i++){
+			var[i] = new IntVar(store);
+			for(Integer index : rootStatements){
+				var[i].addDom(index, index);
+			}
+			if(i > 0){
+				store.impose(new XlteqY(var[i-1], var[i]));
+			}
+			store.impose(new XlteqY(var[i], var[var.length-1]));
+		}
+		result = JaCopUtility.randomUniformAssignment(store, var);
+		//Assign
+		for(varIndex=0; varIndex<result.length; varIndex++){
+			slotManager.insert(result[varIndex], startStatements.get(varIndex));
+		}
+		slotManager.finalize();
 	}
 	
 	//Parallel
@@ -126,11 +242,10 @@ public class Skeleton {
 		
 	}
 	
-	/*
 	public void saveAsScript(File dir) throws Exception{
 		StringBuilder strb = new StringBuilder();
 		skel.toScript(strb, 0);
-		FileUtils.writeStringToFile(new File(dir,  "sample.txt"), strb.toString());
+		FileUtils.writeStringToFile(new File(dir, identifier+".txt"), strb.toString());
 	}
-	*/
+	
 }
