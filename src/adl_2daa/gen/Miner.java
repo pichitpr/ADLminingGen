@@ -155,10 +155,12 @@ public class Miner {
 			frequentInterStateOrder_Goto = jsps.getResult();
 			System.out.println("Patterns found : "+frequentInterStateOrder_Goto.size());
 			
+			/*
 			//Filter out invalid pattern
 			frequentInterStateOrder_Goto.removeIf(
 					jspattern -> jspattern.getRightSide().getItemsets().isEmpty()
 					);
+					*/
 			
 			System.out.println("Valid patterns : "+frequentInterStateOrder_Goto.size());
 			for(JSPatternGen<String> jspattern : frequentInterStateOrder_Goto){
@@ -198,10 +200,12 @@ public class Miner {
 			frequentInterStateOrder_Despawn = jsps.getResult();
 			System.out.println("Patterns found : "+frequentInterStateOrder_Despawn.size());
 			
+			/*
 			//Filter out invalid pattern
 			frequentInterStateOrder_Despawn.removeIf(
 					jspattern -> jspattern.getRightSide().getItemsets().isEmpty()
 					);
+					*/
 			
 			System.out.println("Valid patterns : "+frequentInterStateOrder_Despawn.size());
 			for(JSPatternGen<String> jspattern : frequentInterStateOrder_Despawn){
