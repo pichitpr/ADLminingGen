@@ -19,14 +19,14 @@ public class ADLSequenceDecoder {
 
 	public static final ADLSequenceDecoder instance = new ADLSequenceDecoder();
 	
-	private List<ASTStatement> result = new LinkedList<ASTStatement>();
+	private List<ASTStatement> result;
 	private byte[] buf;
 	
 	/**
 	 * Decode given encoded actions as separated statement
 	 */
 	public List<ASTStatement> decode(List<String> seq){
-		result.clear();
+		result = new LinkedList<ASTStatement>();
 		for(String eAct : seq){
 			result.add(decodeSingleAction(eAct));
 		}
