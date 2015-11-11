@@ -40,7 +40,7 @@ public class TestInitializer {
 		set.addChoiceSignature("group", new ActionSignature(Datatype.DYNAMIC, Datatype.INT));
 		set.addChoiceSignature("direction", new ActionSignature(Datatype.DYNAMIC, Datatype.DIRECTION));
 		set.addChoiceSignature("position", new ActionSignature(Datatype.DYNAMIC, Datatype.POSITION));
-		set.addChoiceSignature("gravityEff", new ActionSignature(Datatype.DYNAMIC, Datatype.DECIMAL));
+		set.addChoiceSignature("gravityeff", new ActionSignature(Datatype.DYNAMIC, Datatype.DECIMAL));
 		set.addChoiceSignature("collider", new ActionSignature(Datatype.DYNAMIC, Datatype.COLLIDER));
 		set.addChoiceSignature("attacker", new ActionSignature(Datatype.DYNAMIC, Datatype.BOOL));
 		set.addChoiceSignature("defender", new ActionSignature(Datatype.DYNAMIC, Datatype.BOOL));
@@ -48,6 +48,7 @@ public class TestInitializer {
 		set.addChoiceSignature("projectile", new ActionSignature(Datatype.DYNAMIC, Datatype.BOOL));
 		set.addChoiceSignature("phasing", new ActionSignature(Datatype.DYNAMIC, Datatype.BOOL));
 		set.addChoiceSignature("texture", new ActionSignature(Datatype.DYNAMIC, Datatype.INT));
+		set.addChoiceSignature("hp", new ActionSignature(Datatype.DYNAMIC, Datatype.INT));
 		GeneratorRegistry.registerActionSignature("Set", set);
 		
 		GeneratorRegistry.registerActionSignature("Spawn",
@@ -148,7 +149,7 @@ public class TestInitializer {
 		get.addChoiceSignature("group", new Signature(Datatype.INT, Datatype.DYNAMIC));
 		get.addChoiceSignature("direction", new Signature(Datatype.DIRECTION, Datatype.DYNAMIC));
 		get.addChoiceSignature("position", new Signature(Datatype.POSITION, Datatype.DYNAMIC));
-		get.addChoiceSignature("gravityEff", new Signature(Datatype.DECIMAL, Datatype.DYNAMIC));
+		get.addChoiceSignature("gravityeff", new Signature(Datatype.DECIMAL, Datatype.DYNAMIC));
 		get.addChoiceSignature("collider", new Signature(Datatype.COLLIDER, Datatype.DYNAMIC));
 		get.addChoiceSignature("attacker", new Signature(Datatype.BOOL, Datatype.DYNAMIC));
 		get.addChoiceSignature("defender", new Signature(Datatype.BOOL, Datatype.DYNAMIC));
@@ -157,6 +158,7 @@ public class TestInitializer {
 		get.addChoiceSignature("phasing", new Signature(Datatype.BOOL, Datatype.DYNAMIC));
 		get.addChoiceSignature("parent", new Signature(Datatype.DYNAMIC, Datatype.DYNAMIC));
 		get.addChoiceSignature("children", new Signature(Datatype.DYNAMIC_SET, Datatype.DYNAMIC));
+		get.addChoiceSignature("hp", new Signature(Datatype.INT, Datatype.DYNAMIC));
 		GeneratorRegistry.registerFunctionSignature("Get", get);
 		
 		GeneratorRegistry.registerFunctionSignature("InTheAir", 
