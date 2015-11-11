@@ -64,11 +64,13 @@ public class Skeleton {
 	
 	//Order
 	public void merge(SequentialPatternGen<String> relation){
-		//Pick 1 agent -> state -> sequence
-		//Generate [slot] from sequence as domain
-		//Generate [constraint] from relation
-		//Solve
-		//Realize [assignment] --> need to know "location in AST" for each slot value
+		/*
+		Pick 1 agent -> state -> sequence
+		Generate [slot] from sequence as domain
+		Generate [constraint] from relation
+			- Forced ordering
+			- Must not appear after Goto/Despawn (prevent dead code)
+		 */
 		
 		//Prepare skeleton
 		Agent agent = ASTUtility.randomUniformAgent(skel);
@@ -86,10 +88,20 @@ public class Skeleton {
 		
 		
 		//Generate CSP and solve
+		int startEOSindex = skelStatements.size();
+		if(skelStatements.size() > 0){
+			ASTStatement lastStatement = skelStatements.get(startEOSindex-1);
+			if(lastStatement instanceof Action){
+				String name = ((Action)lastStatement).getName();
+				if(name.equals("Goto") || name.equals("Despawn")){
+					startEOSindex--;
+				}
+			}
+		}
 		Store store = new Store();
 		IntVar[] var = new IntVar[statements.size()];
 		for(int i=0; i<var.length; i++){
-			var[i] = new IntVar(store, i, skelStatements.size()+i);
+			var[i] = new IntVar(store, i, startEOSindex+i);
 			if(i > 0){
 				store.impose(new XltY(var[i-1], var[i]));
 			}
@@ -106,15 +118,14 @@ public class Skeleton {
 	
 	//Inter-state order
 	public void merge(boolean des, JSPatternGen<String> relation, boolean useTag){
-		//Random agent -- If agent slot not sufficient: grow
-		//Pick 2 state -> 1 sequence from each
-		//Generate [slot] from sequence 1 as domain 1
-		//Generate [slot] from sequence 2 as domain 2
-		//Generate [constraint] from relation
-		//Solve
-		//Realize [assignment]
-		
-		System.out.println("Tag: "+relation.getTag());
+		/*Random agent -- If agent slot not sufficient: grow
+		Pick 2 state -> 1 sequence from each
+		Generate [slot] from sequence 1 as domain 1
+		Generate [slot] from sequence 2 as domain 2
+		Generate [constraint] from relation
+			- Goto/Despawn must be at the end of any block (regardless of nesting structure)
+			- Ordering preserved
+		*/
 		
 		//Prepare skeleton
 		int requiredStateCount = des ? 1 : 2;
@@ -194,7 +205,24 @@ public class Skeleton {
         slotManager.label(starting);
         List<Integer> endOfASTBlock = slotManager.getValidSlots( 
         	node -> {
-        		return node.isEndOfStatement();
+        		if(node.isEndOfStatement()){
+        			if(node.getNodeContainer().size() == 0) return true;
+        			ASTStatement lastStatement = node.getNodeContainer().get(
+        					node.getNodeContainer().size()-1
+        					);
+        			if(lastStatement instanceof Action){
+        				String name = ((Action)lastStatement).getName();
+        				if(name.equals("Goto") || name.equals("Despawn")){
+        					return false;
+        				}else{
+        					return true;
+        				}
+        			}else{
+        				return true;
+        			}
+        		}else{
+        			return false;
+        		}
         	});
         List<Integer> rootStatements = slotManager.getValidSlots(
         	node -> {
