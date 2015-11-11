@@ -1,5 +1,6 @@
 package adl_2daa.gen.generator;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -33,16 +34,50 @@ public class ASTUtility {
 		return state.getSequences().get(randomRange(0, state.getSequences().size()-1));
 	}
 	
-	/**
-	 * Randomly insert ASTStatement into the given sequence with [startIndex, endIndex]
-	 * being possible index. endIndex can be sequence.size() which means "the end of sequence".
-	 * The method returns insertion index
-	 */
-	public static int randomInsertStatementInto(Sequence sequence, 
-			int startIndex, int endIndex, ASTStatement statement){
-		int index = randomRange(startIndex, endIndex);
-		sequence.getStatements().add(index, statement);
-		return index;
+	public static Agent randomAgentAndGen(Root root, int requiredStateCount){
+		List<Integer> agentWithRequiredStateCount = new ArrayList<Integer>();
+		int i=0;
+		for(Agent agent : root.getRelatedAgents()){
+			if(agent.getStates().size() >= requiredStateCount){
+				agentWithRequiredStateCount.add(i);
+			}
+			i++;
+		}
+		if(agentWithRequiredStateCount.isEmpty()){
+			Agent agent = randomUniformAgent(root);
+			while(agent.getStates().size() < requiredStateCount){
+				agent.getStates().add(createEmptyState(
+						"state"+agent.getStates().size()
+						));
+			}
+			return agent;
+		}else{
+			int index = randomRange(0, agentWithRequiredStateCount.size()-1);
+			return root.getRelatedAgents().get(index);
+		}
+	}
+	
+	public static State randomStateAndGen(Agent agent, int requiredSequenceCount){
+		List<Integer> stateWithRequiredSequenceCount = new ArrayList<Integer>();
+		int i=0;
+		for(State state : agent.getStates()){
+			if(state.getSequences().size() >= requiredSequenceCount){
+				stateWithRequiredSequenceCount.add(i);
+			}
+			i++;
+		}
+		if(stateWithRequiredSequenceCount.isEmpty()){
+			State state = randomUniformState(agent);
+			while(state.getSequences().size() < requiredSequenceCount){
+				state.getSequences().add(createEmptySequence(
+						"seq"+state.getSequences().size()
+						));
+			}
+			return state;
+		}else{
+			int index = randomRange(0, stateWithRequiredSequenceCount.size()-1);
+			return agent.getStates().get(index);
+		}
 	}
 	
 	public static Agent createEmptyAgent(String identifier){
@@ -67,4 +102,51 @@ public class ASTUtility {
 		Sequence seq = new Sequence(identifier, statement);
 		return seq;
 	}
+	
+	/*
+	public static HashMap<Integer, ASTPosition> generateASTPositionMap(Sequence sequence){
+		HashMap<Integer, ASTPosition> result = new HashMap<Integer, ASTPosition>();
+		generateASTPositionMap(0, sequence.getStatements(), null, result);
+		return result;
+	}
+	
+	private static int generateASTPositionMap(int startIndex, List<ASTStatement> statements,
+			ASTPosition parent, HashMap<Integer, ASTPosition> map){
+		ASTPosition positionInfo;
+		int index = startIndex;
+		int i=0;
+		for(ASTStatement st : statements){
+			positionInfo = new ASTPosition(i, statements, parent);
+			map.put(index, positionInfo);
+			index++;
+			if(st instanceof Condition){
+				Condition cond = (Condition)st;
+				index = generateASTPositionMap(index, cond.getIfblock(), positionInfo, map);
+				if(cond.getElseblock() != null){
+					index = generateASTPositionMap(index, cond.getElseblock(), positionInfo, map);
+				}
+			}else if(st instanceof Loop){
+				index = generateASTPositionMap(index, ((Loop)st).getContent(), positionInfo, map);
+			}
+			i++;
+		}
+		//End of statements
+		map.put(index, new ASTPosition(i, statements, parent));
+		index++;
+		return index;
+	}
+	
+	public static class ASTPosition {
+		public int index;
+		public List<ASTStatement> astContent;
+		public ASTPosition parent = null;
+		
+		public ASTPosition(int index, List<ASTStatement> astContent,
+				ASTPosition parent){
+			this.index = index;
+			this.astContent = astContent;
+			this.parent = parent;
+		}
+	}
+	*/
 }
