@@ -59,3 +59,7 @@ $RECYCLE.BIN/
 *.lnk
 
 /data
+/bin/
+
+/result
+/result_script
