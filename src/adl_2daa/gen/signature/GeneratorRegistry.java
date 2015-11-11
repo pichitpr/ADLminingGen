@@ -19,6 +19,7 @@ public class GeneratorRegistry {
 	 * to the signature before registering the signature 
 	 */
 	public static void registerActionSignature(String funcname, ActionMainSignature sig){
+		sig.funcname = funcname;
 		actionSignatureMap.put(funcname, sig);
 		actionIdNameMap.put(sig.getMainSignature().getId(), funcname);
 		if(sig.hasChoice()){
@@ -33,7 +34,11 @@ public class GeneratorRegistry {
 	 * is trimmed from the MainSignature and the remaining parameters are shifted.
 	 */
 	public static ActionMainSignature getActionSignature(String funcCode){
-		return actionSignatureMap.get(funcCode);
+		ActionMainSignature sig = actionSignatureMap.get(funcCode);
+		if(sig == null){
+			System.out.println("Action not found : "+funcCode);
+		}
+		return sig;
 	}
 	
 	/**
@@ -41,7 +46,11 @@ public class GeneratorRegistry {
 	 * the action name will be in actionName#choice format
 	 */
 	public static String getActionName(int id){
-		return actionIdNameMap.get(id);
+		String name = actionIdNameMap.get(id);
+		if(name == null){
+			System.out.println("Action name not found : ID "+id);
+		}
+		return name;
 	}
 	
 	
@@ -54,6 +63,7 @@ public class GeneratorRegistry {
 	 * to the signature before registering the signature 
 	 */
 	public static void registerFunctionSignature(String funcname, FunctionMainSignature sig){
+		sig.funcname = funcname;
 		functionSignatureMap.put(funcname, sig);
 		functionIdNameMap.put(sig.getMainSignature().getId(), funcname);
 		if(sig.hasChoice()){
@@ -68,7 +78,11 @@ public class GeneratorRegistry {
 	 * from the MainSignature and the remaining parameters are shifted.
 	 */
 	public static FunctionMainSignature getFunctionSignature(String funcCode){
-		return functionSignatureMap.get(funcCode);
+		FunctionMainSignature sig = functionSignatureMap.get(funcCode);
+		if(sig == null){
+			System.out.println("Function not found : "+funcCode);
+		}
+		return sig;
 	}
 	
 	/**
@@ -76,7 +90,11 @@ public class GeneratorRegistry {
 	 * the function name will be in funtionName#"choice" format
 	 */
 	public static String getFunctionName(int id){
-		return functionIdNameMap.get(id);
+		String name = functionIdNameMap.get(id);
+		if(name == null){
+			System.out.println("Function name not found : ID "+id);
+		}
+		return name;
 	}
 	
 	/**

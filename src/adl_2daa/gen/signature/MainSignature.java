@@ -4,6 +4,7 @@ import java.util.HashMap;
 
 public abstract class MainSignature {
 	
+	protected String funcname = "";
 	protected Signature mainSignature;
 	protected boolean hasChoice;
 	protected HashMap<String, Signature> choiceSigMap;
@@ -44,7 +45,7 @@ public abstract class MainSignature {
 		if(choiceSigMap == null){
 			choiceSigMap = new HashMap<String, Signature>();
 		}
-		choiceSigMap.put(choice, signature);
+		choiceSigMap.put(choice.toLowerCase(), signature);
 	}
 	
 	/**
@@ -53,8 +54,9 @@ public abstract class MainSignature {
 	 * appears in code. If the signature has no choice, this method returns mainSignature  
 	 */
 	public Signature getChoiceSignature(String choice){
-		Signature sig = choiceSigMap.get(choice);
+		Signature sig = choiceSigMap.get(choice.toLowerCase());
 		if(sig == null){
+			System.out.println("Choice not found "+choice+" for "+funcname);
 			return mainSignature;
 		}
 		return sig;
