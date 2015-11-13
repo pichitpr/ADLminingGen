@@ -26,6 +26,7 @@ public class ASTSlotManager {
 		map.clear();
 		insertionMap.clear();
 		generateLabelMap(0, rootStatements, null);
+		assert(map.size() > 0);
 	}
 	
 	private int generateLabelMap(int startIndex, List<ASTStatement> statements, ASTNode parent){
