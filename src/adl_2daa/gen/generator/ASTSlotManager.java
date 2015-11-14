@@ -88,7 +88,7 @@ public class ASTSlotManager {
 	 * Insert all queued insertions into the actual AST. The AST must be relabeled
 	 * before further use after being finalized.
 	 */
-	public void finalize(){
+	public void finalizeManager(){
 		List<Integer> reversedIndexList = new LinkedList<Integer>(map.keySet());
 		Collections.reverse(reversedIndexList);
 		//Adding in reverse order to prevent local index shifting

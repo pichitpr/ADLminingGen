@@ -9,6 +9,7 @@ import java.util.List;
 
 import spmf.extension.algorithm.seqgen.SequentialPatternGen;
 import spmf.extension.patterns.itemset_list_generic.ItemsetGen;
+import adl_2daa.ast.ASTStatement;
 import adl_2daa.gen.encoder.EncodeTable;
 import adl_2daa.gen.signature.GeneratorRegistry;
 import de.parsemis.graph.Edge;
@@ -177,5 +178,11 @@ public class TestUtility {
 		}
 		return result;
 	}
-	
+
+	public static void printASTStatement(ASTStatement st){
+		StringBuilder strb = new StringBuilder();
+		strb.append("::::");
+		st.toScript(strb, 0);
+		System.out.println(strb);
+	}
 }

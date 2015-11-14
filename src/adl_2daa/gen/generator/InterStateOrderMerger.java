@@ -178,7 +178,7 @@ public class InterStateOrderMerger {
 			for(varIndex=0; varIndex<result.length; varIndex++){
 				slotManager.insert(result[varIndex], targetDecodedRel.get(varIndex));
 			}
-			slotManager.finalize();
+			slotManager.finalizeManager();
 		}
 		
 		//Starting sequence
@@ -217,6 +217,6 @@ public class InterStateOrderMerger {
 		for(varIndex=0; varIndex<result.length; varIndex++){
 			slotManager.insert(result[varIndex], startingDecodedRel.get(varIndex));
 		}
-		slotManager.finalize();
+		slotManager.finalizeManager();
 	}
 }

@@ -80,6 +80,6 @@ public class SequenceOrderMerger {
         for(int varIndex=0; varIndex<result.length; varIndex++){
 			slotManager.insert(result[varIndex], decodedRelation.get(varIndex));
 		}
-		slotManager.finalize();
+		slotManager.finalizeManager();
 	}
 }
