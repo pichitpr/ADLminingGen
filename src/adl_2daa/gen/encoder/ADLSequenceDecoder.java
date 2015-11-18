@@ -35,29 +35,7 @@ public class ADLSequenceDecoder {
 	
 	private ASTStatement decodeSingleAction(String action){
 		buf = action.getBytes(StandardCharsets.US_ASCII);
-		List<ASTExpression> paramList = new LinkedList<ASTExpression>();
-		
-		int actionID = buf[0];
-		String actionName = GeneratorRegistry.getActionName(actionID);
-		String choice = null;
-		Signature sig = null;
-		int choiceSymbolIndex = actionName.indexOf('#');
-		if(choiceSymbolIndex > -1){
-			choice = actionName.substring(choiceSymbolIndex+1);
-			actionName = actionName.substring(0, choiceSymbolIndex);
-			sig = GeneratorRegistry.getActionSignature(actionName).getChoiceSignature(choice);
-			//First param is a choice
-			paramList.add(new StringConstant(choice));
-		}else{
-			sig = GeneratorRegistry.getActionSignature(actionName).getMainSignature();
-		}
-		
-		for(Datatype expectingType : sig.getParamType()){
-			paramList.add(new ExpressionSkeleton(expectingType));
-		}
-		Action astAction = new Action(actionName, paramList);
-		
-		return decodeStatement(1, astAction);
+		return decodeStatement(1, decodeActionOnly(action));
 	}
 	
 	/**
@@ -108,5 +86,29 @@ public class ADLSequenceDecoder {
 			data[j] = buf[i];
 		}
 		return ADLExpressionDecoder.instance.decode(data, expectingType);
+	}
+	
+	public static Action decodeActionOnly(String encodedAction){
+		byte[] buf = encodedAction.getBytes(StandardCharsets.US_ASCII);
+		List<ASTExpression> paramList = new LinkedList<ASTExpression>();
+		int actionID = buf[0];
+		String actionName = GeneratorRegistry.getActionName(actionID);
+		String choice = null;
+		Signature sig = null;
+		int choiceSymbolIndex = actionName.indexOf('#');
+		if(choiceSymbolIndex > -1){
+			choice = actionName.substring(choiceSymbolIndex+1);
+			actionName = actionName.substring(0, choiceSymbolIndex);
+			sig = GeneratorRegistry.getActionSignature(actionName).getChoiceSignature(choice);
+			//First param is a choice
+			paramList.add(new StringConstant(choice));
+		}else{
+			sig = GeneratorRegistry.getActionSignature(actionName).getMainSignature();
+		}
+		
+		for(Datatype expectingType : sig.getParamType()){
+			paramList.add(new ExpressionSkeleton(expectingType));
+		} 
+		return new Action(actionName, paramList);
 	}
 }

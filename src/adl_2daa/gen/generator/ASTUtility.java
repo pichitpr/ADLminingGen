@@ -18,14 +18,14 @@ public class ASTUtility {
 
 	private static Random random = new Random(1000);
 	
-	private static Random rand(){
+	/*private static Random rand(){
 		return new Random();
-	}
+	}*/
 	
 	/**
 	 * Return [start, end]
 	 */
-	private static int randomRange(int start, int end){
+	public static int randomRange(int start, int end){
 		return start+random.nextInt(end-start+1);
 	}
 	

@@ -25,4 +25,8 @@ public class ADLSequence {
 		}
 		return sequence;
 	}
+	
+	public List<String> getEncodedSequence(){
+		return encodedSequence;
+	}
 }
