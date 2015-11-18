@@ -1,4 +1,4 @@
-package adl_2daa.gen.generator;
+package adl_2daa.gen.generator.merger1;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -15,12 +15,14 @@ import adl_2daa.ast.structure.Root;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.ast.structure.State;
 import adl_2daa.gen.encoder.ADLSequenceDecoder;
+import adl_2daa.gen.generator.ASTUtility;
+import adl_2daa.gen.generator.JaCopUtility;
 
 public class SequenceOrderMerger {
 
-	protected static final SequenceOrderMerger instance = new SequenceOrderMerger();
+	public static final SequenceOrderMerger instance = new SequenceOrderMerger();
 	
-	protected void merge(Root rootSkel, SequentialPatternGen<String> relation){
+	public void merge(Root rootSkel, SequentialPatternGen<String> relation){
 		select(rootSkel);
 		decodeRelation(relation);
 		merge();

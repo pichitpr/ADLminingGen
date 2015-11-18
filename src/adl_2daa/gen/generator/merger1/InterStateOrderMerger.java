@@ -1,4 +1,4 @@
-package adl_2daa.gen.generator;
+package adl_2daa.gen.generator.merger1;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -20,12 +20,14 @@ import adl_2daa.ast.structure.Root;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.ast.structure.State;
 import adl_2daa.gen.encoder.ADLSequenceDecoder;
+import adl_2daa.gen.generator.ASTUtility;
+import adl_2daa.gen.generator.JaCopUtility;
 
 public class InterStateOrderMerger {
 
-	protected static final InterStateOrderMerger instance = new InterStateOrderMerger();
+	public static final InterStateOrderMerger instance = new InterStateOrderMerger();
 	
-	protected void merge(Root rootSkel, boolean desType, 
+	public void merge(Root rootSkel, boolean desType, 
 			JSPatternGen<String> relation, boolean useTag){
 		select(rootSkel, desType, useTag ? relation.getTag() : -1);
 		decodeRelation(desType, relation);

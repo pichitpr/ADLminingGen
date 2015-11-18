@@ -27,6 +27,8 @@ import adl_2daa.ast.structure.Root;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.ast.structure.State;
 import adl_2daa.gen.encoder.ADLSequenceDecoder;
+import adl_2daa.gen.generator.merger1.InterStateOrderMerger;
+import adl_2daa.gen.generator.merger1.SequenceOrderMerger;
 import adl_2daa.gen.profile.AgentProfile;
 
 public class Skeleton {
