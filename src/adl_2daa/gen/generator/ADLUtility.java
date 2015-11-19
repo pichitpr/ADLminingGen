@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -19,9 +20,19 @@ import adl_2daa.ast.structure.Sequence;
 import adl_2daa.gen.encoder.ADLSequence;
 import adl_2daa.gen.encoder.ADLSequenceDecoder;
 import adl_2daa.gen.encoder.ADLSequenceEncoder;
+import adl_2daa.gen.generator.merger1.ASTUtility;
 
-public class ADLSequenceUtility {
+public class ADLUtility {
 
+	private static Random random = new Random(1000);
+	
+	/**
+	 * Return [start, end]
+	 */
+	public static int randomRange(int start, int end){
+		return start+random.nextInt(end-start+1);
+	}
+	
 	public static boolean isEOBTransition(String eAct){
 		/*
 		List<String> eActList = new LinkedList<String>();
@@ -93,7 +104,7 @@ public class ADLSequenceUtility {
 		Set<LCSSequenceEmbedding<String>> lcsResult = 
 				SimpleLCSEmbedding.allLCSEmbeddings(wrappedRelation, wrappedSkel, null);
 		LCSSequenceEmbedding<String> relAllocation = null;
-		int i = ASTUtility.randomRange(0, lcsResult.size()-1);
+		int i = randomRange(0, lcsResult.size()-1);
 		for(LCSSequenceEmbedding<String> emb : lcsResult){
 			if(i == 0){
 				relAllocation = emb;
