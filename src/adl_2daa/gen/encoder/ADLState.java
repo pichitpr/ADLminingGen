@@ -42,4 +42,12 @@ public class ADLState {
 	public List<ADLSequence> getSequences() {
 		return sequences;
 	}
+	
+	public State toState(){
+		List<Sequence> seqs = new LinkedList<Sequence>();
+		for(ADLSequence eSeq : sequences){
+			seqs.add(eSeq.toSequence());
+		}
+		return new State(identifier, seqs);
+	}
 }

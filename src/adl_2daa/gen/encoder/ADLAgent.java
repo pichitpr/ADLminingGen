@@ -3,7 +3,9 @@ package adl_2daa.gen.encoder;
 import java.util.LinkedList;
 import java.util.List;
 
+import adl_2daa.ast.ASTStatement;
 import adl_2daa.ast.structure.Agent;
+import adl_2daa.ast.structure.Sequence;
 import adl_2daa.ast.structure.State;
 
 public class ADLAgent {
@@ -67,5 +69,24 @@ public class ADLAgent {
 
 	public List<ADLState> getStates() {
 		return states;
+	}
+	
+	public Agent toAgent(){
+		Sequence initSeq, desSeq;
+		if(init == null){
+			initSeq = new Sequence("init", new LinkedList<ASTStatement>());
+		}else{
+			initSeq = init.toSequence();
+		}
+		if(des.encodedSequence == ADLSequenceEncoder.dummyEncodedSequence){
+			desSeq = new Sequence("des", new LinkedList<ASTStatement>());
+		}else{
+			desSeq = des.toSequence();
+		}
+		List<State> stateList = new LinkedList<State>();
+		for(ADLState eState : states){
+			stateList.add(eState.toState());
+		}
+		return new Agent(identifier, initSeq, desSeq, stateList);
 	}
 }

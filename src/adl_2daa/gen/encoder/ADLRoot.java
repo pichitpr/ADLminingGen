@@ -35,4 +35,12 @@ public class ADLRoot {
 	public List<ADLAgent> getAgents() {
 		return agents;
 	}
+	
+	public Root toRoot(){
+		List<Agent> agentList = new LinkedList<Agent>();
+		for(ADLAgent eAgent : agents){
+			agentList.add(eAgent.toAgent());
+		}
+		return new Root(agentList);
+	}
 }

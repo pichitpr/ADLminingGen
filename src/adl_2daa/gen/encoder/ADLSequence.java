@@ -3,6 +3,8 @@ package adl_2daa.gen.encoder;
 import java.util.ArrayList;
 import java.util.List;
 
+import adl_2daa.ast.structure.Sequence;
+
 public class ADLSequence {
 	
 	protected String identifier;
@@ -30,5 +32,10 @@ public class ADLSequence {
 	
 	public List<String> getEncodedSequence(){
 		return encodedSequence;
+	}
+	
+	public Sequence toSequence(){
+		return new Sequence(identifier, 
+				ADLSequenceDecoder.instance.decode(encodedSequence));
 	}
 }
