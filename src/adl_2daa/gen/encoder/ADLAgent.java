@@ -42,4 +42,30 @@ public class ADLAgent {
 		}
 		return null;
 	}
+
+	//======================================
+	
+	public ADLAgent(String identifier, ADLSequence init, ADLSequence des,
+			List<ADLState> states) {
+		this.identifier = identifier;
+		this.init = init;
+		this.des = des;
+		this.states = states;
+	}
+
+	public String getIdentifier() {
+		return identifier;
+	}
+
+	public ADLSequence getInit() {
+		return init;
+	}
+
+	public ADLSequence getDes() {
+		return des;
+	}
+
+	public List<ADLState> getStates() {
+		return states;
+	}
 }

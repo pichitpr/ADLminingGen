@@ -25,4 +25,14 @@ public class ADLRoot {
 		}
 		return null;
 	}
+	
+	//==============================
+	
+	public ADLRoot(List<ADLAgent> agents) {
+		this.agents = agents;
+	}
+
+	public List<ADLAgent> getAgents() {
+		return agents;
+	}
 }

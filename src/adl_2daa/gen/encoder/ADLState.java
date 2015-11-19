@@ -26,4 +26,20 @@ public class ADLState {
 		}
 		return list;
 	}
+
+	//=========================================
+	
+	public ADLState(String identifier, List<ADLSequence> sequences) {
+		super();
+		this.identifier = identifier;
+		this.sequences = sequences;
+	}
+
+	public String getIdentifier() {
+		return identifier;
+	}
+
+	public List<ADLSequence> getSequences() {
+		return sequences;
+	}
 }
