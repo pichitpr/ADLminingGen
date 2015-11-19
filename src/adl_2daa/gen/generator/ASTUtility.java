@@ -1,4 +1,4 @@
-package adl_2daa.gen.generator.merger1;
+package adl_2daa.gen.generator;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -25,7 +25,7 @@ public class ASTUtility {
 	/**
 	 * Return [start, end]
 	 */
-	private static int randomRange(int start, int end){
+	public static int randomRange(int start, int end){
 		return start+random.nextInt(end-start+1);
 	}
 	
