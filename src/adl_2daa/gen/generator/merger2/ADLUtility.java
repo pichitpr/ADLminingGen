@@ -1,4 +1,4 @@
-package adl_2daa.gen.generator;
+package adl_2daa.gen.generator.merger2;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,11 +16,12 @@ import org.jacop.constraints.XlteqY;
 import org.jacop.core.IntVar;
 import org.jacop.core.Store;
 
-import adl_2daa.ast.structure.Sequence;
+import adl_2daa.gen.encoder.ADLAgent;
+import adl_2daa.gen.encoder.ADLRoot;
 import adl_2daa.gen.encoder.ADLSequence;
 import adl_2daa.gen.encoder.ADLSequenceDecoder;
-import adl_2daa.gen.encoder.ADLSequenceEncoder;
-import adl_2daa.gen.generator.merger1.ASTUtility;
+import adl_2daa.gen.encoder.ADLState;
+import adl_2daa.gen.generator.JaCopUtility;
 
 public class ADLUtility {
 
@@ -33,72 +34,48 @@ public class ADLUtility {
 		return start+random.nextInt(end-start+1);
 	}
 	
+	/**
+	 * Precondition: root with at least 1 agent
+	 */
+	public static ADLAgent randomUniformAgent(ADLRoot root){
+		return randomUniform(root.getAgents());
+	}
+	
+	/**
+	 * Precondition: agent with at least 1 state
+	 */
+	public static ADLState randomUniformState(ADLAgent agent){
+		return randomUniform(agent.getStates());
+	}
+	
+	/**
+	 * Precondition: state with at least 1 sequence
+	 */
+	public static ADLSequence randomUniformSequence(ADLState state){
+		return randomUniform(state.getSequences());
+	}
+	
+	/**
+	 * Precondition: non-empty list
+	 */
+	public static <T> T randomUniform(List<T> list){
+		return list.get(randomRange(0, list.size()-1));
+	}
+	
 	public static boolean isEOBTransition(String eAct){
-		/*
-		List<String> eActList = new LinkedList<String>();
-		eActList.add(eAct);
-		ASTStatement st = ADLSequenceDecoder.instance.decode(eActList).get(0);
-		if(!(st instanceof Action)) return false;
-		Action action = (Action)st;
-		return (action.getName().equals("Goto") || action.getName().equals("Despawn"));
-		*/
 		String actionName = ADLSequenceDecoder.decodeActionOnly(eAct).getName();
 		return eAct.length() == 1 && (actionName.equals("Goto") || actionName.equals("Despawn"));
 	}
 	
+	/**
+	 * Merge the encodedSequence into the sequence determined by selection.
+	 * The encodedSequence MUST contain no more than 1 EOB transition
+	 * If there is EOB transition: the selected sequence MUST contain NO EOB transition.
+	 */
 	public static void merge(ADLSequence sequence, List<String> encodedSequence,
 			String eobTransition){
-		/*
-		String eobTransition = null;
-		for(String eAct : encodedSequence){
-			if(isEOBTransition(eAct)){
-				eobTransition = eAct;
-				break;
-			}
-		}
-		if(eobTransition != null) encodedSequence.remove(eobTransition);
-		*/
-		
-		/*
-		//A map eAct -> [slotIndex, slotIndex, slotIndex,...]
-		HashMap<String, List<Integer>> existingActionSlot = new HashMap<String, List<Integer>>();
-		//A map eAct -> [encodedSequenceIndex,...]
-		HashMap<String, List<Integer>> repeatedActionIndex = new HashMap<String, List<Integer>>();
-		
-		//Checking for appearance of each Goto/Despawn/Spawn in given sequence
-		int i=0, slot;
-		for(String eAct : encodedSequence){
-			String actionName = ADLSequenceDecoder.decodeActionOnly(eAct).getName();
-			if(actionName.equals("Goto") || actionName.equals("Despawn") || 
-					actionName.equals("Spawn")){
-				List<Integer> slotList, actionIndexList;
-				if(existingActionSlot.containsKey(eAct)){
-					slotList = existingActionSlot.get(eAct);
-					actionIndexList = repeatedActionIndex.get(eAct);
-				}else{
-					slotList = new ArrayList<Integer>();
-					existingActionSlot.put(eAct, slotList);
-					actionIndexList = new ArrayList<Integer>();
-					repeatedActionIndex.put(eAct, actionIndexList);
-				}
-				actionIndexList.add(i);
-				slot = 0;
-				for(String skelEAct : sequence.getEncodedSequence()){
-					if(eAct.equals(skelEAct)){
-						//Same action under the same condition
-						slotList.add(slot*2+1);
-					}
-					slot++;
-				}
-			}
-			i++;
-		}
-		
-		Store store = new Store();
-		*/
-		
 		//Randomly allocate slot for repeating key action (Goto/Despawn/Spawn)
-		//under the same nesting condition with highest coverage as possible
+		//under the same nesting condition with highest coverage
 		KeyActionSequence wrappedRelation = new KeyActionSequence(encodedSequence);
 		KeyActionSequence wrappedSkel = new KeyActionSequence(sequence.getEncodedSequence());
 		Set<LCSSequenceEmbedding<String>> lcsResult = 
