@@ -33,6 +33,8 @@ public class InterStateOrderMerger {
 		decodeRelation(desType, relation);
 		select(rootSkel, desType, useTag ? relation.getTag() : -1);
 		merge(desType);
+		ASTMergeOperator.fillIncompleteKeyAction(rootSkel, startingSkelSelection);
+		ASTMergeOperator.fillIncompleteKeyAction(rootSkel, targetSkelSelection);
 	}
 	
 	private void decodeRelation(boolean desType, JSPatternGen<String> relation){
@@ -64,6 +66,7 @@ public class InterStateOrderMerger {
 		if(!desType) expList.add(new ExpressionSkeleton(Datatype.IDENTIFIER));
 		transition = new Action(desType ? "Despawn" : "Goto", expList);
 		
+		//Select starting sequence, an agent with enough state to fit in target relation
 		final int fStateCount = requiredStateCount;
 		List<ResultAgent> validSequenceAgents = ASTFilterOperator.filterAgent(rootSkel.getRelatedAgents(),
 				(agent,filteredState) -> filteredState.size() > 0, 
@@ -131,10 +134,12 @@ public class InterStateOrderMerger {
 			}
 		}
 		
+		//Select target sequence based on starting sequence selection
 		if(desType){
 			targetSkelSelection = new ASTSequenceSelection(startingSkelSelection.agent, 
 					null, startingSkelSelection.agent.getDes());
 		}else{
+			//No need to test for state count requirement here, above step already did this
 			Action eobTransition = ASTUtility.removeAllEOBTransition(targetDecodedRel);
 			if(eobTransition != null){
 				List<ResultState> validStates = ASTFilterOperator.filterState(

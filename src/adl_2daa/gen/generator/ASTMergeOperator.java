@@ -26,7 +26,9 @@ public class ASTMergeOperator {
 		
 	}
 	
-	//TODO: finish this - skel growing for key action ? parameter case (should perform unreachable state checking)
+	/**
+	 * @see ASTMergeOperator#merge(ASTSequenceWrapper, ASTSequenceWrapper)
+	 */
 	public static void merge(ASTSequenceSelection selection, List<ASTStatement> relation){
 		ASTSequenceWrapper wrappedRel = new ASTSequenceWrapper(relation);
 		assert(relation.size() == wrappedRel.getIndicesCount()-1);
@@ -107,5 +109,15 @@ public class ASTMergeOperator {
 		}
 
 		wrappedSkel.finalizeWrapper();
+	}
+	
+	/**
+	 * Fill up incomplete key action (Goto/Spawn with no specified target), the method
+	 * try to make every state/agent reachable (has incoming/outgoing transition).
+	 * Growing is done if needed
+	 */
+	//TODO: finish this - skel growing for key action with ? parameter
+	public static void fillIncompleteKeyAction(Root skel, ASTSequenceSelection selection){
+		
 	}
 }
