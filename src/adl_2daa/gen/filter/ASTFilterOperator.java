@@ -76,18 +76,4 @@ public class ASTFilterOperator {
 		}
 		return result;
 	}
-
-	/*
-	public static ResultAgent createResultAgent(Agent agent){
-		List<ResultState> states = new LinkedList<ResultState>();
-		for(State state : agent.getStates()){
-			states.add(createResultState(state));
-		}
-		return new ResultAgent(agent, states);
-	}
-	
-	public static ResultState createResultState(State state){
-		return new ResultState(state, new LinkedList<Sequence>(state.getSequences()));
-	}
-	*/
 }
