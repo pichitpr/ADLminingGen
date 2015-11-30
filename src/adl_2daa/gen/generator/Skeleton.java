@@ -8,19 +8,12 @@ import org.apache.commons.io.FileUtils;
 
 import parsemis.extension.GraphPattern;
 import spmf.extension.algorithm.seqgen.SequentialPatternGen;
-import spmf.extension.patterns.itemset_list_generic.ItemsetGen;
 import spmf.extension.prefixspan.JSPatternGen;
 import adl_2daa.ast.ASTStatement;
-import adl_2daa.ast.statement.Action;
 import adl_2daa.ast.structure.Agent;
 import adl_2daa.ast.structure.Root;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.ast.structure.State;
-import adl_2daa.gen.encoder.ADLSequenceDecoder;
-import adl_2daa.gen.filter.ASTFilter;
-import adl_2daa.gen.filter.ASTFilterOperator;
-import adl_2daa.gen.filter.ResultAgent;
-import adl_2daa.gen.filter.ResultState;
 import adl_2daa.gen.profile.AgentProfile;
 
 public class Skeleton {

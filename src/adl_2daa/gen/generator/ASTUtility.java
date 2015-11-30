@@ -22,6 +22,7 @@ public class ASTUtility {
 	 */
 	public static int randomRange(int start, int end){
 		return start+random.nextInt(end-start+1);
+		//return start+(new Random()).nextInt(end-start+1);
 	}
 	
 	/**
@@ -70,11 +71,11 @@ public class ASTUtility {
 	/**
 	 * Return if the statement is key action or not
 	 */
-	public static boolean isKeyAction(ASTStatement st){
+	public static boolean isKeyAction(ASTStatement st, boolean transitionOnly){
 		if(!(st instanceof Action)) return false;
 		String actionName = ((Action)st).getName();
 		return actionName.equals("Goto") || actionName.equals("Despawn") || 
-				actionName.equals("Spawn");
+				(actionName.equals("Spawn") && !transitionOnly);
 	}
 	
 	/**
@@ -85,11 +86,13 @@ public class ASTUtility {
 		if(a1.getName().equals("Despawn")) return true;
 		if(a1.getParams()[0] instanceof Identifier && 
 				a2.getParams()[0] instanceof Identifier){
+			//IDEN_? VS IDEN_?
 			Identifier iden1 = (Identifier)a1.getParams()[0];
 			Identifier iden2 = (Identifier)a2.getParams()[0];
 			return iden1.getValue().equals(iden2.getValue());
 		}
-		return false;
+		//? VS any
+		return true;
 	}
 	
 	/**

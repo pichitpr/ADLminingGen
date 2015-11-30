@@ -11,18 +11,28 @@ import adl_2daa.ast.ASTStatement;
 import adl_2daa.ast.statement.Action;
 import adl_2daa.ast.statement.Condition;
 import adl_2daa.ast.statement.Loop;
+import adl_2daa.gen.filter.ASTNodeFilter;
 import adl_2daa.gen.generator.ASTNode.NestingBlock;
 
+/**
+ * A wrapper for sequence, providing <br/>
+ * - Slot index for statement insertion anywhere in the sequence <br/>
+ * - Action sequence (nearly equivalent to encoded form of the sequence) <br/>
+ * - Key action sequence for highest key action matching process <br/>
+ */
 public class ASTSequenceWrapper implements LCSSequence<ASTNode>{
 
 	private List<ASTStatement> wrappedAST;
 	private List<ASTNode> unfoldAST = new ArrayList<ASTNode>();
+	private List<Integer> actionIndices = new ArrayList<Integer>();
 	private List<Integer> keyActionIndices = new ArrayList<Integer>();
 	private List<List<ASTStatement>> insertionList = new ArrayList<List<ASTStatement>>();
 	
 	/**
-	 * Unfold given sequence and create index->AST map,
-	 * also create a key action sequence to be used in key action matching
+	 * Unfold given sequence and create 
+	 * - index->AST map for slot index indication <br/>
+	 * - an action sequence <br/>
+	 * - a key action sequence to be used in key action matching
 	 */
 	public ASTSequenceWrapper(List<ASTStatement> astRoot){
 		this.wrappedAST = astRoot;
@@ -46,7 +56,7 @@ public class ASTSequenceWrapper implements LCSSequence<ASTNode>{
 	 * Traverse current AST level "statements" using depth-first strategy with the first
 	 * statement index = "startIndex", the level parent = "parent", the nesting block = 
 	 * "currentNestingBlocks". During traversal, gather ASTNode info and create
-	 * key action sequence.
+	 * action sequence, key action sequence.
 	 */
 	private int traverseAST(int startIndex, List<ASTStatement> statements, ASTNode parent,
 			List<NestingBlock> currentNestingBlocks){
@@ -56,8 +66,11 @@ public class ASTSequenceWrapper implements LCSSequence<ASTNode>{
 		for(ASTStatement st : statements){
 			nodeInfo = new ASTNode(i, statements, parent, currentNestingBlocks);
 			unfoldAST.add(index, nodeInfo);
-			if(ASTUtility.isKeyAction(st)){
-				keyActionIndices.add(index);
+			if(st instanceof Action){
+				actionIndices.add(index);
+				if(ASTUtility.isKeyAction(st,false)){
+					keyActionIndices.add(actionIndices.size()-1);
+				}
 			}
 			index++;
 			if(st instanceof Condition){
@@ -88,16 +101,23 @@ public class ASTSequenceWrapper implements LCSSequence<ASTNode>{
 	}
 	
 	/**
-	 * Return X where [0...X] is available index that statement can be inserted into
+	 * Return X where [0...X] is available slot index that statement can be inserted into
 	 */
-	public int getIndicesCount(){
+	public int getSlotCount(){
 		return unfoldAST.size();
 	}
 	
 	/**
-	 * Get valid index based on given filter from unfold AST
+	 * Return a number of action in the sequence
 	 */
-	public List<Integer> getValidSlots(ASTFilter filter){
+	public int getActionCount(){
+		return actionIndices.size();
+	}
+	
+	/**
+	 * Get valid slot index based on given filter from unfold AST
+	 */
+	public List<Integer> getValidSlots(ASTNodeFilter filter){
 		List<Integer> result = new ArrayList<Integer>();
 		
 		for(int i=0; i<unfoldAST.size(); i++){
@@ -110,12 +130,40 @@ public class ASTSequenceWrapper implements LCSSequence<ASTNode>{
 	}
 	
 	/**
-	 * Queue an insertion that will be performed on calling finalizeWrapper().<br/>
+	 * Return ASTNode at the given index. Using slot index referring to a slot before
+	 * a statement will return that statement. The index should be retrieved from
+	 * getValidSlots. MUST NOT call after finalizeWrapper().
+	 */
+	public ASTNode getUnfoldNode(int index){
+		return unfoldAST.get(index);
+	}
+	
+	/**
+	 * Return slot index of the given statement (if found). Statement is compared 
+	 * by checking reference. This method returns -1 if no statement found or null is passed.
+	 */
+	public int slotIndexOf(ASTStatement statement){
+		if(statement == null) return -1;
+		for(int i=0; i<unfoldAST.size(); i++){
+			if(statement == unfoldAST.get(i).getNode())
+				return i;
+		}
+		return -1;
+	}
+	
+	/**
+	 * Queue an insertion that will be performed on calling finalizeWrapper().
+	 * The index should be retrieved from getValidSlots.<br/>
 	 * An insertion of "statement" will be inserted before the node at the "index".
 	 * Some nodes are special nodes indicating "end of block". Insertion at the "index"
 	 * of those nodes are inserted at the end of block specified by the nodes.
 	 */
 	public void queueInsertion(int index, ASTStatement statement){
+		/*
+		StringBuilder strb = new StringBuilder(index+" : ");
+		statement.toScript(strb, 0);
+		System.out.println(strb);
+		*/
 		insertionList.get(index).add(statement);
 	}
 	
@@ -137,10 +185,17 @@ public class ASTSequenceWrapper implements LCSSequence<ASTNode>{
 	}
 	
 	/**
-	 * Convert key action sequence index to actual item index.
+	 * Convert key action sequence index to action index
 	 */
-	public int embIndexToIndex(int embIndex){
+	public int embIndexToActionIndex(int embIndex){
 		return keyActionIndices.get(embIndex);
+	}
+	
+	/**
+	 * Convert key action sequence index to slot index.
+	 */
+	public int embIndexToSlotIndex(int embIndex){
+		return actionIndices.get(embIndexToActionIndex(embIndex));
 	}
 	
 	/**
@@ -149,7 +204,7 @@ public class ASTSequenceWrapper implements LCSSequence<ASTNode>{
 	 */
 	@Override
 	public ASTNode itemAt(int embIndex) {
-		return unfoldAST.get(keyActionIndices.get(embIndex));
+		return unfoldAST.get(embIndexToSlotIndex(embIndex));
 	}
 
 	/**
@@ -168,12 +223,8 @@ public class ASTSequenceWrapper implements LCSSequence<ASTNode>{
 		@Override
 		public int compare(ASTNode o1, ASTNode o2) {
 			if(o1 == o2) return 0;
-			/*
-			if(!(o1.getNode() instanceof Action) || !(o2.getNode() instanceof Action))
-				return -1;
-			*/
 			Action a1 = (Action)o1.getNode();
-			Action a2 = (Action)o1.getNode();
+			Action a2 = (Action)o2.getNode();
 			if(o1.getNestingBlocks().size() == o2.getNestingBlocks().size() && 
 					ASTUtility.isKeyActionsMatched(a1, a2)){
 				for(int i=0; i<o1.getNestingBlocks().size(); i++){
@@ -186,9 +237,4 @@ public class ASTSequenceWrapper implements LCSSequence<ASTNode>{
 			return -1;
 		}
 	};
-	
-	@FunctionalInterface
-	public static interface ASTFilter{
-		public boolean isValidNode(ASTNode node);
-	}
 }

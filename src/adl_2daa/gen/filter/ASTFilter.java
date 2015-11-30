@@ -11,6 +11,7 @@ import adl_2daa.gen.generator.ASTUtility;
 
 public class ASTFilter {
 	
+	/*
 	public static class EOStransitionSlotFilter implements Predicate<Sequence>{
 		private Action eobTransition;
 		private boolean tryMatching;
@@ -28,13 +29,17 @@ public class ASTFilter {
 					eobTransition, tryMatching);
 		}
 	}
+	*/
 	
 	public static class EOBtransitionSlotFilter implements Predicate<Sequence>{
 		private Action eobTransition;
+		private boolean testForEOSOnly;
 		private boolean tryMatching;
 		
-		public EOBtransitionSlotFilter(Action eobTransition, boolean tryMatching){
+		public EOBtransitionSlotFilter(Action eobTransition, boolean testForEOSOnly,
+				boolean tryMatching){
 			this.eobTransition = eobTransition;
+			this.testForEOSOnly = testForEOSOnly;
 			this.tryMatching = tryMatching;
 		}
 
@@ -43,15 +48,8 @@ public class ASTFilter {
 			if(t.getStatements().isEmpty()) return true;
 			ASTSequenceWrapper wrappedSequence = new ASTSequenceWrapper(t.getStatements());
 			List<Integer> eobSlots = wrappedSequence.getValidSlots(
-					node -> {
-						if(node.isEndOfStatement()){
-		        			ASTStatement lastStatement = node.getNodeContainer().get(node.getNodeContainer().size()-1);
-		        			return ASTUtility.canPlaceEOBtransitionAfterLastStatement(
-		        					lastStatement, eobTransition, tryMatching);
-		        		}else{
-		        			return false;
-		        		}
-					});
+					ASTNodeFilter.eobTransitionSlotFilter(eobTransition, testForEOSOnly, tryMatching)
+					);
 			return eobSlots.size() > 0;
 		}
 	}

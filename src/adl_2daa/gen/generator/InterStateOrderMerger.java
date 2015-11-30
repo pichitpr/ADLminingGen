@@ -26,7 +26,7 @@ public class InterStateOrderMerger {
 	
 	private ASTSequenceSelection startingSkelSelection, targetSkelSelection;
 	private List<ASTStatement> startingDecodedRel, targetDecodedRel;
-	private Action transition;
+	private Action transition, transitionInTarget;
 	
 	public void merge(Root rootSkel, boolean desType, 
 			JSPatternGen<String> relation, boolean useTag){
@@ -71,7 +71,7 @@ public class InterStateOrderMerger {
 		List<ResultAgent> validSequenceAgents = ASTFilterOperator.filterAgent(rootSkel.getRelatedAgents(),
 				(agent,filteredState) -> filteredState.size() > 0, 
 				(state,filteredSequence) -> filteredSequence.size() > 0, 
-				new ASTFilter.EOBtransitionSlotFilter(transition, true));
+				new ASTFilter.EOBtransitionSlotFilter(transition, false, true));
 		if(!validSequenceAgents.isEmpty()){
 			List<ResultAgent> validAgents = ASTFilterOperator.filterAgentResult(
 					validSequenceAgents, 
@@ -140,13 +140,13 @@ public class InterStateOrderMerger {
 					null, startingSkelSelection.agent.getDes());
 		}else{
 			//No need to test for state count requirement here, above step already did this
-			Action eobTransition = ASTUtility.removeAllEOBTransition(targetDecodedRel);
-			if(eobTransition != null){
+			transitionInTarget = ASTUtility.removeAllEOBTransition(targetDecodedRel);
+			if(transitionInTarget != null){
 				List<ResultState> validStates = ASTFilterOperator.filterState(
 						startingSkelSelection.agent.getStates(), 
 						(state,filteredSequence) -> state != startingSkelSelection.state && 
 							filteredSequence.size() > 0, 
-						new ASTFilter.EOStransitionSlotFilter(eobTransition, true));
+						new ASTFilter.EOBtransitionSlotFilter(transitionInTarget, true, true));
 				if(!validStates.isEmpty()){
 					ResultState targetState = ASTUtility.randomUniform(validStates);
 					Sequence targetSequence = ASTUtility.randomUniform(targetState.getResultSequences());
@@ -160,7 +160,6 @@ public class InterStateOrderMerger {
 					targetSkelSelection = new ASTSequenceSelection(startingSkelSelection.agent, 
 							targetState, ASTUtility.randomUniform(targetState.getSequences()));
 				}
-				ASTMergeOperator.mergeEOBTransition(targetSkelSelection, eobTransition, true, true);
 			}else{
 				State targetState = startingSkelSelection.state;
 				while(targetState == startingSkelSelection.state){
@@ -180,8 +179,12 @@ public class InterStateOrderMerger {
 		if(!desType){
 			transition.getParams()[0] = new Identifier("."+targetSkelSelection.sequence.getIdentifier());
 		}
-		ASTMergeOperator.mergeEOBTransition(startingSkelSelection, transition, false, true);
+		//ASTMergeOperator.matchAndMergeEOBTransition(startingSkelSelection, transition, false);
 		ASTMergeOperator.merge(startingSkelSelection, startingDecodedRel);
+		
+		if(transitionInTarget != null){
+			//ASTMergeOperator.matchAndMergeEOBTransition(targetSkelSelection, transitionInTarget, true);
+		}
 		ASTMergeOperator.merge(targetSkelSelection, targetDecodedRel);
 	}
 }
