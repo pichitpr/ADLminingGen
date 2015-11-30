@@ -3,11 +3,9 @@ package adl_2daa.gen.filter;
 import java.util.List;
 import java.util.function.Predicate;
 
-import adl_2daa.ast.ASTStatement;
 import adl_2daa.ast.statement.Action;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.gen.generator.ASTSequenceWrapper;
-import adl_2daa.gen.generator.ASTUtility;
 
 public class ASTFilter {
 	

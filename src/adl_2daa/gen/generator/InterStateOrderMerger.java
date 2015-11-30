@@ -10,12 +10,14 @@ import adl_2daa.ast.ASTExpression;
 import adl_2daa.ast.ASTStatement;
 import adl_2daa.ast.expression.Identifier;
 import adl_2daa.ast.statement.Action;
+import adl_2daa.ast.structure.Agent;
 import adl_2daa.ast.structure.Root;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.ast.structure.State;
 import adl_2daa.gen.encoder.ADLSequenceDecoder;
 import adl_2daa.gen.filter.ASTFilter;
 import adl_2daa.gen.filter.ASTFilterOperator;
+import adl_2daa.gen.filter.ASTNodeFilter;
 import adl_2daa.gen.filter.ResultAgent;
 import adl_2daa.gen.filter.ResultState;
 import adl_2daa.gen.signature.Datatype;
@@ -116,21 +118,20 @@ public class InterStateOrderMerger {
 						startingState.getActualState(), startingSequence);
 			}else{
 				//No requirement met
-				ResultAgent startingAgent = ASTUtility.randomUniform(validAgents);
-				ResultState startingState = ASTUtility.randomUniform(startingAgent.getResultStates());
+				Agent startingAgent = ASTUtility.randomUniformAgentOrCreate(rootSkel);
+				State startingState = ASTUtility.randomUniformStateOrCreate(startingAgent);
 				//Grow new sequence
-				Sequence startingSequence = ASTUtility.createEmptySequence(
-						"seq"+startingState.getActualState().getSequences().size());
+				Sequence startingSequence = ASTUtility.randomUniformSequenceOrCreate(startingState);
 				//Grow state 
-				while(startingAgent.getActualAgent().getStates().size() < fStateCount){
-					startingAgent.getActualAgent().getStates().add(
+				while(startingAgent.getStates().size() < fStateCount){
+					startingAgent.getStates().add(
 							ASTUtility.createEmptyState(
-									"state"+startingAgent.getActualAgent().getStates().size()
+									"state"+startingAgent.getStates().size()
 									)
 							);
 				}
-				startingSkelSelection = new ASTSequenceSelection(startingAgent.getActualAgent(), 
-						startingState.getActualState(), startingSequence);
+				startingSkelSelection = new ASTSequenceSelection(startingAgent, 
+						startingState, startingSequence);
 			}
 		}
 		
@@ -177,14 +178,54 @@ public class InterStateOrderMerger {
 		assert(ASTUtility.removeAllEOBTransition(startingDecodedRel) == null);
 		
 		if(!desType){
-			transition.getParams()[0] = new Identifier("."+targetSkelSelection.sequence.getIdentifier());
+			transition.getParams()[0] = new Identifier("."+
+		targetSkelSelection.state.getIdentifier());
 		}
-		//ASTMergeOperator.matchAndMergeEOBTransition(startingSkelSelection, transition, false);
-		ASTMergeOperator.merge(startingSkelSelection, startingDecodedRel);
 		
-		if(transitionInTarget != null){
-			//ASTMergeOperator.matchAndMergeEOBTransition(targetSkelSelection, transitionInTarget, true);
+		ASTSequenceWrapper wrappedStartingSeq = new ASTSequenceWrapper(
+				startingSkelSelection.sequence.getStatements());
+		ASTSequenceWrapper wrappedStartingRel = new ASTSequenceWrapper(
+				startingDecodedRel);
+		ASTSequenceWrapper wrappedTargetSeq = new ASTSequenceWrapper(
+				targetSkelSelection.sequence.getStatements());
+		ASTSequenceWrapper wrappedTargetRel = new ASTSequenceWrapper(
+				targetDecodedRel);
+		
+		int[] transitionSlot = new int[]{-1};
+		boolean requireTransitionInsertion = false;
+		if(!ASTMergeOperator.matchAndMergeEOBTransition(wrappedStartingSeq, 
+				transition, false, transitionSlot)){
+			requireTransitionInsertion = true;
 		}
-		ASTMergeOperator.merge(targetSkelSelection, targetDecodedRel);
+		ASTMergeOperator.queueSequenceInsertion(wrappedStartingSeq, wrappedStartingRel, 
+				transitionSlot[0]);
+		if(requireTransitionInsertion){
+			wrappedStartingSeq.queueInsertion(transitionSlot[0], transition);
+		}
+		wrappedStartingSeq.finalizeWrapper();
+		
+		transitionSlot = new int[]{-1};
+		requireTransitionInsertion = false;
+		if(transitionInTarget != null){
+			if(!ASTMergeOperator.matchAndMergeEOBTransition(wrappedTargetSeq, 
+					transitionInTarget, true, transitionSlot)){
+				requireTransitionInsertion = true;
+			}
+		}else{
+			List<Integer> existingEOS = wrappedTargetSeq.getValidSlots(
+					ASTNodeFilter.existingTransition(true)
+					);
+			if(!existingEOS.isEmpty()){
+				transitionSlot[0] = existingEOS.get(existingEOS.size()-1);
+			}
+		}
+		if(wrappedTargetRel.getActionCount() > 0){
+			ASTMergeOperator.queueSequenceInsertion(wrappedTargetSeq, wrappedTargetRel, 
+					transitionSlot[0]);
+		}
+		if(requireTransitionInsertion){
+			wrappedTargetSeq.queueInsertion(transitionSlot[0], transitionInTarget);
+		}
+		wrappedTargetSeq.finalizeWrapper();
 	}
 }

@@ -6,6 +6,7 @@ import java.util.Set;
 import lcs.LCSSequenceEmbedding;
 import lcs.SimpleLCSEmbedding;
 
+import org.jacop.constraints.XltC;
 import org.jacop.constraints.XlteqY;
 import org.jacop.core.IntVar;
 import org.jacop.core.Store;
@@ -19,7 +20,7 @@ import adl_2daa.gen.filter.ASTNodeFilter;
 public class ASTMergeOperator {
 
 	/**
-	 * Merge EOB-transition into selected sequence, provided the sequence has available slot.
+	 * Merge EOB-transition into selected sequence randomly, provided there is available slot.
 	 * If statement matched, merge immediately. This method either uses EOS slot or EOB slot. 
 	 * Return true if merging happens. Merge index or suggested insertion index (if no
 	 * merging happens) is put in mergeIndex[0].   
@@ -45,7 +46,7 @@ public class ASTMergeOperator {
 		}else{
 			ASTStatement lastStatement = insertPosition.getNodeContainer().get(insertPosition.getLocalIndex()-1);
 			if(!tryMatchAndMerge(lastStatement, eobTransition, true)){
-				//Cannot merge -- append
+				//Cannot match and merge -- append
 				mergeIndex[0] = insertingIndex;
 				return false;
 			}
@@ -125,18 +126,20 @@ public class ASTMergeOperator {
 	/**
 	 * @see ASTMergeOperator#merge(ASTSequenceWrapper, ASTSequenceWrapper)
 	 */
+	/*
 	public static void merge(ASTSequenceSelection selection, List<ASTStatement> relation){
 		ASTSequenceWrapper wrappedRel = new ASTSequenceWrapper(relation);
 		ASTSequenceWrapper wrappedSkel = new ASTSequenceWrapper(selection.sequence.getStatements());
 		merge(wrappedSkel, wrappedRel);
 	}
+	*/
 	
 	/**
 	 * Merge the given relation sequence into a sequence selected from skeleton.
 	 * The provided relation must NOT contain eob-transition. wrappedSkel will be
 	 * finalized.
 	 */
-	//TODO: check for existing EOB-T before merge
+	/*
 	public static void merge(ASTSequenceWrapper wrappedSkel, ASTSequenceWrapper wrappedRel){
 		//Allocate matched key actions
 		Set<LCSSequenceEmbedding<ASTNode>> lcsResult = SimpleLCSEmbedding.allLCSEmbeddings(
@@ -156,7 +159,7 @@ public class ASTMergeOperator {
 			LCSSequenceEmbedding<ASTNode>.EmbeddingItem emb = relAllocation.itemAt(i);
 			Action relAction = (Action)wrappedRel.itemAt(emb.getI()).getNode();
 			Action skelAction = (Action)wrappedSkel.itemAt(emb.getJ()).getNode();
-			/*
+			
 			if(relAction.getName().equals("Despawn")) continue; //Do nothing for Despawn
 			//Matched actions' identifier has 3 cases: ? VS ?, IDEN_A vs IDEN_A and IDEN_? vs ?
 			//We just have to take care of IDEN_? vs ? case
@@ -165,7 +168,7 @@ public class ASTMergeOperator {
 						((Identifier)relAction.getParams()[0]).getValue()
 						);
 			}
-			*/
+			
 			tryMatchAndMerge(skelAction, relAction, false);
 		}
 
@@ -209,6 +212,87 @@ public class ASTMergeOperator {
 		}
 
 		wrappedSkel.finalizeWrapper();
+	}
+	*/
+	
+	/**
+	 * Queue insertion of the given sequence relation that contains NO EOB-T into selected 
+	 * sequence of skeleton. Every statement in sequence will precede provided bound.
+	 * If bound is not used, pass negative number. 
+	 * NOTE that this method does not check for existing EOB-T.
+	 */
+	public static void queueSequenceInsertion(ASTSequenceWrapper wrappedSkel, 
+			ASTSequenceWrapper wrappedRel, int eobTransitionBound){
+		if(eobTransitionBound < 0){
+			eobTransitionBound = Integer.MAX_VALUE;
+		}else{
+			eobTransitionBound = eobTransitionBound*2+1;
+		}
+		
+		Store store = new Store();
+		IntVar[] vars = new IntVar[wrappedRel.getActionCount()];
+		
+		//Allocate matched key actions
+		Set<LCSSequenceEmbedding<ASTNode>> lcsResult = SimpleLCSEmbedding.allLCSEmbeddings(
+				wrappedRel, wrappedSkel, ASTSequenceWrapper.keyActionComparator);
+		LCSSequenceEmbedding<ASTNode> relAllocation = null;
+		int lcsIndex = ASTUtility.randomRange(0, lcsResult.size()-1);
+		for(LCSSequenceEmbedding<ASTNode> emb : lcsResult){
+			if(lcsIndex == 0){
+				relAllocation = emb;
+				break;
+			}
+			lcsIndex--;
+		}
+
+		//Merge all matched key actions
+		for(int i=0; i<relAllocation.size(); i++){
+			LCSSequenceEmbedding<ASTNode>.EmbeddingItem emb = relAllocation.itemAt(i);
+			Action relAction = (Action)wrappedRel.itemAt(emb.getI()).getNode();
+			Action skelAction = (Action)wrappedSkel.itemAt(emb.getJ()).getNode();
+			//System.out.println("Matched "+relAction.getName()+".."+skelAction.getName());
+			ASTMergeOperator.tryMatchAndMerge(skelAction, relAction, false);
+		}
+
+		//Setup domain for allocated actions first -- used in constraint only
+		for(int i=0; i<relAllocation.size(); i++){
+			LCSSequenceEmbedding<ASTNode>.EmbeddingItem emb = relAllocation.itemAt(i);
+			int relIndex = wrappedRel.embIndexToActionIndex(emb.getI());
+			int skelIndex = wrappedSkel.embIndexToSlotIndex(emb.getJ());
+			skelIndex = skelIndex*2+1;
+			vars[relIndex] = new IntVar(store, skelIndex, skelIndex);
+		}
+
+		//Setup domain for the remaining actions
+		for(int i=0; i<wrappedRel.getActionCount(); i++){
+			if(vars[i] != null){
+				//System.out.print("[M] "+vars[i].dom().toStringFull()+" ");
+				//TestUtility.printASTStatement(wrappedRel.getWrappedAST().get(i));
+				continue; //Skip allocated action
+			}
+			vars[i] = new IntVar(store);
+			for(int dom=0; dom<wrappedSkel.getSlotCount(); dom++){
+				vars[i].addDom(dom*2, dom*2);
+				//System.out.print(dom+" ");
+			}
+			//TestUtility.printASTStatement(wrappedRel.getWrappedAST().get(i));
+		}
+
+		//Ordering constraint
+		store.impose(new XltC(vars[0], eobTransitionBound));
+		for(int i=1; i<wrappedRel.getActionCount(); i++){
+			store.impose(new XlteqY(vars[i-1], vars[i]));
+			store.impose(new XltC(vars[i], eobTransitionBound));
+		}
+
+		//Solving and assign
+		int[] assignment = JaCopUtility.randomUniformAssignment(store, vars);
+		assert(assignment.length == wrappedRel.getActionCount());
+		for(int i=0; i<assignment.length; i++){
+			if(assignment[i] % 2 == 0){
+				wrappedSkel.queueInsertion(assignment[i]/2, wrappedRel.getWrappedAST().get(i));
+			}
+		}
 	}
 	
 	/**

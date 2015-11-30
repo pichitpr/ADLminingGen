@@ -159,11 +159,11 @@ public class ASTSequenceWrapper implements LCSSequence<ASTNode>{
 	 * of those nodes are inserted at the end of block specified by the nodes.
 	 */
 	public void queueInsertion(int index, ASTStatement statement){
-		/*
+		
 		StringBuilder strb = new StringBuilder(index+" : ");
 		statement.toScript(strb, 0);
 		System.out.println(strb);
-		*/
+		
 		insertionList.get(index).add(statement);
 	}
 	
