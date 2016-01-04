@@ -1,6 +1,7 @@
 package adl_2daa.gen.generator;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -66,6 +67,13 @@ public class ASTUtility {
 	 */
 	public static <T> T randomUniform(List<T> list){
 		return list.get(randomRange(0, list.size()-1));
+	}
+	
+	/**
+	 * Shuffle a list using internal randomness
+	 */
+	public static <T> void shuffle(List<T> list){
+		Collections.shuffle(list, random);
 	}
 	
 	/**
