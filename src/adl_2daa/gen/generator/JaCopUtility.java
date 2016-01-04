@@ -74,11 +74,12 @@ public class JaCopUtility {
 	
 	/**
 	 * Create variables with provided "non-negative" domains and solve AllDiff(vars).
-	 * The solver tries to assign value to as many variables as possible.
-	 * All possible solutions are cached and a random solution is returned.
+	 * The solver tries to assign value to as many variables as possible (highest coverage).
+	 * All possible solutions with the same coverage count are cached and 
+	 * coverage count is returned.
 	 * Negative assignment means the corresponding variable is not used.  
 	 */
-	public static int[] randomPartialAlldiffAssignment(IntDomain[] varsDom){
+	public static int randomPartialAlldiffAssignment(IntDomain[] varsDom){
 		//Create a clone of domains since searching change their state!
 		IntDomain[] varsDomClone = new IntDomain[varsDom.length];
 		for(int i=0; i<varsDom.length; i++){
@@ -102,7 +103,9 @@ public class JaCopUtility {
 		vars = new IntVar[varsDom.length];
 		costVar = setupPartialAlldiffAssignment(store, vars, varsDomClone);
 		store.impose(new XeqC(costVar, minimumCost));
-		return randomUniformAssignment(store, vars);
+		randomUniformAssignment(store, vars);
+		
+		return varsDom.length-minimumCost;
 	}
 	
 	private static IntVar setupPartialAlldiffAssignment(Store store, IntVar[] vars,
