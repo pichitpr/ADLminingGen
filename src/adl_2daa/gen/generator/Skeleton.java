@@ -64,7 +64,7 @@ public class Skeleton {
 	}
 	
 	public void mergeParallel(GraphPattern<String,Integer> relation){
-		
+		ParallelMerger.instance.merge(skel, relation);
 	}
 	
 	public void mergeInterEntity(GraphPattern<String,Integer> relation, boolean useTag){
