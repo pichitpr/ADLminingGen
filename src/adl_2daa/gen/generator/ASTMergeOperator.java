@@ -16,6 +16,7 @@ import adl_2daa.ast.expression.Identifier;
 import adl_2daa.ast.statement.Action;
 import adl_2daa.ast.structure.Root;
 import adl_2daa.gen.filter.ASTNodeFilter;
+import adl_2daa.jacop.JaCopUtility;
 
 public class ASTMergeOperator {
 
@@ -286,7 +287,8 @@ public class ASTMergeOperator {
 		}
 
 		//Solving and assign
-		int[] assignment = JaCopUtility.randomUniformAssignment(store, vars);
+		JaCopUtility.solveAllSolutionCSP(store, vars);
+		int[] assignment = JaCopUtility.randomUniformAssignment();
 		assert(assignment.length == wrappedRel.getActionCount());
 		for(int i=0; i<assignment.length; i++){
 			if(assignment[i] % 2 == 0){

@@ -15,7 +15,8 @@ import adl_2daa.ast.structure.Root;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.ast.structure.State;
 import adl_2daa.gen.encoder.ADLSequenceDecoder;
-import adl_2daa.gen.generator.JaCopUtility;
+import adl_2daa.jacop.JaCopUtility;
+
 
 public class SequenceOrderMerger {
 
@@ -76,7 +77,8 @@ public class SequenceOrderMerger {
 				store.impose(new XlteqY(var[i-1], var[i]));
 			}
 		}
-        int[] result = JaCopUtility.randomUniformAssignment(store, var);
+		JaCopUtility.solveAllSolutionCSP(store, var);
+        int[] result = JaCopUtility.randomUniformAssignment();
         
         for(int varIndex=0; varIndex<result.length; varIndex++){
 			slotManager.insert(result[varIndex], decodedRelation.get(varIndex));

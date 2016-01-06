@@ -20,7 +20,8 @@ import adl_2daa.ast.structure.Root;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.ast.structure.State;
 import adl_2daa.gen.encoder.ADLSequenceDecoder;
-import adl_2daa.gen.generator.JaCopUtility;
+import adl_2daa.jacop.JaCopUtility;
+
 
 public class InterStateOrderMerger {
 
@@ -175,7 +176,8 @@ public class InterStateOrderMerger {
 					store.impose(new XlteqY(var[i-1], var[i]));
 				}
 			}
-			result = JaCopUtility.randomUniformAssignment(store, var);
+			JaCopUtility.solveAllSolutionCSP(store, var);
+			result = JaCopUtility.randomUniformAssignment();
 			for(varIndex=0; varIndex<result.length; varIndex++){
 				slotManager.insert(result[varIndex], targetDecodedRel.get(varIndex));
 			}
@@ -214,7 +216,8 @@ public class InterStateOrderMerger {
 			}
 			store.impose(new XlteqY(var[i], var[var.length-1]));
 		}
-		result = JaCopUtility.randomUniformAssignment(store, var);
+		JaCopUtility.solveAllSolutionCSP(store, var);
+		result = JaCopUtility.randomUniformAssignment();
 		for(varIndex=0; varIndex<result.length; varIndex++){
 			slotManager.insert(result[varIndex], startingDecodedRel.get(varIndex));
 		}

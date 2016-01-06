@@ -21,7 +21,8 @@ import adl_2daa.gen.encoder.ADLRoot;
 import adl_2daa.gen.encoder.ADLSequence;
 import adl_2daa.gen.encoder.ADLSequenceDecoder;
 import adl_2daa.gen.encoder.ADLState;
-import adl_2daa.gen.generator.JaCopUtility;
+import adl_2daa.jacop.JaCopUtility;
+
 
 public class ADLUtility {
 
@@ -117,7 +118,8 @@ public class ADLUtility {
 		}
 		
 		//Solve and assign
-		int[] result = JaCopUtility.randomUniformAssignment(store, vars);
+		JaCopUtility.solveAllSolutionCSP(store, vars);
+		int[] result = JaCopUtility.randomUniformAssignment();
 		TreeMap<Integer, List<Integer>> insertionMap = new TreeMap<Integer, List<Integer>>();
 		for(i=0; i<encodedSequence.size(); i++){
 			if(result[i] % 2 == 1) continue; //Odd index indicating part of skel

@@ -6,13 +6,18 @@ import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
 import org.jacop.core.IntDomain;
+import org.jacop.core.IntVar;
 import org.jacop.core.IntervalDomain;
+import org.jacop.core.Store;
 
 import adl_2daa.ast.statement.Action;
 import adl_2daa.ast.structure.Agent;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.ast.structure.State;
-import adl_2daa.gen.generator.JaCopUtility;
+import adl_2daa.jacop.CSPInstance;
+import adl_2daa.jacop.CSPTemplate;
+import adl_2daa.jacop.JaCopUtility;
+
 
 public class ASTFilterOperator {
 	
@@ -126,7 +131,8 @@ public class ASTFilterOperator {
 					seqIndex++;
 				}
 				//Solve for all allocations, get coverage count and record solutions
-				int coverage = JaCopUtility.randomPartialAlldiffAssignment(eobDomains);
+				CSPTemplate allocationProblem = new EOBTransitionAllocationProblem(eobDomains);
+				int coverage = JaCopUtility.solveAllSolutionCSP(allocationProblem);
 				if(coverage >= highestTransitionSupport){
 					//Valid solutions found, record all of them
 					if(coverage > highestTransitionSupport){
@@ -155,5 +161,35 @@ public class ASTFilterOperator {
 		}
 		
 		return filteredAgent;
+	}
+	
+	
+	private static class EOBTransitionAllocationProblem implements CSPTemplate{
+
+		private IntDomain[] dom;
+		public EOBTransitionAllocationProblem(IntDomain[] dom){
+			this.dom = dom;
+		}
+		
+		@Override
+		public CSPInstance newInstance() {
+			IntDomain[] varsDomClone = new IntDomain[dom.length];
+			for(int i=0; i<dom.length; i++){
+				varsDomClone[i] = new IntervalDomain();
+				varsDomClone[i].addDom(dom[i]);
+			}
+			
+			Store store = new Store();
+			IntVar[] vars = new IntVar[varsDomClone.length];
+			for(int i=0; i<vars.length; i++){
+				vars[i] = new IntVar(store);
+				vars[i].addDom(varsDomClone[i]);
+			}
+			JaCopUtility.prepareVarsForPartialAllDiff(vars);
+			IntVar costVar = JaCopUtility.imposePartialAllDiff(store, vars);
+			
+			return new CSPInstance(store, vars, costVar);
+		}
+		
 	}
 }
