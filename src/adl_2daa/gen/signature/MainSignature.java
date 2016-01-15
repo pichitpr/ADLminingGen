@@ -51,7 +51,8 @@ public abstract class MainSignature {
 	/**
 	 * Return choice signature. The choice signature will have its first parameter
 	 * (the choice) omitted thus the parameters length will be shorter than what
-	 * appears in code. If the signature has no choice, this method returns mainSignature  
+	 * appears in code. If the signature has no choice, this method returns mainSignature.
+	 * Choice returned is in lowercase.  
 	 */
 	public Signature getChoiceSignature(String choice){
 		Signature sig = choiceSigMap.get(choice.toLowerCase());

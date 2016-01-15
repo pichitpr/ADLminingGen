@@ -59,7 +59,7 @@ public class TestExpressionDecoder {
 		assertEquals("DistanceToPlayer", f2.getName());
 		assertTrue(!f2.hasSingleQuery());
 		assertTrue(f2.getParams()[0] instanceof StringConstant);
-		assertEquals("Y", ((StringConstant)f2.getParams()[0]).getValue());
+		assertEquals("y", ((StringConstant)f2.getParams()[0]).getValue());
 		
 		//Abs(DistanceToPlayer("Y"))$ <= 60
 		cond = ((Condition)seq.getStatements().get(2)).getCondition();
