@@ -59,8 +59,8 @@ public class Main {
 	private static int mineAndGetResult(Miner miner, int mode, double minSup){
 		switch(mode){
 		case 0:
-			miner.mineSequenceOrdering(minSup, false);
-			return miner.getFrequentOrder().sequenceCount;
+			miner.mineSequenceOrdering(minSup, false, true);
+			return miner.getFrequentOrder().size();
 		case 1:
 			miner.mineInterStateOrder(minSup, false);
 			return miner.getFrequentInterStateOrder_Goto().size();
