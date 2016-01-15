@@ -63,3 +63,6 @@ $RECYCLE.BIN/
 
 /result
 /result_script
+swap.txt*
+.classpath
+.project
