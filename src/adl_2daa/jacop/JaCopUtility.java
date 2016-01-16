@@ -101,9 +101,10 @@ public class JaCopUtility {
 	
 	/**
 	 * Prepare all variables that will be used in PartialAllDiff. Must be called
-	 * before imposing constraint ONCE AND ONLY ONCE
+	 * before imposing PartialAllDiff constraint ONCE AND ONLY ONCE. Return a value
+	 * that a value of any variable specified as "no assignment" must not exceed. 
 	 */
-	public static void prepareVarsForPartialAllDiff(IntVar[] allVars){
+	public static int prepareVarsForPartialAllDiff(IntVar[] allVars){
 		int universalLowerBound = Integer.MAX_VALUE;
 		for(IntVar var : allVars){
 			if(universalLowerBound > var.min()){
@@ -115,6 +116,8 @@ public class JaCopUtility {
 		for(int i=0; i<allVars.length; i++){
 			allVars[i].addDom(universalLowerBound-i, universalLowerBound-i);
 		}
+		
+		return universalLowerBound+1;
 	}
 
 	/**
