@@ -1,5 +1,6 @@
 package adl_2daa.gen.encoder;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -19,10 +20,10 @@ public class ADLState {
 		}
 	}
 
-	protected List<String> getAllSpawnableEntity(){
-		List<String> list = new LinkedList<String>();
+	protected HashSet<String> getAllSpawnableEntity(){
+		HashSet<String> list = new HashSet<String>();
 		for(ADLSequence eSeq : sequences){
-			list.addAll(eSeq.allSpawnableAgent);
+			list.addAll(eSeq.allSpawnerSequence.keySet());
 		}
 		return list;
 	}

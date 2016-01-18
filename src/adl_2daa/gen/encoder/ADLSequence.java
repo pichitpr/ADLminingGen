@@ -1,6 +1,7 @@
 package adl_2daa.gen.encoder;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import adl_2daa.ast.structure.Sequence;
@@ -10,7 +11,7 @@ public class ADLSequence {
 	protected String identifier;
 	protected List<String> encodedSequence;
 	protected List<ADLSequence> allFlowToTerminal;
-	protected List<String> allSpawnableAgent;
+	protected HashMap<String, ADLSequence> allSpawnerSequence;
 	
 	public ADLSequence(String identifier, List<String> encodedSequence){
 		this.identifier = identifier;

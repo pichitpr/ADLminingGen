@@ -53,6 +53,8 @@ public class TestInitializer {
 		
 		GeneratorRegistry.registerActionSignature("Spawn",
 				new ActionMainSignature(2, -1, Datatype.IDENTIFIER, Datatype.POSITION, Datatype.DIRECTION));
+		//Placeholder for Spawn with specified target
+		GeneratorRegistry.registerActionSignature("@Spawn", new ActionMainSignature());
 		
 		GeneratorRegistry.registerActionSignature("Var", 
 				new ActionMainSignature(Datatype.INT));

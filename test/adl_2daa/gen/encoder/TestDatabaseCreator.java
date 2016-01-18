@@ -272,7 +272,55 @@ public class TestDatabaseCreator {
 		 * .feather -> Spawn .FeatherBullet{1,2,3} (1,1,1)
 		 * .tomahawk -> Spawn .Tomahawk(1) *1
 		 */
+	
+		//NO DUP VERSION now : 7 inter-entity, excluding spawn in .des
+		assertEquals(7, db.size());
+		assertTrue(isGraphIDConsistent(db));
+
+		//Agent files are converted to graph in lexicographical order
+		Iterator<Graph<String,Integer>> it = db.iterator();
+		while(it.hasNext()){
+			Graph<String,Integer> graph = it.next();
+			switch(graph.getID()){
+			case 0:
+				//FlameMan.flame(1) -> Spawn .FlameShield(1) *6
+				assertEquals(2+15+7, graph.getNodeCount());
+				assertEquals(0, (int)agentIDMap.get(graph.getID()));
+				break;
+			case 1:
+				//FlameMan.bullet(1) -> Spawn .FlameShot(1) *1
+				assertEquals(2+8+2+2, graph.getNodeCount());
+				assertEquals(0, (int)agentIDMap.get(graph.getID()));
+				break;
+			case 2:
+				//Lakitu.state0(2) -> Spawn .SpinyEgg(1)
+				assertEquals(2+3+3+2, graph.getNodeCount());
+				assertEquals(6, (int)agentIDMap.get(graph.getID()));
+				break;
+			case 3:
+				//TomahawkMan.feather -> Spawn .FeatherBullet1 (1)
+				assertEquals(2+6+2, graph.getNodeCount());
+				assertEquals(9, (int)agentIDMap.get(graph.getID()));
+				break;
+			case 4:
+				//TomahawkMan.feather -> Spawn .FeatherBullet2 (1)
+				assertEquals(2+6+2, graph.getNodeCount());
+				assertEquals(9, (int)agentIDMap.get(graph.getID()));
+				break;
+			case 5:
+				//TomahawkMan.feather -> Spawn .FeatherBullet3 (1)
+				assertEquals(2+6+2, graph.getNodeCount());
+				assertEquals(9, (int)agentIDMap.get(graph.getID()));
+				break;
+			case 6:
+				//TomahawkMan.tomahawk -> Spawn .Tomahawk(1) *1
+				assertEquals(2+4+2, graph.getNodeCount());
+				assertEquals(9, (int)agentIDMap.get(graph.getID()));
+				break;
+			}
+		}
 		
+		/*
 		//14 inter-entity including duplication, excluding spawn in .des
 		assertEquals(12, db.size());
 		assertTrue(isGraphIDConsistent(db));
@@ -319,6 +367,7 @@ public class TestDatabaseCreator {
 				break;
 			}
 		}
+		*/
 	}
 	
 	@SuppressWarnings("unchecked")

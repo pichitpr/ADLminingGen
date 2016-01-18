@@ -2,6 +2,7 @@ package adl_2daa.gen.encoder;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
@@ -34,7 +35,8 @@ public class ADLSequenceEncoder {
 	private Stack<Byte> separatorBuf = new Stack<Byte>();
 	private List<String> result;
 	
-	private List<String> allSpawnableAgent;
+	private boolean analyzeSpawnableAgent = false;
+	private HashMap<String,List<Integer>> agentSpawnActionIndices;
 	
 	private boolean analyzeFlow = false;
 	private FlowAnalyzableTree analyzedNode;
@@ -45,6 +47,10 @@ public class ADLSequenceEncoder {
 	 */
 	private List<ADLSequence> allPossibleFlowToTerminal;
 	
+	public void setAnalyzeSpawnable(boolean value){
+		this.analyzeSpawnableAgent = value;
+	}
+	
 	public void setAnalyzeFlow(boolean analyzeFlow) {
 		this.analyzeFlow = analyzeFlow;
 	}
@@ -53,7 +59,9 @@ public class ADLSequenceEncoder {
 		expressionBuf.clear();
 		separatorBuf.clear();
 		result = new LinkedList<String>();
-		allSpawnableAgent = new LinkedList<String>();
+		if(analyzeSpawnableAgent){
+			agentSpawnActionIndices = new HashMap<String,List<Integer>>();
+		}
 		if(analyzeFlow){
 			analyzedNode = new FlowAnalyzableTree();
 			allPossibleFlowToTerminal = new LinkedList<ADLSequence>();
@@ -61,7 +69,24 @@ public class ADLSequenceEncoder {
 		encodeRecursively(sequence.getStatements());
 		
 		ADLSequence resultSequence = new ADLSequence(sequence.getIdentifier(), result);
-		resultSequence.allSpawnableAgent = allSpawnableAgent;
+		if(analyzeSpawnableAgent){
+			HashMap<String,ADLSequence> allPossibleSpawnerSequence = 
+					new HashMap<String,ADLSequence>();
+			byte spawnWithTargetActionID = (byte)GeneratorRegistry.getActionSignature("@Spawn").getMainSignature().getId();
+			for(String childAgentName : agentSpawnActionIndices.keySet()){
+				List<String> copiedESeq = new LinkedList<String>(result);
+				List<Integer> indices = agentSpawnActionIndices.get(childAgentName);
+				for(int i : indices){
+					String eAct = copiedESeq.remove(i);
+					byte[] buf = eAct.getBytes(StandardCharsets.US_ASCII);
+					buf[0] = spawnWithTargetActionID;
+					copiedESeq.add(i, new String(buf, StandardCharsets.US_ASCII));
+				}
+				allPossibleSpawnerSequence.put(childAgentName, 
+						new ADLSequence(resultSequence.identifier, copiedESeq));
+			}
+			resultSequence.allSpawnerSequence = allPossibleSpawnerSequence;
+		}
 		if(analyzeFlow){
 			resultSequence.allFlowToTerminal = allPossibleFlowToTerminal;
 		}
@@ -92,17 +117,24 @@ public class ADLSequenceEncoder {
 			actionID = (byte)sig.getChoiceSignature(choice).getId();
 		}
 		
+		if(analyzeSpawnableAgent && action.getName().equals("Spawn")){
+			String spawnedAgent = ((Identifier)action.getParams()[0]).getValue();
+			List<Integer> indicesList = null;
+			if(agentSpawnActionIndices.containsKey(spawnedAgent)){
+				indicesList = agentSpawnActionIndices.get(spawnedAgent);
+			}else{
+				indicesList = new LinkedList<Integer>();
+				agentSpawnActionIndices.put(spawnedAgent, indicesList);
+			}
+			indicesList.add(result.size());
+		}
+		
 		String enc = new String(new byte[]{actionID}, StandardCharsets.US_ASCII);
 		for(int i=0; i<expressionBuf.size(); i++){
 			enc += (char)separatorBuf.get(i).byteValue();
 			enc += expressionBuf.get(i);
 		}
 		result.add(enc);
-		
-		if(action.getName().equals("Spawn")){
-			String spawned = ((Identifier)action.getParams()[0]).getValue();
-			allSpawnableAgent.add(spawned);
-		}
 		
 		if(!analyzeFlow) return;
 		if(action.getName().equals("Goto") || action.getName().equals("Despawn")){

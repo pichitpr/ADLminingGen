@@ -93,6 +93,9 @@ public class ADLSequenceDecoder {
 		List<ASTExpression> paramList = new LinkedList<ASTExpression>();
 		int actionID = buf[0];
 		String actionName = GeneratorRegistry.getActionName(actionID);
+		if(actionName.equals("@Spawn")){
+			actionName = "Spawn";
+		}
 		String choice = null;
 		Signature sig = null;
 		int choiceSymbolIndex = actionName.indexOf('#');

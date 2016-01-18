@@ -114,6 +114,8 @@ public class DatabaseCreator {
 		List<List<List<String>>> db = new LinkedList<List<List<String>>>();
 		List<Integer> agentIDMap = new LinkedList<Integer>();
 		ADLSequence eSeq;
+		
+		ADLSequenceEncoder.instance.setAnalyzeSpawnable(false);
 		ADLSequenceEncoder.instance.setAnalyzeFlow(false);
 		it.reset();
 		
@@ -171,6 +173,7 @@ public class DatabaseCreator {
 		List<Integer> gotoAgentIDMap = new LinkedList<Integer>();
 		List<Integer> desAgentIDMap = new LinkedList<Integer>();
 		
+		ADLSequenceEncoder.instance.setAnalyzeSpawnable(false);
 		ADLSequenceEncoder.instance.setAnalyzeFlow(true);
 		it.reset();
 		
@@ -232,6 +235,7 @@ public class DatabaseCreator {
 		GraphCreationHelper<String, Integer> graph = 
 				new GraphCreationHelper<String, Integer>();
 		
+		ADLSequenceEncoder.instance.setAnalyzeSpawnable(false);
 		ADLSequenceEncoder.instance.setAnalyzeFlow(false);
 		it.reset();
 		GraphCreationHelper.resetID();
@@ -277,10 +281,12 @@ public class DatabaseCreator {
 		GraphCreationHelper<String, Integer> graph = 
 				new GraphCreationHelper<String, Integer>();
 		
+		ADLSequenceEncoder.instance.setAnalyzeSpawnable(true);
+		ADLSequenceEncoder.instance.setAnalyzeFlow(false);
 		it.reset();
 		GraphCreationHelper.resetID();
 		//TODO: A state that spawn the same agent multiple times will cause
-		//duplicate graph, is this acceptable???
+		//duplicate graph, is this acceptable??? >> Currently not dup now
 		//also, we do not consider Spawn in .des, is this Ok? -- now ok
 		int agentID = 0;
 		while(it.hasNext()){
@@ -299,9 +305,11 @@ public class DatabaseCreator {
 						
 						//Spawner parallel sequence
 						for(ADLSequence eSeq : eState.sequences){
+							if(!eSeq.allSpawnerSequence.containsKey(spawnableAgentName))
+								continue;
 							int seqRootNode = graph.addNode(ADLSequenceEncoder.dummyEncodedAction);
 							graph.addEdge(rootNode, seqRootNode, EncodeTable.STATE_SEQUENCE_EDGE, true);
-							for(String eAct : eSeq.encodedSequence){
+							for(String eAct : eSeq.allSpawnerSequence.get(spawnableAgentName).encodedSequence){
 								graph.addEdge(seqRootNode, graph.addNode(eAct), EncodeTable.SEQUENCE_ACTION_EDGE, true);
 							}
 						}

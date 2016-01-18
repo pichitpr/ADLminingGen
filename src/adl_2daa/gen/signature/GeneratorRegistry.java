@@ -110,7 +110,7 @@ public class GeneratorRegistry {
 		FunctionMainSignature.resetID();
 		
 		dummyActionSignature = new ActionMainSignature();
-		registerActionSignature("#dummy", dummyActionSignature);
+		registerActionSignature("@dummy", dummyActionSignature);
 		
 		//This will increase function's ID count by 1, so the first function ID is 1
 		@SuppressWarnings("unused")
