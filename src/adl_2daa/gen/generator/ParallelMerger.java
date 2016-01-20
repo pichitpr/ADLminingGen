@@ -23,8 +23,8 @@ public class ParallelMerger {
 
 	public static final ParallelMerger instance = new ParallelMerger();
 
-	private List<ASTSequenceSelection> selections;
 	private List<List<ASTStatement>> decodedRelations;
+	private List<ASTSequenceSelection> selections;
 	private List<Action> transitions;
 	
 	public void merge(Root skel, GraphPattern<String,Integer> relation){
@@ -42,7 +42,7 @@ public class ParallelMerger {
 		while(nodeIt.hasNext()){
 			root = nodeIt.next();
 			if(root.getInDegree() == 0){
-				System.out.println("ROOT");
+				//System.out.println("ROOT");
 				break;
 			}
 		}
@@ -51,7 +51,7 @@ public class ParallelMerger {
 		Iterator<Edge<String,Integer>> edgeIt = root.outgoingEdgeIterator();
 		Edge<String,Integer> edge;
 		while(edgeIt.hasNext()){
-			System.out.println("=SEQ");
+			//System.out.println("=SEQ");
 			//Get connected sequence node
 			edge = edgeIt.next();
 			Node<String,Integer> seqNode = edge.getOtherNode(root);
@@ -59,7 +59,7 @@ public class ParallelMerger {
 			Iterator<Edge<String,Integer>> edgeIt2 = seqNode.outgoingEdgeIterator();
 			List<String> seqNodeContent = new LinkedList<String>();
 			while(edgeIt2.hasNext()){
-				System.out.println("===ACT");
+				//System.out.println("===ACT");
 				edge = edgeIt2.next();
 				seqNodeContent.add(edge.getOtherNode(seqNode).getLabel());
 			}
