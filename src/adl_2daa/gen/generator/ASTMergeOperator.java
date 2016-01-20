@@ -219,7 +219,8 @@ public class ASTMergeOperator {
 	/**
 	 * Queue insertion of the given sequence relation that contains NO EOB-T into selected 
 	 * sequence of skeleton. Every statement in sequence will precede provided bound.
-	 * If bound is not used, pass negative number. 
+	 * If bound is not used, pass negative number. This method tries to match key action
+	 * (considering nesting condition) as many as possible to minimize key action count. 
 	 * NOTE that this method does not check for existing EOB-T.
 	 */
 	public static void queueSequenceInsertion(ASTSequenceWrapper wrappedSkel, 
