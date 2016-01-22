@@ -14,6 +14,7 @@ import adl_2daa.ast.statement.Action;
 import adl_2daa.ast.structure.Agent;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.ast.structure.State;
+import adl_2daa.gen.generator.ASTNode;
 import adl_2daa.jacop.CSPInstance;
 import adl_2daa.jacop.CSPTemplate;
 import adl_2daa.jacop.JaCopUtility;
@@ -88,7 +89,7 @@ public class ASTFilterOperator {
 	}
 	
 	/**
-	 * Filter an agent that contains a state containing sequences that can fit
+	 * Filter agent(s) that contain state(s) containing sequences that can fit
 	 * all given transitions into each distinct sequence. If all transitions cannot be fitted,
 	 * this method tries to fit as much as possible. The sequences in ResultState are<br/>
 	 * - Having their length equals to eobTransitions'<br/>
@@ -191,5 +192,72 @@ public class ASTFilterOperator {
 			return new CSPInstance(store, vars, costVar);
 		}
 		
+	}
+	
+	/**
+	 * Filter agent(s) with state(s) containing sequences that can fit all given Spawn().
+	 * If all Spawn() can not be fitted, this method try to fit as much as possible. Any
+	 * state with more than 1 solution will have duplicate ResultState under the same 
+	 * ResultAgent with different containing sequences. The sequences in ResultState are
+	 * - Having their length equals to spawns.size()
+	 * - sequences[i] == null : ?? HOW TO RECORD USED/UNUSED SPAWN ???
+	 * - else : ?? <br/>
+	 * This method DO NOT modify provided agentList but create a new one for the result.
+	 */
+	public static List<ResultAgent> filterHighestSpawnMatch(List<ResultAgent> agentList,
+			List<List<ASTNode>> spawns){
+		List<ResultAgent> filteredAgent = new LinkedList<ResultAgent>();
+		int highestMatch = 0;
+		for(ResultAgent agent : agentList){
+			List<ResultState> filteredState = new LinkedList<ResultState>();
+			for(ResultState state : agent.getResultStates()){
+				for(List<ASTNode> relSeqSpawn : spawns){
+					//TODO: may not need solver , just use LCSEmbedding 
+				}
+			}
+			if(!filteredState.isEmpty())
+				filteredAgent.add(new ResultAgent(agent.getActualAgent(), filteredState));
+		}
+		return filteredAgent;
+	}
+	
+	/**
+	 * CSP problem for matching multiple spawn() in merging parallel relation with existing
+	 * spawn() in skeleton as many as possible.<br/>
+	 * Result: <br/>
+	 * - sequence var[i][j] : specify a sequence that j-th Spawn() of i-th relation 
+	 * should be matched to <br/>
+	 * - index var[i][j] : specify unfolded action index inside a sequence that j-th Spawn()
+	 * of i-th relation should be matched to. If the value is less than 
+	 * "universal lower bound", this means the relation cannot be matched.
+	 */
+	private static class SpawnMatchProblem implements CSPTemplate{
+
+		//Possible unfold action indices for every Spawn() in relation
+		//[Rel index] [Spawn in Rel] [Target seq] [Target unfold action]
+		private int[][][][] availableMatch;
+		
+		public SpawnMatchProblem(int[][][][] availableMatch){
+			this.availableMatch = availableMatch;
+		}
+		
+		@Override
+		public CSPInstance newInstance() {
+			Store store = new Store();
+			IntVar[][] sequenceIndex, actionNodeIndex;
+			sequenceIndex = new IntVar[availableMatch.length][];
+			actionNodeIndex = new IntVar[availableMatch.length][];
+			for(int relIndex=0; relIndex<availableMatch.length; relIndex++){
+				
+				for(int spawnIndex=0; spawnIndex<availableMatch[relIndex].length; spawnIndex++){
+					
+				}
+			}
+			return null;
+		}
+		
+		public int[][][] organizeResult(int[] result){
+			return null;
+		}
 	}
 }
