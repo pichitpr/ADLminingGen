@@ -272,7 +272,8 @@ public class DatabaseCreator {
 	}
 	
 	/**
-	 * Create database for inter-entity parallel relation
+	 * Create database for inter-entity parallel relation. Spawner's relation will contain
+	 * \@Spawn which is a special function indicating inter-entity relation.
 	 * @return 0:DB 1:agentIDMap (spawner agent ID only)
 	 */
 	public Object[] createDatabaseForInterEntityParallel(){
