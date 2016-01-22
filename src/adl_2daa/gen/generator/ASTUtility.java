@@ -104,6 +104,23 @@ public class ASTUtility {
 	}
 	
 	/**
+	 * Return if 2 provided "key actions" are Spawn and matched or not.
+	 * (More specific version of isKeyActionMatched)
+	 */
+	public static boolean isSpawnMatched(Action a1, Action a2){
+		if(!a1.getName().equals("Spawn") && !a1.getName().equals(a2.getName())) return false;
+		if(a1.getParams()[0] instanceof Identifier && 
+				a2.getParams()[0] instanceof Identifier){
+			//IDEN_? VS IDEN_?
+			Identifier iden1 = (Identifier)a1.getParams()[0];
+			Identifier iden2 = (Identifier)a2.getParams()[0];
+			return iden1.getValue().equals(iden2.getValue());
+		}
+		//? VS any
+		return true;
+	}
+	
+	/**
 	 * Return if given statement is eob-transition (transition without condition)
 	 */
 	public static boolean isEOBtransition(ASTStatement st){

@@ -237,4 +237,27 @@ public class ASTSequenceWrapper implements LCSSequence<ASTNode>{
 			return -1;
 		}
 	};
+	
+	/**
+	 * This comparator assumes that every ASTNodes passed to it is key action
+	 */
+	public static final Comparator<ASTNode> spawnComparator = new Comparator<ASTNode>() {
+		
+		@Override
+		public int compare(ASTNode o1, ASTNode o2) {
+			if(o1 == o2) return 0;
+			Action a1 = (Action)o1.getNode();
+			Action a2 = (Action)o2.getNode();
+			if(o1.getNestingBlocks().size() == o2.getNestingBlocks().size() && 
+					ASTUtility.isSpawnMatched(a1, a2)){
+				for(int i=0; i<o1.getNestingBlocks().size(); i++){
+					if(!o1.getNestingBlocks().get(i).equals(o2.getNestingBlocks().get(i))){
+						return -1;
+					}
+				}
+				return 0;
+			}
+			return -1;
+		}
+	};
 }
