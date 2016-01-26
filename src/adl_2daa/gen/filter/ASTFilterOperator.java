@@ -1,20 +1,35 @@
 package adl_2daa.gen.filter;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
+import lcs.LCSSequenceEmbedding;
+import lcs.SimpleLCSEmbedding;
+
+import org.jacop.constraints.Alldiff;
+import org.jacop.constraints.Sum;
+import org.jacop.constraints.regular.Regular;
 import org.jacop.core.IntDomain;
 import org.jacop.core.IntVar;
 import org.jacop.core.IntervalDomain;
 import org.jacop.core.Store;
+import org.jacop.util.fsm.FSM;
+import org.jacop.util.fsm.FSMState;
+import org.jacop.util.fsm.FSMTransition;
 
+import adl_2daa.ast.ASTStatement;
 import adl_2daa.ast.statement.Action;
 import adl_2daa.ast.structure.Agent;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.ast.structure.State;
 import adl_2daa.gen.generator.ASTNode;
+import adl_2daa.gen.generator.ASTSequenceWrapper;
 import adl_2daa.jacop.CSPInstance;
 import adl_2daa.jacop.CSPTemplate;
 import adl_2daa.jacop.JaCopUtility;
@@ -101,6 +116,7 @@ public class ASTFilterOperator {
 	 * not be added to the result.<br/><br/>
 	 * This method DO NOT modify provided agentList but create a new one for the result.
 	 */
+	//TODO: Recheck method
 	public static List<ResultAgent> filterDistinctEOBTransitionFitting(
 			List<ResultAgent> agentList, List<Action> eobTransitions, 
 			boolean[] eosOnly, boolean tryMatching){
@@ -109,7 +125,7 @@ public class ASTFilterOperator {
 		//Loop through every existing states and filter for states that can support highest
 		//number of transition without growing
 		List<ResultAgent> filteredAgent = new LinkedList<ResultAgent>();
-		int highestTransitionSupport = 0;
+		int lowestAllocationCost = Integer.MAX_VALUE;
 		for(ResultAgent agent : agentList){
 			List<ResultState> filteredState = new LinkedList<ResultState>();
 			for(ResultState state : agent.getResultStates()){
@@ -133,14 +149,14 @@ public class ASTFilterOperator {
 				}
 				//Solve for all allocations, get coverage count and record solutions
 				CSPTemplate allocationProblem = new EOBTransitionAllocationProblem(eobDomains);
-				int coverage = JaCopUtility.solveAllSolutionCSP(allocationProblem);
-				if(coverage >= highestTransitionSupport){
+				int allocationCost = JaCopUtility.solveAllSolutionCSP(allocationProblem);
+				if(allocationCost <= lowestAllocationCost){
 					//Valid solutions found, record all of them
-					if(coverage > highestTransitionSupport){
+					if(allocationCost < lowestAllocationCost){
 						//New better coverage, wipe all solutions found so far
 						filteredAgent.clear();
 						filteredState.clear();
-						highestTransitionSupport = coverage;
+						lowestAllocationCost = allocationCost;
 					}
 					for(int[] allocation : JaCopUtility.allPrecalculatedAssignments()){
 						assert(eobTransitions.size() == allocation.length);
@@ -195,24 +211,94 @@ public class ASTFilterOperator {
 	}
 	
 	/**
-	 * Filter agent(s) with state(s) containing sequences that can fit all given Spawn().
-	 * If all Spawn() can not be fitted, this method try to fit as much as possible. Any
+	 * Filter agent(s) with state(s) containing sequences that can match all given Spawn().
+	 * If all Spawn() can not be matched, this method tries to match as much as possible. Any
 	 * state with more than 1 solution will have duplicate ResultState under the same 
 	 * ResultAgent with different containing sequences. The sequences in ResultState are
-	 * - Having their length equals to spawns.size()
-	 * - sequences[i] == null : ?? HOW TO RECORD USED/UNUSED SPAWN ???
-	 * - else : ?? <br/>
+	 * - Having their length equals to relation size (sequence count)
+	 * - sequences[i] == null : i-th relation sequence has no matched skel sequence <br/>
+	 * - else : i-th relation sequence is matched to this skel sequence <br/>
 	 * This method DO NOT modify provided agentList but create a new one for the result.
 	 */
+	//TODO: Test this method
 	public static List<ResultAgent> filterHighestSpawnMatch(List<ResultAgent> agentList,
-			List<List<ASTNode>> spawns){
+			List<List<ASTStatement>> relation){
 		List<ResultAgent> filteredAgent = new LinkedList<ResultAgent>();
-		int highestMatch = 0;
+		List<ASTSequenceWrapper> wrappedRel = new LinkedList<ASTSequenceWrapper>();
+		//Count a number of Spawn() call in each relation sequence
+		List<Integer> relSpawnCount = new ArrayList<Integer>();
+		for(List<ASTStatement> seq : relation){
+			ASTSequenceWrapper rel = new ASTSequenceWrapper(seq);
+			int spawnCount = 0;
+			for(int i=0; i<rel.size(); i++){
+				Action act = (Action)rel.itemAt(i).getNode();
+				if(act.getName().equals("Spawn")){
+					spawnCount++;
+				}
+			}
+			wrappedRel.add(rel);
+			relSpawnCount.add(spawnCount);
+		}
+		
+		//Filter valid state using skel-rel cost table and solver
+		int lowestNonMatchCost = Integer.MAX_VALUE;
 		for(ResultAgent agent : agentList){
 			List<ResultState> filteredState = new LinkedList<ResultState>();
 			for(ResultState state : agent.getResultStates()){
-				for(List<ASTNode> relSeqSpawn : spawns){
-					//TODO: may not need solver , just use LCSEmbedding 
+				//Testing for current state
+				SpawnMatchProblem spawnMatchCSP = new SpawnMatchProblem(
+						wrappedRel.size(), state.getResultSequences().size());
+				
+				//Construct skel-rel non-match cost table
+				int relSeqIndex = 0;
+				for(ASTSequenceWrapper wrappedRelSeq : wrappedRel){
+					int highestNonMatchCost = relSpawnCount.get(relSeqIndex);
+					int skelSeqIndex = 0;
+					for(Sequence seq : state.getResultSequences()){
+						ASTSequenceWrapper wrappedSkelSeq = new ASTSequenceWrapper(seq.getStatements());
+						Set<LCSSequenceEmbedding<ASTNode>> lcsResult = 
+								SimpleLCSEmbedding.allLCSEmbeddings(wrappedRelSeq, wrappedSkelSeq, 
+								ASTSequenceWrapper.spawnComparator);
+						int matchCount = lcsResult.iterator().next().size();
+						int nonMatchCost = highestNonMatchCost - matchCount;
+						assert(nonMatchCost >= 0);
+						spawnMatchCSP.putNonMatchCost(relSeqIndex, skelSeqIndex, nonMatchCost);
+						skelSeqIndex++;
+					}
+					
+					//Also add cost if relSeq is not matched with any skelSeq
+					spawnMatchCSP.putNotMatchedSequenceCase(relSeqIndex, highestNonMatchCost);
+					
+					relSeqIndex++;
+				}
+				
+				//Solve and record if current state is qualified
+				int usedNonMatchCost = JaCopUtility.solveAllSolutionCSP(spawnMatchCSP);
+				if(usedNonMatchCost <= lowestNonMatchCost){
+					if(usedNonMatchCost < lowestNonMatchCost){
+						//New better solution, older result(s) is obsolete
+						filteredAgent.clear();
+						filteredState.clear();
+						lowestNonMatchCost = usedNonMatchCost;
+					}
+
+					//Record all solutions
+					for(int[] match : JaCopUtility.allPrecalculatedAssignments()){
+						assert(relation.size() == match.length/2);
+						List<Sequence> recordedSolution = new LinkedList<Sequence>();
+						for(int i=0; i<match.length; i+=2){
+							int targetSkelSeqIndex = match[i];
+							if(targetSkelSeqIndex >= 0){
+								recordedSolution.add(
+										state.getResultSequences().get(targetSkelSeqIndex)
+										);
+							}else{
+								recordedSolution.add(null);
+							}
+						}
+						filteredState.add(new ResultState(state.getActualState(), 
+								recordedSolution));
+					}
 				}
 			}
 			if(!filteredState.isEmpty())
@@ -225,39 +311,77 @@ public class ASTFilterOperator {
 	 * CSP problem for matching multiple spawn() in merging parallel relation with existing
 	 * spawn() in skeleton as many as possible.<br/>
 	 * Result: <br/>
-	 * - sequence var[i][j] : specify a sequence that j-th Spawn() of i-th relation 
-	 * should be matched to <br/>
-	 * - index var[i][j] : specify unfolded action index inside a sequence that j-th Spawn()
-	 * of i-th relation should be matched to. If the value is less than 
-	 * "universal lower bound", this means the relation cannot be matched.
+	 * - var[i*2] : specify a sequence that i-th relation should be matched to.
+	 * If the value is less than 0, this means the relation cannot be matched.
+	 * - var[i*2+1] : related match score for i-th relation. Usually not used.
 	 */
 	private static class SpawnMatchProblem implements CSPTemplate{
 
-		//Possible unfold action indices for every Spawn() in relation
-		//[Rel index] [Spawn in Rel] [Target seq] [Target unfold action]
-		private int[][][][] availableMatch;
+		//Every lowest non-match cost (highest match score) skel-rel sequence pairs
+		private HashMap<Integer,Integer>[] relSeqDomain; //<skelSeqIndex, nonMatchCost>
+		private int skelSeqCount;
+		private int uniqueDomain; //Unique value for relSeq when no skelSeq match
 		
-		public SpawnMatchProblem(int[][][][] availableMatch){
-			this.availableMatch = availableMatch;
+		@SuppressWarnings("unchecked")
+		public SpawnMatchProblem(int relSeqCount, int skelSeqCount){
+			relSeqDomain = new HashMap[relSeqCount];
+			for(int i=0; i<relSeqCount; i++){
+				relSeqDomain[i] = new HashMap<Integer,Integer>();
+			}
+			this.skelSeqCount = skelSeqCount;
+			uniqueDomain = -1;
+		}
+		
+		public void putNonMatchCost(int relSeqIndex, int skelSeqIndex, int nonMatchCost){
+			relSeqDomain[relSeqIndex].put(skelSeqIndex, nonMatchCost);
+		}
+		
+		public void putNotMatchedSequenceCase(int relSeqIndex, int highestNonMatchCost){
+			putNonMatchCost(relSeqIndex, uniqueDomain, highestNonMatchCost);
+			uniqueDomain--;
 		}
 		
 		@Override
 		public CSPInstance newInstance() {
 			Store store = new Store();
-			IntVar[][] sequenceIndex, actionNodeIndex;
-			sequenceIndex = new IntVar[availableMatch.length][];
-			actionNodeIndex = new IntVar[availableMatch.length][];
-			for(int relIndex=0; relIndex<availableMatch.length; relIndex++){
-				
-				for(int spawnIndex=0; spawnIndex<availableMatch[relIndex].length; spawnIndex++){
-					
+			//vars[i*2] = skelSeqIndex for i-th relation sequence
+			//vars[i*2+1] = non-match cost for i-th relation sequence when skelSeqIndex is selected
+			IntVar[] vars = new IntVar[relSeqDomain.length*2];
+			IntVar[] allDiffVars = new IntVar[relSeqDomain.length];
+			IntVar[] allMatchScoreVars = new IntVar[relSeqDomain.length];
+			IntVar costVar = new IntVar(store, 0, Integer.MAX_VALUE);
+			
+			//Every <skelSeqIndex, non-match cost> pairs for each relation sequence
+			for(int i=0; i<relSeqDomain.length; i++){
+				vars[i*2] = new IntVar(store, 0, skelSeqCount-1);
+				vars[i*2+1] = new IntVar(store, 0, Integer.MAX_VALUE);
+				FSM fsm = new FSM();
+				FSMState start = new FSMState();
+				FSMState end = new FSMState();
+				fsm.allStates.add(start);
+				fsm.allStates.add(end);
+				fsm.initState = start;
+				fsm.finalStates.add(end);
+				for(Entry<Integer,Integer> entry : relSeqDomain[i].entrySet()){
+					FSMState intermediate = new FSMState();
+					fsm.allStates.add(intermediate);
+					start.transitions.add(new FSMTransition(
+							new IntervalDomain(entry.getKey(), entry.getKey()), intermediate)
+							);
+					intermediate.transitions.add(new FSMTransition(
+							new IntervalDomain(entry.getValue(), entry.getValue()), end)
+							);
 				}
+				store.impose(new Regular(fsm, new IntVar[]{vars[i*2], vars[i*2+1]} ));
+				
+				allDiffVars[i] = vars[i*2];
+				allMatchScoreVars[i] = vars[i*2+1];
 			}
-			return null;
-		}
-		
-		public int[][][] organizeResult(int[] result){
-			return null;
+			
+			store.impose(new Alldiff(allDiffVars));
+			store.impose(new Sum(allMatchScoreVars, costVar));
+			
+			return new CSPInstance(store, vars, costVar);
 		}
 	}
 }
