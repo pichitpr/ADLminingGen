@@ -43,7 +43,11 @@ public class ExpressionSkeleton extends ASTExpression{
 	}
 	
 	//This method reflects SequenceInterpreter behavior
-	public boolean isCompatibleWith(ASTExpression exp){		
+	public boolean isCompatibleWith(ASTExpression exp){
+		if(exp instanceof ExpressionSkeleton){
+			return this.type == ((ExpressionSkeleton)exp).type;
+		}
+			
 		if(exp instanceof ASTUnary){
 			//The interpreter is more forgiving but we will be more strict when generating
 			//to create highest potential for reasonable behavior
