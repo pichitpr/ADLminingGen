@@ -5,12 +5,16 @@ import java.io.File;
 import java.io.FileReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import spmf.extension.algorithm.seqgen.SequentialPatternGen;
 import spmf.extension.patterns.itemset_list_generic.ItemsetGen;
 import adl_2daa.ast.ASTStatement;
+import adl_2daa.ast.structure.Sequence;
 import adl_2daa.gen.encoder.EncodeTable;
+import adl_2daa.gen.filter.ResultAgent;
+import adl_2daa.gen.filter.ResultState;
 import adl_2daa.gen.signature.GeneratorRegistry;
 import de.parsemis.graph.Edge;
 import de.parsemis.graph.Graph;
@@ -184,5 +188,20 @@ public class TestUtility {
 		strb.append("::::");
 		st.toScript(strb, 0);
 		System.out.println(strb);
+	}
+	
+	public static List<String> enumerateResultAgentsAsString(List<ResultAgent> agents){
+		List<String> result = new LinkedList<String>();
+		for(ResultAgent agent : agents){
+			for(ResultState state : agent.getResultStates()){
+				String seqList = "";
+				for(Sequence seq : state.getResultSequences()){
+					seqList += (seq == null ? "null" : seq.getIdentifier())+" ";
+				}
+				result.add(agent.getActualAgent().getIdentifier()+"."+
+						state.getActualState().getIdentifier()+"."+seqList.trim());
+			}
+		}
+		return result;
 	}
 }
