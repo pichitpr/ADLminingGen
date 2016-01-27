@@ -107,6 +107,7 @@ public class JaCopUtility {
 	public static int prepareVarsForPartialAllDiff(IntVar[] allVars){
 		int universalLowerBound = Integer.MAX_VALUE;
 		for(IntVar var : allVars){
+			if(var.isEmpty()) continue;
 			if(universalLowerBound > var.min()){
 				universalLowerBound = var.min();
 			}
