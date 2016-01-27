@@ -106,7 +106,9 @@ public class ASTFilterOperator {
 	/**
 	 * Filter agent(s) that contain state(s) containing sequences that can fit
 	 * all given transitions into each distinct sequence. If all transitions cannot be fitted,
-	 * this method tries to fit as much as possible. The sequences in ResultState are<br/>
+	 * this method tries to fit as much as possible. This method does fit test using
+	 * EOBtransitionSlotFilter which does not compare nesting condition.
+	 * The sequences in ResultState are<br/>
 	 * - Having their length equals to eobTransitions'<br/>
 	 * - Sorted in order so that:<br/>
 	 * --- If sequences[i] == null : it cannot fit in transition<br/>
@@ -116,7 +118,6 @@ public class ASTFilterOperator {
 	 * not be added to the result.<br/><br/>
 	 * This method DO NOT modify provided agentList but create a new one for the result.
 	 */
-	//TODO: Recheck method
 	public static List<ResultAgent> filterDistinctEOBTransitionFitting(
 			List<ResultAgent> agentList, List<Action> eobTransitions, 
 			boolean[] eosOnly, boolean tryMatching){
@@ -212,9 +213,11 @@ public class ASTFilterOperator {
 	
 	/**
 	 * Filter agent(s) with state(s) containing sequences that can match all given Spawn().
-	 * If all Spawn() can not be matched, this method tries to match as much as possible. Any
-	 * state with more than 1 solution will have duplicate ResultState under the same 
-	 * ResultAgent with different containing sequences. The sequences in ResultState are
+	 * If all Spawn() can not be matched, this method tries to match as much as possible.
+	 * This method try to match using LCSEmbedding + spawnComparator which checks for
+	 * nesting condition. Any state with more than 1 solution will have duplicate 
+	 * ResultState under the same ResultAgent with different containing sequences. 
+	 * The sequences in ResultState are
 	 * - Having their length equals to relation size (sequence count)
 	 * - sequences[i] == null : i-th relation sequence has no matched skel sequence <br/>
 	 * - else : i-th relation sequence is matched to this skel sequence <br/>
