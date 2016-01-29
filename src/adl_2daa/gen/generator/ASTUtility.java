@@ -108,7 +108,7 @@ public class ASTUtility {
 	 * (More specific version of isKeyActionMatched)
 	 */
 	public static boolean isSpawnMatched(Action a1, Action a2){
-		if(!a1.getName().equals("Spawn") && !a1.getName().equals(a2.getName())) return false;
+		if(!a1.getName().equals("Spawn") || !a1.getName().equals(a2.getName())) return false;
 		if(a1.getParams()[0] instanceof Identifier && 
 				a2.getParams()[0] instanceof Identifier){
 			//IDEN_? VS IDEN_?
