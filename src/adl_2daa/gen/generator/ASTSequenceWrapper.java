@@ -13,6 +13,7 @@ import adl_2daa.ast.statement.Condition;
 import adl_2daa.ast.statement.Loop;
 import adl_2daa.gen.filter.ASTNodeFilter;
 import adl_2daa.gen.generator.ASTNode.NestingBlock;
+import adl_2daa.gen.testtool.TestUtility;
 
 /**
  * A wrapper for sequence, providing <br/>
@@ -228,7 +229,8 @@ public class ASTSequenceWrapper implements LCSSequence<ASTNode>{
 			if(o1.getNestingBlocks().size() == o2.getNestingBlocks().size() && 
 					ASTUtility.isKeyActionsMatched(a1, a2)){
 				for(int i=0; i<o1.getNestingBlocks().size(); i++){
-					if(!o1.getNestingBlocks().get(i).equals(o2.getNestingBlocks().get(i))){
+					//TODO: comparison depth will be changed
+					if(!o1.getNestingBlocks().get(i).equals(o2.getNestingBlocks().get(i), 2)){
 						return -1;
 					}
 				}
@@ -250,8 +252,9 @@ public class ASTSequenceWrapper implements LCSSequence<ASTNode>{
 			Action a2 = (Action)o2.getNode();
 			if(o1.getNestingBlocks().size() == o2.getNestingBlocks().size() && 
 					ASTUtility.isSpawnMatched(a1, a2)){
+				//TODO: comparison depth will be changed
 				for(int i=0; i<o1.getNestingBlocks().size(); i++){
-					if(!o1.getNestingBlocks().get(i).equals(o2.getNestingBlocks().get(i))){
+					if(!o1.getNestingBlocks().get(i).equals(o2.getNestingBlocks().get(i), 2)){
 						return -1;
 					}
 				}
