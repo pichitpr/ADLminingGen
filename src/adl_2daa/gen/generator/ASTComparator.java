@@ -118,7 +118,9 @@ public class ASTComparator {
 			assert(f1.getParams().length > 0);
 			assert(f1.getParams()[0] instanceof StringConstant && 
 					f2.getParams()[0] instanceof StringConstant);
-			if(! ((StringConstant)f1.getParams()[0]).equals((StringConstant)f2.getParams()[0]))
+			String choice1 = ((StringConstant)f1.getParams()[0]).getValue();
+			String choice2 = ((StringConstant)f2.getParams()[0]).getValue();
+			if(!choice1.equals(choice2))
 				return false;
 			startExpIndex = 1;
 		}

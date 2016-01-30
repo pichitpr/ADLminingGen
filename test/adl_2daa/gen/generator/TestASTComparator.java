@@ -1,6 +1,7 @@
 package adl_2daa.gen.generator;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -9,6 +10,8 @@ import java.util.List;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import adl_2daa.ast.ASTStatement;
+import adl_2daa.ast.statement.Condition;
 import adl_2daa.ast.structure.Root;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.gen.testtool.TestInitializer;
@@ -43,6 +46,8 @@ public class TestASTComparator {
 								+ "}"
 								+ "if(Abs(DistanceToPlayer(\"X\")) <= DistanceToPlayer(\"X\")){"
 								+ "}"
+								+ "if(DistanceToPlayer(\"X\") <= 10){"
+								+ "}"
 							+ "}"
 						+ "}"
 				+ "}";
@@ -50,17 +55,24 @@ public class TestASTComparator {
 		Root testRoot = parser.parse(testScript);
 		Sequence testSeq = testRoot.getRelatedAgents().get(0).getStates().get(0).getSequences().get(0);
 		Sequence sampleSeq = root.getRelatedAgents().get(0).getStates().get(0).getSequences().get(0);
+		ASTStatement sampleStatement = sampleSeq.getStatements().get(1);
 		assertTrue(
 				ASTComparator.astStatementEquals(testSeq.getStatements().get(0), 
-						sampleSeq.getStatements().get(1), 2)
+						sampleStatement, 2)
 				);
 		assertFalse(
 				ASTComparator.astStatementEquals(testSeq.getStatements().get(0), 
-						sampleSeq.getStatements().get(1), 3)
+						sampleStatement, 3)
 				);
 		assertFalse(
 				ASTComparator.astStatementEquals(testSeq.getStatements().get(1), 
-						sampleSeq.getStatements().get(1), -1)
+						sampleStatement, -1)
+				);
+		
+		sampleStatement = ((Condition)sampleStatement).getElseblock().get(3);
+		assertTrue(
+				ASTComparator.astStatementEquals(testSeq.getStatements().get(2), 
+						sampleStatement, 2)
 				);
 	}
 	
