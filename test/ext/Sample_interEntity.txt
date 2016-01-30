@@ -1,0 +1,146 @@
+.Sample{
+	.init{
+		Set("texture", DynamicFilter("this"), 4);
+		Set("position", DynamicFilter("this"), "c(400,200)");
+	}
+
+	.state1{
+		.seq0{
+			Wait(TimePass() >= 60);
+			if(Abs(DistanceToPlayer("Y")) <= 30){
+				Spawn(.Bullet1);
+				Despawn();
+			}else{
+				RunStraight(Get("direction", DynamicFilter("this")), 2, TimePass() >= 150);
+				FlipDirection("H");
+				Spawn(.Bullet1);
+				if(DistanceToPlayer("X") <= 30){
+					Spawn(.Bullet1);
+					Goto(.state2);
+				}
+			}
+			if(Abs(DistanceToPlayer("Y"))$ <= 60){
+				Spawn(.Bullet3);
+				Despawn();
+			}
+		}
+
+		.seq1{
+			Wait(TimePass() >= 30);
+			FlipDirection("H");
+		}
+	}
+
+	.state2{
+		.seq0{
+			Spawn(.Bullet1);
+			Wait(TimePass() >= 60);
+			if(Random(DecimalSet(1,2,1)) == 1){
+				Spawn(.Bullet2);
+				Goto(.state1);
+			}
+			Wait(TimePass() >= 60);
+			if(Random(DecimalSet(1,2,1)) == 1){
+				FlipDirection("H");				
+			}else{
+				Despawn();
+			}
+			Wait(TimePass() >= 60);
+			Despawn();
+		}
+	}
+
+	.state3{
+		.seq0{
+			loop(Random(DecimalSet(1,6,1))){
+				Wait(TimePass() >= 60);
+				if(Random(DecimalSet(1,2,1)) == 1){
+					FlipDirection("H");
+				}
+			}
+			Spawn(.Bullet1);
+		}
+	}
+}
+
+.Bullet1{
+	.init{
+		Set("texture", DynamicFilter("this"), 6);
+		Set("collider", DynamicFilter("this"), "32,32");
+		Set("gravityeff", DynamicFilter("this"), 0);
+		Set("projectile", DynamicFilter("this"), true);
+		Set("attacker", DynamicFilter("this"), true);
+		Set("atk", DynamicFilter("this"), 10);
+	}
+
+	.state0{
+		.seq0{
+			RunStraight(Get("direction", DynamicFilter("this")), 3, false);
+		}
+	}
+}
+
+.Bullet2{
+	.init{
+		Set("texture", DynamicFilter("this"), 6);
+		Set("collider", DynamicFilter("this"), "32,32");
+		Set("gravityeff", DynamicFilter("this"), 0);
+		Set("projectile", DynamicFilter("this"), true);
+		Set("attacker", DynamicFilter("this"), true);
+		Set("atk", DynamicFilter("this"), 10);
+	}
+
+	.state0{
+		.seq0{
+			if(Random(DecimalSet(1,2,1)) == 1){
+				RunStraight(Get("direction", DynamicFilter("this")), 3, false);
+			}else{
+				Spawn(.Bullet4);
+				Wait(TimePass() >= 100);
+				Spawn(.Bullet3);
+			}
+		}
+	}
+}
+
+.Bullet3{
+	.init{
+		Set("texture", DynamicFilter("this"), 6);
+		Set("collider", DynamicFilter("this"), "32,32");
+		Set("gravityeff", DynamicFilter("this"), 0);
+		Set("projectile", DynamicFilter("this"), true);
+		Set("attacker", DynamicFilter("this"), true);
+		Set("atk", DynamicFilter("this"), 10);
+	}
+
+	.state0{
+		.seq0{
+			Wait(TimePass() >= 100);
+			Spawn(.Bullet1);
+			Spawn(.Bullet1);
+		}
+		.seq1{
+			Wait(TimePass() >= 80);
+			Spawn(.Bullet1);			
+		}
+	}
+}
+
+.Bullet4{
+	.init{
+		Set("texture", DynamicFilter("this"), 6);
+		Set("collider", DynamicFilter("this"), "16,16");
+		Set("gravityeff", DynamicFilter("this"), 0);
+		Set("projectile", DynamicFilter("this"), true);
+		Set("attacker", DynamicFilter("this"), true);
+		Set("atk", DynamicFilter("this"), 10);
+	}
+
+	.state0{
+		.seq0{
+			Wait(TimePass() >= 50);
+			Spawn(.Bullet2);
+			Spawn(.Bullet2);
+		}
+	}
+}
