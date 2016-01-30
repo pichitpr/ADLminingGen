@@ -5,6 +5,7 @@ import java.util.List;
 
 import adl_2daa.ast.ASTStatement;
 import adl_2daa.ast.statement.Condition;
+import adl_2daa.gen.testtool.TestUtility;
 
 public class ASTNode {
 
@@ -49,6 +50,16 @@ public class ASTNode {
 		return localIndex == nodeContainer.size();
 	}
 	
+	@Override
+	public String toString(){
+		String str = "";
+		for(NestingBlock nest : nestingBlocks){
+			str += "[ "+TestUtility.aSTStatementAsString(nest.nestingBlock, true)+" ]\n";
+		}
+		str += getNode();
+		return str;
+	}
+	
 	public static class NestingBlock {
 		public ASTStatement nestingBlock;
 		public boolean underElseBlock = false;
@@ -57,16 +68,15 @@ public class ASTNode {
 			this.nestingBlock = nestingBlock;
 			this.underElseBlock = underElseBlock;
 		}
-
-		@Override
-		public boolean equals(Object o){
+		
+		public boolean equals(Object o, int depth){
 			if(!(o instanceof NestingBlock)) return false;
 			NestingBlock other = (NestingBlock)o;
 			if(nestingBlock instanceof Condition){
-				return nestingBlock == other.nestingBlock && 
+				return ASTComparator.astStatementEquals(nestingBlock, other.nestingBlock, depth) && 
 						underElseBlock == other.underElseBlock;
 			}else{
-				return nestingBlock == other.nestingBlock; 
+				return ASTComparator.astStatementEquals(nestingBlock, other.nestingBlock, depth); 
 			}
 		}
 	}
