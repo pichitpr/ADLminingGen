@@ -11,6 +11,9 @@ import java.util.List;
 import spmf.extension.algorithm.seqgen.SequentialPatternGen;
 import spmf.extension.patterns.itemset_list_generic.ItemsetGen;
 import adl_2daa.ast.ASTStatement;
+import adl_2daa.ast.Reversible;
+import adl_2daa.ast.statement.Condition;
+import adl_2daa.ast.statement.Loop;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.gen.encoder.EncodeTable;
 import adl_2daa.gen.filter.ResultAgent;
@@ -183,11 +186,22 @@ public class TestUtility {
 		return result;
 	}
 
-	public static void printASTStatement(ASTStatement st){
+	public static String aSTStatementAsString(ASTStatement st, boolean excludeBlock){
+		Reversible rev;
+		if(!excludeBlock) rev = st;
+		else{
+			if(st instanceof Condition){
+				rev = ((Condition)st).getCondition();
+			}else if(st instanceof Loop){
+				rev = ((Loop)st).getLoopCount();
+			}else{
+				rev = st;
+			}
+		}
 		StringBuilder strb = new StringBuilder();
 		strb.append("::::");
-		st.toScript(strb, 0);
-		System.out.println(strb);
+		rev.toScript(strb, 0);
+		return strb.toString();
 	}
 	
 	public static List<String> enumerateResultAgentsAsString(List<ResultAgent> agents){
