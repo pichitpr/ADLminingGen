@@ -13,7 +13,6 @@ import adl_2daa.ast.statement.Condition;
 import adl_2daa.ast.statement.Loop;
 import adl_2daa.gen.filter.ASTNodeFilter;
 import adl_2daa.gen.generator.ASTNode.NestingBlock;
-import adl_2daa.gen.testtool.TestUtility;
 
 /**
  * A wrapper for sequence, providing <br/>
