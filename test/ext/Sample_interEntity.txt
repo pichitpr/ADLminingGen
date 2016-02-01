@@ -41,8 +41,10 @@
 			}
 			Wait(TimePass() >= 60);
 			if(Random(DecimalSet(1,2,1)) == 1){
+				Spawn(.Bullet2);
 				FlipDirection("H");				
 			}else{
+				Spawn(.Bullet1);
 				Despawn();
 			}
 			Wait(TimePass() >= 60);
@@ -93,11 +95,12 @@
 	.state0{
 		.seq0{
 			if(Random(DecimalSet(1,2,1)) == 1){
+				Spawn(.Bullet2);
 				RunStraight(Get("direction", DynamicFilter("this")), 3, false);
 			}else{
 				Spawn(.Bullet4);
 				Wait(TimePass() >= 100);
-				Spawn(.Bullet3);
+				Spawn(.Bullet1);
 			}
 		}
 	}

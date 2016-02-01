@@ -63,6 +63,7 @@ public class ASTComparator {
 	 * - Level 3 : compare all a,b,c,d literal type and topology respectively
 	 */
 	//TODO: Special literal comp for FloatConstant VS IntConstant , $ case
+	//Dont forget to run test case after changing this part
 	public static boolean astExpressionEquals(ASTExpression exp1, ASTExpression exp2, int depth){
 		if(depth == 0) return true;
 		if(exp1 == exp2) return true;

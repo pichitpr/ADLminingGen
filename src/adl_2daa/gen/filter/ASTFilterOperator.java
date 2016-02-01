@@ -223,7 +223,6 @@ public class ASTFilterOperator {
 	 * - else : i-th relation sequence is matched to this skel sequence <br/>
 	 * This method DO NOT modify provided agentList but create a new one for the result.
 	 */
-	//TODO: Test this method
 	public static List<ResultAgent> filterHighestSpawnMatch(List<ResultAgent> agentList,
 			List<List<ASTStatement>> relation){
 		List<ResultAgent> filteredAgent = new LinkedList<ResultAgent>();
@@ -248,6 +247,7 @@ public class ASTFilterOperator {
 		for(ResultAgent agent : agentList){
 			List<ResultState> filteredState = new LinkedList<ResultState>();
 			for(ResultState state : agent.getResultStates()){
+				//System.out.println("======== state "+state.getActualState().getIdentifier()+" =======");
 				//Testing for current state
 				SpawnMatchProblem spawnMatchCSP = new SpawnMatchProblem(
 						wrappedRel.size(), state.getResultSequences().size());
@@ -274,7 +274,7 @@ public class ASTFilterOperator {
 					
 					relSeqIndex++;
 				}
-				
+				//spawnMatchCSP.printNonMatchCostTable();
 				//Solve and record if current state is qualified
 				int usedNonMatchCost = JaCopUtility.solveAllSolutionCSP(spawnMatchCSP);
 				if(usedNonMatchCost <= lowestNonMatchCost){
@@ -321,22 +321,22 @@ public class ASTFilterOperator {
 	private static class SpawnMatchProblem implements CSPTemplate{
 
 		//Every lowest non-match cost (highest match score) skel-rel sequence pairs
-		private HashMap<Integer,Integer>[] relSeqDomain; //<skelSeqIndex, nonMatchCost>
+		private HashMap<Integer,Integer>[] nonMatchCostTable; //<skelSeqIndex, nonMatchCost>
 		private int skelSeqCount;
 		private int uniqueDomain; //Unique value for relSeq when no skelSeq match
 		
 		@SuppressWarnings("unchecked")
 		public SpawnMatchProblem(int relSeqCount, int skelSeqCount){
-			relSeqDomain = new HashMap[relSeqCount];
+			nonMatchCostTable = new HashMap[relSeqCount];
 			for(int i=0; i<relSeqCount; i++){
-				relSeqDomain[i] = new HashMap<Integer,Integer>();
+				nonMatchCostTable[i] = new HashMap<Integer,Integer>();
 			}
 			this.skelSeqCount = skelSeqCount;
 			uniqueDomain = -1;
 		}
 		
 		public void putNonMatchCost(int relSeqIndex, int skelSeqIndex, int nonMatchCost){
-			relSeqDomain[relSeqIndex].put(skelSeqIndex, nonMatchCost);
+			nonMatchCostTable[relSeqIndex].put(skelSeqIndex, nonMatchCost);
 		}
 		
 		public void putNotMatchedSequenceCase(int relSeqIndex, int highestNonMatchCost){
@@ -344,20 +344,33 @@ public class ASTFilterOperator {
 			uniqueDomain--;
 		}
 		
+		public void printNonMatchCostTable(){
+			int relSeqIndex = 0;
+			for(HashMap<Integer,Integer> hash : nonMatchCostTable){
+				System.out.println("Relation sequence #"+relSeqIndex);
+				for(Entry<Integer,Integer> entry : hash.entrySet()){
+					System.out.println("Skel "+entry.getKey()+"= "+
+							entry.getValue());
+				}
+				relSeqIndex++;
+			}
+		}
+		
 		@Override
 		public CSPInstance newInstance() {
 			Store store = new Store();
 			//vars[i*2] = skelSeqIndex for i-th relation sequence
 			//vars[i*2+1] = non-match cost for i-th relation sequence when skelSeqIndex is selected
-			IntVar[] vars = new IntVar[relSeqDomain.length*2];
-			IntVar[] allDiffVars = new IntVar[relSeqDomain.length];
-			IntVar[] allMatchScoreVars = new IntVar[relSeqDomain.length];
+			IntVar[] vars = new IntVar[nonMatchCostTable.length*2];
+			IntVar[] allDiffVars = new IntVar[nonMatchCostTable.length];
+			IntVar[] allMatchScoreVars = new IntVar[nonMatchCostTable.length];
 			IntVar costVar = new IntVar(store, 0, Integer.MAX_VALUE);
 			
 			//Every <skelSeqIndex, non-match cost> pairs for each relation sequence
-			for(int i=0; i<relSeqDomain.length; i++){
+			for(int i=0; i<nonMatchCostTable.length; i++){
 				vars[i*2] = new IntVar(store, 0, skelSeqCount-1);
-				vars[i*2+1] = new IntVar(store, 0, Integer.MAX_VALUE);
+				//vars[i*2+1] = new IntVar(store, 0, Integer.MAX_VALUE);
+				vars[i*2+1] = new IntVar(store);
 				FSM fsm = new FSM();
 				FSMState start = new FSMState();
 				FSMState end = new FSMState();
@@ -365,7 +378,7 @@ public class ASTFilterOperator {
 				fsm.allStates.add(end);
 				fsm.initState = start;
 				fsm.finalStates.add(end);
-				for(Entry<Integer,Integer> entry : relSeqDomain[i].entrySet()){
+				for(Entry<Integer,Integer> entry : nonMatchCostTable[i].entrySet()){
 					FSMState intermediate = new FSMState();
 					fsm.allStates.add(intermediate);
 					start.transitions.add(new FSMTransition(
@@ -374,6 +387,10 @@ public class ASTFilterOperator {
 					intermediate.transitions.add(new FSMTransition(
 							new IntervalDomain(entry.getValue(), entry.getValue()), end)
 							);
+					//If this is <notMatchedID, highestNonMatchCost> case, setup nonMatchCost var domain
+					if(entry.getKey() < 0){
+						vars[i*2+1].addDom(0, entry.getValue());
+					}
 				}
 				store.impose(new Regular(fsm, new IntVar[]{vars[i*2], vars[i*2+1]} ));
 				
