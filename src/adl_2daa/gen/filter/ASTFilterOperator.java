@@ -13,6 +13,7 @@ import lcs.LCSSequenceEmbedding;
 import lcs.SimpleLCSEmbedding;
 
 import org.jacop.constraints.Alldiff;
+import org.jacop.constraints.Count;
 import org.jacop.constraints.Sum;
 import org.jacop.constraints.regular.Regular;
 import org.jacop.core.IntDomain;
@@ -130,7 +131,9 @@ public class ASTFilterOperator {
 		for(ResultAgent agent : agentList){
 			List<ResultState> filteredState = new LinkedList<ResultState>();
 			for(ResultState state : agent.getResultStates()){
-				//Check for highest transition coverage for this state 
+				//Check for highest transition coverage for this state
+				/*System.out.println("======== "+agent.getActualAgent().getIdentifier()+"."+
+						state.getActualState().getIdentifier()+" =======");*/
 				
 				//Generate transition domain
 				int seqIndex = 0;
@@ -159,18 +162,22 @@ public class ASTFilterOperator {
 						filteredState.clear();
 						lowestAllocationCost = allocationCost;
 					}
+					//Loop through all solutions and record them if valid
 					for(int[] allocation : JaCopUtility.allPrecalculatedAssignments()){
 						assert(eobTransitions.size() == allocation.length);
 						List<Sequence> recordedSolution = new LinkedList<Sequence>();
+						int solutionCost = 0;
 						for(int targetSeqIndex : allocation){
 							if(targetSeqIndex >= 0){
 								recordedSolution.add(state.getResultSequences().get(targetSeqIndex));
 							}else{
+								solutionCost++;
 								recordedSolution.add(null);
 							}
 						}
-						filteredState.add(new ResultState(state.getActualState(), 
-								recordedSolution));
+						//A solution is valid only if it costs less than "cannot allocate" case
+						if(solutionCost < eobTransitions.size())
+							filteredState.add(new ResultState(state.getActualState(), recordedSolution));
 					}
 				}
 			}
@@ -203,8 +210,18 @@ public class ASTFilterOperator {
 				vars[i] = new IntVar(store);
 				vars[i].addDom(varsDomClone[i]);
 			}
-			JaCopUtility.prepareVarsForPartialAllDiff(vars);
-			IntVar costVar = JaCopUtility.imposePartialAllDiff(store, vars);
+			
+			IntVar[] costCounters = new IntVar[vars.length];
+			int uniqueIndex = -1;
+			for(int i=0; i<costCounters.length; i++){
+				vars[i].addDom(uniqueIndex, uniqueIndex);
+				costCounters[i] = new IntVar(store, 0, 1);
+				store.impose(new Count(vars, costCounters[i], uniqueIndex));
+				uniqueIndex--;
+			}
+			IntVar costVar = new IntVar(store, 0, vars.length);
+			store.impose(new Sum(costCounters, costVar));
+			store.impose(new Alldiff(vars));
 			
 			return new CSPInstance(store, vars, costVar);
 		}

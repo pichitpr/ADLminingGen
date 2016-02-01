@@ -1,6 +1,8 @@
 package adl_2daa.gen.filter;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -10,6 +12,7 @@ import java.util.List;
 import org.junit.Test;
 
 import adl_2daa.ast.ASTExpression;
+import adl_2daa.ast.expression.Identifier;
 import adl_2daa.ast.statement.Action;
 import adl_2daa.ast.structure.Root;
 import adl_2daa.gen.generator.ExpressionSkeleton;
@@ -166,6 +169,57 @@ public class TestDistinctEOBFilter {
 					"Sample.state1.null seq0 seq1",
 					"Sample.state1.null seq1 seq0",
 			}, TestUtility.enumerateResultAgentsAsString( filter(transitions, false) ));
+		} catch (Exception e) {
+			fail();
+		}
+	}
+	
+	@Test
+	public void noSolution() throws Exception{
+		List<Action> transitions = new LinkedList<Action>();
+		List<ASTExpression> params = new LinkedList<ASTExpression>();
+		params.add(new Identifier(".UnknownState"));
+		transitions.add(new Action("Goto", params));
+		
+		String sampleScript = 
+				".Sample{"
+					+ ".state0{"
+						+ ".seq0{"
+							+ "Goto(.state0);"
+						+ "}"
+					+ "}"
+					+ ".state1{"
+						+ ".seq0{"
+							+ "Goto(.state0);"
+						+ "}"
+					+ "}"
+					+ ".state2{"
+						+ ".seq0{"
+							+ "Goto(.state0);"
+						+ "}"
+					+ "}"
+				+ "}";
+		Parser parser = new Parser();
+		Root sampleRoot = parser.parse(sampleScript);
+		
+		List<ResultAgent> skel = ASTFilterOperator.filterAgent(sampleRoot.getRelatedAgents(), 
+				null,  null, null);
+		List<ResultAgent> sampleResult = ASTFilterOperator.filterDistinctEOBTransitionFitting(
+				skel, transitions, new boolean[]{true}, true);
+		
+		try {
+			assertSetEqual(new String[]{
+			}, TestUtility.enumerateResultAgentsAsString( sampleResult ));
+		} catch (Exception e) {
+			fail();
+		}
+		
+		sampleResult = ASTFilterOperator.filterDistinctEOBTransitionFitting(
+				skel, transitions, new boolean[]{false}, true);
+		
+		try {
+			assertSetEqual(new String[]{
+			}, TestUtility.enumerateResultAgentsAsString( sampleResult ));
 		} catch (Exception e) {
 			fail();
 		}
