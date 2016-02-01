@@ -247,13 +247,17 @@ public class ASTFilterOperator {
 		for(ResultAgent agent : agentList){
 			List<ResultState> filteredState = new LinkedList<ResultState>();
 			for(ResultState state : agent.getResultStates()){
-				//System.out.println("======== state "+state.getActualState().getIdentifier()+" =======");
+				/*System.out.println("======== "+agent.getActualAgent().getIdentifier()+"."+
+						state.getActualState().getIdentifier()+" =======");*/
 				//Testing for current state
 				SpawnMatchProblem spawnMatchCSP = new SpawnMatchProblem(
 						wrappedRel.size(), state.getResultSequences().size());
 				
-				//Construct skel-rel non-match cost table
+				//Construct skel-rel non-match cost table, calculate cost threshold
+				//A valid solution's non-match cost must not equals to this threshold
+				//(if it is equal, the solution is literally the same as "no any match")
 				int relSeqIndex = 0;
+				int costThreshold = 0;
 				for(ASTSequenceWrapper wrappedRelSeq : wrappedRel){
 					int highestNonMatchCost = relSpawnCount.get(relSeqIndex);
 					int skelSeqIndex = 0;
@@ -272,6 +276,9 @@ public class ASTFilterOperator {
 					//Also add cost if relSeq is not matched with any skelSeq
 					spawnMatchCSP.putNotMatchedSequenceCase(relSeqIndex, highestNonMatchCost);
 					
+					//Add cost to threshold
+					costThreshold += highestNonMatchCost;
+					
 					relSeqIndex++;
 				}
 				//spawnMatchCSP.printNonMatchCostTable();
@@ -285,12 +292,15 @@ public class ASTFilterOperator {
 						lowestNonMatchCost = usedNonMatchCost;
 					}
 
-					//Record all solutions
+					//Record all solutions by looping through each solution
 					for(int[] match : JaCopUtility.allPrecalculatedAssignments()){
 						assert(relation.size() == match.length/2);
 						List<Sequence> recordedSolution = new LinkedList<Sequence>();
+						int solutionCost = 0;
 						for(int i=0; i<match.length; i+=2){
 							int targetSkelSeqIndex = match[i];
+							int varNonMatchCost = match[i+1];
+							solutionCost += varNonMatchCost;
 							if(targetSkelSeqIndex >= 0){
 								recordedSolution.add(
 										state.getResultSequences().get(targetSkelSeqIndex)
@@ -299,8 +309,9 @@ public class ASTFilterOperator {
 								recordedSolution.add(null);
 							}
 						}
-						filteredState.add(new ResultState(state.getActualState(), 
-								recordedSolution));
+						//The solution is valid only if its cost is less than threshold
+						if(solutionCost < costThreshold)
+							filteredState.add(new ResultState(state.getActualState(), recordedSolution));
 					}
 				}
 			}
@@ -368,7 +379,7 @@ public class ASTFilterOperator {
 			
 			//Every <skelSeqIndex, non-match cost> pairs for each relation sequence
 			for(int i=0; i<nonMatchCostTable.length; i++){
-				vars[i*2] = new IntVar(store, 0, skelSeqCount-1);
+				vars[i*2] = new IntVar(store, uniqueDomain, skelSeqCount-1);
 				//vars[i*2+1] = new IntVar(store, 0, Integer.MAX_VALUE);
 				vars[i*2+1] = new IntVar(store);
 				FSM fsm = new FSM();

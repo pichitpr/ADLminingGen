@@ -64,7 +64,7 @@ public class TestSpawnMatchFilter {
 		}
 	}
 	
-	@Test
+	//@Test
 	public void singleSpawn(){
 		List<List<ASTStatement>> relation = new LinkedList<List<ASTStatement>>();
 		List<ASTStatement> relSeq = new LinkedList<ASTStatement>();
@@ -101,7 +101,7 @@ public class TestSpawnMatchFilter {
 		}
 	}
 	
-	@Test
+	//@Test
 	public void doubleSpawn(){
 		List<List<ASTStatement>> relation = new LinkedList<List<ASTStatement>>();
 		List<ASTStatement> relSeq = new LinkedList<ASTStatement>();
@@ -120,7 +120,7 @@ public class TestSpawnMatchFilter {
 		}
 	}
 	
-	@Test
+	//@Test
 	public void singleIfNestedSpawn() throws Exception{
 		List<List<ASTStatement>> relation = new LinkedList<List<ASTStatement>>();
 		
@@ -155,7 +155,7 @@ public class TestSpawnMatchFilter {
 		}
 	}
 	
-	@Test
+	//@Test
 	public void singleElseNestedSpawn() throws Exception{
 		List<List<ASTStatement>> relation = new LinkedList<List<ASTStatement>>();
 		
@@ -187,7 +187,7 @@ public class TestSpawnMatchFilter {
 		}
 	}
 	
-	@Test
+	//@Test
 	public void ifElseNestedSpawn() throws Exception{
 		List<List<ASTStatement>> relation = new LinkedList<List<ASTStatement>>();
 		
@@ -225,7 +225,7 @@ public class TestSpawnMatchFilter {
 		}
 	}
 	
-	@Test
+	//@Test
 	public void parallelSpawn(){
 		List<List<ASTStatement>> relation = new LinkedList<List<ASTStatement>>();
 		//Spawn(.Bullet1) || Spawn(IDEN_?)
@@ -240,6 +240,27 @@ public class TestSpawnMatchFilter {
 			assertSetEqual(new String[]{
 					"Bullet3.state0.seq0 seq1",
 					"Bullet3.state0.seq1 seq0",
+			}, TestUtility.enumerateResultAgentsAsString( filter(relation) ));
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail();
+		}
+	}
+	
+	@Test
+	public void noMatch(){
+		List<List<ASTStatement>> relation = new LinkedList<List<ASTStatement>>();
+		//{Spawn(.AAA), Spawn(.XXX)} || Spawn(.YYY)
+		List<ASTStatement> relSeq = new LinkedList<ASTStatement>();
+		relSeq.add(createSpawn(".AAA"));
+		relSeq.add(createSpawn(".XXX"));
+		relation.add(relSeq);
+		relSeq = new LinkedList<ASTStatement>();
+		relSeq.add(createSpawn(".YYY"));
+		relation.add(relSeq);
+		
+		try {
+			assertSetEqual(new String[]{
 			}, TestUtility.enumerateResultAgentsAsString( filter(relation) ));
 		} catch (Exception e) {
 			e.printStackTrace();
