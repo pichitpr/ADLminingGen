@@ -94,7 +94,7 @@ public class ASTUtility {
 		if(a1.getName().equals("Despawn")) return true;
 		if(a1.getParams()[0] instanceof Identifier && 
 				a2.getParams()[0] instanceof Identifier){
-			//IDEN_? VS IDEN_?
+			//IDEN_X VS IDEN_X
 			Identifier iden1 = (Identifier)a1.getParams()[0];
 			Identifier iden2 = (Identifier)a2.getParams()[0];
 			return iden1.getValue().equals(iden2.getValue());
