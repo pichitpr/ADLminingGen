@@ -64,7 +64,7 @@ public class TestSpawnMatchFilter {
 		}
 	}
 	
-	//@Test
+	@Test
 	public void singleSpawn(){
 		List<List<ASTStatement>> relation = new LinkedList<List<ASTStatement>>();
 		List<ASTStatement> relSeq = new LinkedList<ASTStatement>();
@@ -101,7 +101,7 @@ public class TestSpawnMatchFilter {
 		}
 	}
 	
-	//@Test
+	@Test
 	public void doubleSpawn(){
 		List<List<ASTStatement>> relation = new LinkedList<List<ASTStatement>>();
 		List<ASTStatement> relSeq = new LinkedList<ASTStatement>();
@@ -120,7 +120,7 @@ public class TestSpawnMatchFilter {
 		}
 	}
 	
-	//@Test
+	@Test
 	public void singleIfNestedSpawn() throws Exception{
 		List<List<ASTStatement>> relation = new LinkedList<List<ASTStatement>>();
 		
@@ -155,7 +155,7 @@ public class TestSpawnMatchFilter {
 		}
 	}
 	
-	//@Test
+	@Test
 	public void singleElseNestedSpawn() throws Exception{
 		List<List<ASTStatement>> relation = new LinkedList<List<ASTStatement>>();
 		
@@ -187,7 +187,7 @@ public class TestSpawnMatchFilter {
 		}
 	}
 	
-	//@Test
+	@Test
 	public void ifElseNestedSpawn() throws Exception{
 		List<List<ASTStatement>> relation = new LinkedList<List<ASTStatement>>();
 		
@@ -225,7 +225,7 @@ public class TestSpawnMatchFilter {
 		}
 	}
 	
-	//@Test
+	@Test
 	public void parallelSpawn(){
 		List<List<ASTStatement>> relation = new LinkedList<List<ASTStatement>>();
 		//Spawn(.Bullet1) || Spawn(IDEN_?)
