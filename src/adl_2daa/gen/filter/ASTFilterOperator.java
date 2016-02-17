@@ -135,25 +135,12 @@ public class ASTFilterOperator {
 				/*System.out.println("======== "+agent.getActualAgent().getIdentifier()+"."+
 						state.getActualState().getIdentifier()+" =======");*/
 				
-				//Generate transition domain
-				int seqIndex = 0;
-				IntDomain[] eobDomains = new IntDomain[eobTransitions.size()];
-				for(int i=0; i<eobDomains.length; i++) eobDomains[i] = new IntervalDomain();
-				for(Sequence seq : state.getResultSequences()){
-					int transitionIndex = 0;
-					for(Action transition : eobTransitions){
-						if((new ASTFilter.EOBtransitionSlotFilter(transition, 
-								eosOnly[transitionIndex], tryMatching)).test(seq)){
-							//The sequence is valid -- add sequence index to transition domain
-							eobDomains[transitionIndex].unionAdapt(seqIndex, seqIndex);
-						}
-						transitionIndex++;
-					}
-					seqIndex++;
-				}
 				//Solve for all allocations, get coverage count and record solutions
-				CSPTemplate allocationProblem = new EOBTransitionAllocationProblem(eobDomains);
-				int allocationCost = JaCopUtility.solveAllSolutionCSP(allocationProblem);
+				int allocationCost = enumerateDistinctEOBTransitionFitting(state, 
+						eobTransitions, eosOnly, tryMatching);
+				//A solution is valid only if it costs less than "cannot allocate" case
+				if(allocationCost >= eobTransitions.size())
+					continue;
 				if(allocationCost <= lowestAllocationCost){
 					//Valid solutions found, record all of them
 					if(allocationCost < lowestAllocationCost){
@@ -166,18 +153,14 @@ public class ASTFilterOperator {
 					for(int[] allocation : JaCopUtility.allPrecalculatedAssignments()){
 						assert(eobTransitions.size() == allocation.length);
 						List<Sequence> recordedSolution = new LinkedList<Sequence>();
-						int solutionCost = 0;
 						for(int targetSeqIndex : allocation){
 							if(targetSeqIndex >= 0){
 								recordedSolution.add(state.getResultSequences().get(targetSeqIndex));
 							}else{
-								solutionCost++;
 								recordedSolution.add(null);
 							}
 						}
-						//A solution is valid only if it costs less than "cannot allocate" case
-						if(solutionCost < eobTransitions.size())
-							filteredState.add(new ResultState(state.getActualState(), recordedSolution));
+						filteredState.add(new ResultState(state.getActualState(), recordedSolution));
 					}
 				}
 			}
@@ -188,6 +171,36 @@ public class ASTFilterOperator {
 		return filteredAgent;
 	}
 	
+	/**
+	 * Enumerate all valid allocations of EOB-T with minimal cost using solver. The result
+	 * is stored in JaCopUtility cache and minimal cost is returned. 
+	 * [i] of each allocation indicates target sequence index that transition[i] should be 
+	 * fitted to. The index below 0 means transition[i] cannot fit in any sequence.
+	 * It IS possible the allocation is invalid (all [i] < 0). 
+	 */
+	public static int enumerateDistinctEOBTransitionFitting(ResultState state, 
+			List<Action> eobTransitions, boolean[] eosOnly, boolean tryMatching){
+		//Generate transition domain
+		int seqIndex = 0;
+		IntDomain[] eobDomains = new IntDomain[eobTransitions.size()];
+		for(int i=0; i<eobDomains.length; i++) eobDomains[i] = new IntervalDomain();
+		for(Sequence seq : state.getResultSequences()){
+			int transitionIndex = 0;
+			for(Action transition : eobTransitions){
+				if((new ASTFilter.EOBtransitionSlotFilter(transition, 
+						eosOnly[transitionIndex], tryMatching)).test(seq)){
+					//The sequence is valid -- add sequence index to transition domain
+					eobDomains[transitionIndex].unionAdapt(seqIndex, seqIndex);
+				}
+				transitionIndex++;
+			}
+			seqIndex++;
+		}
+		//Solve for all allocations, get coverage count and record solutions
+		CSPTemplate allocationProblem = new EOBTransitionAllocationProblem(eobDomains);
+		int allocationCost = JaCopUtility.solveAllSolutionCSP(allocationProblem);
+		return allocationCost;
+	}
 	
 	private static class EOBTransitionAllocationProblem implements CSPTemplate{
 
@@ -299,8 +312,12 @@ public class ASTFilterOperator {
 					relSeqIndex++;
 				}
 				//spawnMatchCSP.printNonMatchCostTable();
+
 				//Solve and record if current state is qualified
 				int usedNonMatchCost = JaCopUtility.solveAllSolutionCSP(spawnMatchCSP);
+				//The solution is valid only if its cost is less than threshold
+				if(usedNonMatchCost >= costThreshold) 
+					continue;
 				if(usedNonMatchCost <= lowestNonMatchCost){
 					if(usedNonMatchCost < lowestNonMatchCost){
 						//New better solution, older result(s) is obsolete
@@ -313,11 +330,8 @@ public class ASTFilterOperator {
 					for(int[] match : JaCopUtility.allPrecalculatedAssignments()){
 						assert(relation.size() == match.length/2);
 						List<Sequence> recordedSolution = new LinkedList<Sequence>();
-						int solutionCost = 0;
 						for(int i=0; i<match.length; i+=2){
 							int targetSkelSeqIndex = match[i];
-							int varNonMatchCost = match[i+1];
-							solutionCost += varNonMatchCost;
 							if(targetSkelSeqIndex >= 0){
 								recordedSolution.add(
 										state.getResultSequences().get(targetSkelSeqIndex)
@@ -326,9 +340,7 @@ public class ASTFilterOperator {
 								recordedSolution.add(null);
 							}
 						}
-						//The solution is valid only if its cost is less than threshold
-						if(solutionCost < costThreshold)
-							filteredState.add(new ResultState(state.getActualState(), recordedSolution));
+						filteredState.add(new ResultState(state.getActualState(), recordedSolution));
 					}
 				}
 			}

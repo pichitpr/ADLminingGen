@@ -23,9 +23,11 @@ public class Skeleton {
 	
 	/**
 	 * Generate initial skeleton from profiles, there must be at least 1 profile.
-	 * All blocks in the profile (except sequence block) must be non-empty
+	 * All blocks in the profile (except sequence block) must be non-empty.
+	 * The first agent in generated skeleton is considered "Main agent".
 	 */
 	public void generateInitialSkeleton(AgentProfile[] profiles){
+		//TODO: Check main agent flag before generating
 		List<Agent> agents = new LinkedList<Agent>();
 		identifier = profiles[0].getRootName();
 		skel = new Root(agents);
@@ -68,7 +70,7 @@ public class Skeleton {
 	}
 	
 	public void mergeInterEntity(GraphPattern<String,Integer> relation, boolean useTag){
-		
+		InterEntityParallelMerger.instance.merge(skel, relation);
 	}
 	
 	public void saveAsScript(File dir) throws Exception{
