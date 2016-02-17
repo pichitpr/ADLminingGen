@@ -158,12 +158,7 @@ public class ASTSequenceWrapper implements LCSSequence<ASTNode>{
 	 * Some nodes are special nodes indicating "end of block". Insertion at the "index"
 	 * of those nodes are inserted at the end of block specified by the nodes.
 	 */
-	public void queueInsertion(int index, ASTStatement statement){
-		
-		StringBuilder strb = new StringBuilder(index+" : ");
-		statement.toScript(strb, 0);
-		System.out.println(strb);
-		
+	public void queueInsertion(int index, ASTStatement statement){		
 		insertionList.get(index).add(statement);
 	}
 	
