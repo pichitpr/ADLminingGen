@@ -28,6 +28,14 @@ public class DatabaseCreator {
 		return profile.get(agentID);
 	}
 	
+	public String createProfileDump(){
+		StringBuilder strb = new StringBuilder();
+		for(AgentProfile prof : profile){
+			strb.append(prof).append("\r\n");
+		}
+		return strb.toString();
+	}
+	
 	/**
 	 * This method must be called before performing mining process
 	 * to store all references to dataset. Also create agent profile

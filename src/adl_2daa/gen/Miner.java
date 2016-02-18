@@ -1,11 +1,14 @@
 package adl_2daa.gen;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+
+import org.apache.commons.io.FileUtils;
 
 import parsemis.extension.GraphPattern;
 import parsemis.extension.SimpleMiner;
@@ -69,6 +72,14 @@ public class Miner {
 		frequentParallel = null;
 		frequentInterEntityParallel = null;
 		frequentNesting = null;
+	}
+	
+	public void dumpDatasetProfile(File file){
+		try {
+			FileUtils.write(file, dbCreator.createProfileDump());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**

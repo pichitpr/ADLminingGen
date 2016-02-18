@@ -10,6 +10,7 @@ public class AgentProfile {
 
 	private int id;
 	private String rootName;
+	private String agentName;
 	private boolean isComplexAgent; //TODO: Unused now
 	private boolean isMainAgent;
 	private int orderRelationUsage;
@@ -21,7 +22,7 @@ public class AgentProfile {
 	
 	//Structure info
 	private boolean hasDes;
-	private int[] structureInfo;
+	private int[] structureInfo; //structureInfo[i] = #sequence of i-th state 
 	
 	public int getId() {
 		return id;
@@ -29,6 +30,10 @@ public class AgentProfile {
 	
 	public String getRootName() {
 		return rootName;
+	}
+	
+	public String getAgentName() {
+		return agentName;
 	}
 	
 	public boolean isComplexAgent() {
@@ -70,7 +75,7 @@ public class AgentProfile {
 	public void setRootName(String rootName) {
 		this.rootName = rootName;
 	}
-
+	
 	public void setComplexAgent(boolean isComplexAgent) {
 		this.isComplexAgent = isComplexAgent;
 	}
@@ -104,6 +109,7 @@ public class AgentProfile {
 	}
 	
 	public void createStructureProfile(Agent agent){
+		this.agentName = agent.getIdentifier();
 		this.hasDes = agent.getDes() != null;
 		this.structureInfo = new int[agent.getStates().size()];
 		for(int i=0; i<agent.getStates().size(); i++){
@@ -125,4 +131,23 @@ public class AgentProfile {
 		return structureInfo;
 	}
 	
+	@Override
+	public String toString(){
+		StringBuilder strb = new StringBuilder();
+		strb.append("ID:").append(id).append(" ").append(rootName).append(".").append(agentName);
+		if(isMainAgent) strb.append(" [MAIN]");
+		strb.append(" [INIT]");
+		if(hasDes) strb.append(" [DES]");
+		for(int info : structureInfo){
+			strb.append(" ").append(info);
+		}
+		strb.append("\r\n");
+		strb.append("Order relation count:").append(orderRelationUsage).append("\r\n");
+		strb.append("InterState(Goto) relation count:").append(interStateGotoRelationUsage).append("\r\n");
+		strb.append("InterState(Des) relation count:").append(interStateDespawnRelationUsage).append("\r\n");
+		strb.append("Parallel relation count:").append(parallelRelationUsage).append("\r\n");
+		strb.append("InterEntity relation count:").append(parallelInterEntityRelationUsage).append("\r\n");
+		strb.append("Nesting relation count:").append(nestingRelationUsage).append("\r\n");
+		return strb.toString();
+	}
 }
