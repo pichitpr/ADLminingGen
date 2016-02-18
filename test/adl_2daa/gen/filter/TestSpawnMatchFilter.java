@@ -250,7 +250,7 @@ public class TestSpawnMatchFilter {
 	@Test
 	public void noMatch(){
 		List<List<ASTStatement>> relation = new LinkedList<List<ASTStatement>>();
-		//{Spawn(.AAA), Spawn(.XXX)} || Spawn(.YYY)
+		//{Spawn(.AAA), Spawn(.X XX)} || Spawn(.YYY)
 		List<ASTStatement> relSeq = new LinkedList<ASTStatement>();
 		relSeq.add(createSpawn(".AAA"));
 		relSeq.add(createSpawn(".XXX"));
