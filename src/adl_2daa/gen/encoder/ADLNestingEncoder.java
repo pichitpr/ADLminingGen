@@ -25,8 +25,6 @@ public class ADLNestingEncoder {
 
 	protected static ADLNestingEncoder instance = new ADLNestingEncoder();
 	
-	//NOTE:: Should filter out single node?? (No nested function) -- now count
-	
 	private List<Graph<Integer,Integer>> graphCollection;
 	private GraphCreationHelper<Integer, Integer> graph; 
 	{
@@ -43,6 +41,9 @@ public class ADLNestingEncoder {
 		for(ASTStatement st : astSequence.getStatements()){
 			parseStatement(st);
 		}
+		
+		//Remove single node graph (node of this type does not contribute to mining/generation)
+		graphCollection.removeIf(graph -> graph.getNodeCount() <= 1);
 		
 		return graphCollection;
 	}
