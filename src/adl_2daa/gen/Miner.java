@@ -274,9 +274,9 @@ public class Miner {
 		while(edgeIt.hasNext()){
 			edge = edgeIt.next();
 			if(edge.getLabel() == EncodeTable.STATE_SEQUENCE_EDGE){
-				sequenceCounter++;
 				sequenceNode = (edge.getDirection() == Edge.OUTGOING) ? edge.getNodeB() : edge.getNodeA();
-				if(sequenceNode.getOutDegree() < 1) return false;
+				if(sequenceNode.getOutDegree() >= 1) 
+					sequenceCounter++;
 			}
 		}
 		return sequenceCounter > 1;
@@ -319,7 +319,7 @@ public class Miner {
 			edge = edgeIt.next();
 			if(edge.getLabel() == EncodeTable.STATE_SEQUENCE_EDGE){
 				sequenceNode = (edge.getDirection() == Edge.OUTGOING) ? edge.getNodeB() : edge.getNodeA();
-				if(sequenceNode.getOutDegree() < 1) return false;
+				if(sequenceNode.getOutDegree() < 1) continue;
 				edge = sequenceNode.outgoingEdgeIterator().next(); //Sampling 1 outgoing edge
 				if(edge.getLabel() == EncodeTable.SEQUENCE_ACTION_EDGE){
 					hasSpawnerSequence = true;
