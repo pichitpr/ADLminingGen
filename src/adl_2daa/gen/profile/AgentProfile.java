@@ -134,7 +134,7 @@ public class AgentProfile {
 	@Override
 	public String toString(){
 		StringBuilder strb = new StringBuilder();
-		strb.append("ID:").append(id).append(" ").append(rootName).append(".").append(agentName);
+		strb.append("ID:").append(id).append(" ").append(rootName).append(":").append(agentName);
 		if(isMainAgent) strb.append(" [MAIN]");
 		strb.append(" [INIT]");
 		if(hasDes) strb.append(" [DES]");
