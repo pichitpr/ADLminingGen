@@ -25,7 +25,7 @@ public class ADLNestingEncoder {
 
 	protected static ADLNestingEncoder instance = new ADLNestingEncoder();
 	
-	//TODO: Should filter out single node?? (No nested function) -- now count
+	//NOTE:: Should filter out single node?? (No nested function) -- now count
 	
 	private List<Graph<Integer,Integer>> graphCollection;
 	private GraphCreationHelper<Integer, Integer> graph; 

@@ -458,7 +458,7 @@ public class InterEntityParallelMerger {
 	}
 	
 	private void merge(Root skel, boolean isChild){
-		//TODO: fix code beyond transition --> Seems to disappear
+		//NOTE:: fix code beyond transition --> Seems to disappear
 		
 		List<List<ASTStatement>> decodedRelations = isChild ? childDecodedRel : spawnerDecodedRel;
 		List<ASTSequenceSelection> selections = isChild ? childSelections : spawnerSelections;

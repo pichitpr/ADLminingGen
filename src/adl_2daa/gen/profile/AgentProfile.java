@@ -11,7 +11,7 @@ public class AgentProfile {
 	private int id;
 	private String rootName;
 	private String agentName;
-	private boolean isComplexAgent; //TODO: Unused now
+	private boolean isComplexAgent; //NOTE:: Unused now
 	private boolean isMainAgent;
 	private int orderRelationUsage;
 	private int interStateGotoRelationUsage;

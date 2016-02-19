@@ -223,7 +223,7 @@ public class ASTSequenceWrapper implements LCSSequence<ASTNode>{
 			if(o1.getNestingBlocks().size() == o2.getNestingBlocks().size() && 
 					ASTUtility.isKeyActionsMatched(a1, a2)){
 				for(int i=0; i<o1.getNestingBlocks().size(); i++){
-					//TODO: comparison depth will be changed
+					//NOTE:: comparison depth may be changed
 					if(!o1.getNestingBlocks().get(i).equals(o2.getNestingBlocks().get(i), 2)){
 						return -1;
 					}

@@ -294,7 +294,7 @@ public class DatabaseCreator {
 		ADLSequenceEncoder.instance.setAnalyzeFlow(false);
 		it.reset();
 		GraphCreationHelper.resetID();
-		//TODO: A state that spawn the same agent multiple times will cause
+		//NOTE:: A state that spawn the same agent multiple times will cause
 		//duplicate graph, is this acceptable??? >> Currently not dup now
 		//also, we do not consider Spawn in .des, is this Ok? -- now ok
 		int agentID = 0;
