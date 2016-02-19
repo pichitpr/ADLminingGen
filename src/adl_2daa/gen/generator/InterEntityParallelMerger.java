@@ -46,13 +46,6 @@ public class InterEntityParallelMerger {
 		NORMAL, SPAWN_MATCH, EOBT_FIT, EOBT_NOFIT
 	}
 	
-	private void printRel(List<List<ASTStatement>> rel){
-		StringBuilder strb = new StringBuilder();
-		for(List<ASTStatement> seq : rel){
-			strb.append("-=-=-=-=- SEQ");
-		}
-	}
-	
 	public void merge(Root skel, GraphPattern<String,Integer> relation){
 		spawnerDecodedRel = new LinkedList<List<ASTStatement>>();
 		childDecodedRel = new LinkedList<List<ASTStatement>>();
