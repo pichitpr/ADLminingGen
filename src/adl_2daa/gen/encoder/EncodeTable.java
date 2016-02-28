@@ -2,7 +2,7 @@ package adl_2daa.gen.encoder;
 
 public class EncodeTable {
 
-	//Unique ID
+	//Unique ID for sequence encoding
 	public static final byte COND_IF = 127;
 	public static final byte COND_IF_IFELSE = 126;
 	public static final byte COND_ELSE_IFELSE = 125;
@@ -13,7 +13,7 @@ public class EncodeTable {
 	public static final byte EXP_FUNCTION = 120;
 	public static final byte EXP_LITERAL = 119;
 	
-	//EXP_BINARY family
+	//EXP_BINARY family for expression encoding in sequence encoding
 	public static final byte EXP_BINARY_AND = 0;
 	public static final byte EXP_BINARY_OR = 1;
 	public static final byte EXP_BINARY_COMP_EQ = 10;
