@@ -9,13 +9,18 @@ import adl_2daa.ast.ASTExpression;
 import adl_2daa.ast.ASTStatement;
 import adl_2daa.ast.expression.ASTBinary;
 import adl_2daa.ast.expression.ASTUnary;
+import adl_2daa.ast.expression.And;
+import adl_2daa.ast.expression.Arithmetic;
+import adl_2daa.ast.expression.Comparison;
 import adl_2daa.ast.expression.Function;
+import adl_2daa.ast.expression.Or;
 import adl_2daa.ast.expression.StringConstant;
 import adl_2daa.ast.statement.Action;
 import adl_2daa.ast.statement.Condition;
 import adl_2daa.ast.statement.Loop;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.gen.signature.ActionMainSignature;
+import adl_2daa.gen.signature.FunctionMainSignature;
 import adl_2daa.gen.signature.GeneratorRegistry;
 import adl_2daa.gen.signature.MainSignature;
 import adl_2daa.gen.signature.Signature;
@@ -113,10 +118,9 @@ public class ADLNestingEncoder {
 		if(exp instanceof Function){
 			parseFunction((Function)exp, parentIndex, edgeLabel);
 		}else if(exp instanceof ASTBinary){
-			parseExpression(((ASTBinary)exp).left, parentIndex, edgeLabel);
-			parseExpression(((ASTBinary)exp).right, parentIndex, edgeLabel);
+			parseASTBinary((ASTBinary)exp, parentIndex, edgeLabel);
 		}else if(exp instanceof ASTUnary){
-			parseExpression(((ASTUnary)exp).node, parentIndex, edgeLabel);
+			parseASTUnary((ASTUnary)exp, parentIndex, edgeLabel);
 		}
 		//Do nothing for Literal
 	}
@@ -153,6 +157,96 @@ public class ADLNestingEncoder {
 			}
 			*/
 		}
+		
+		if(parentIndex == -1){
+			graphCollection.add(graph.finishGraph());
+		}else{
+			graph.addEdge(parentIndex, rootIndex, edgeLabel, true);
+		}
+	}
+	
+	/**
+	 * For parameters see {@link ADLNestingEncoder#parseFunction(Function, int, int)}
+	 */
+	private void parseASTBinary(ASTBinary astBinary, int parentIndex, int edgeLabel){
+		if(parentIndex == -1){
+			graph.createNewGraph(GraphCreationHelper.getID());
+		}
+		
+		FunctionMainSignature func = null;
+		if(astBinary instanceof And){
+			func = GeneratorRegistry.getFunctionSignature("@L_and");
+		}else if(astBinary instanceof Or){
+			func = GeneratorRegistry.getFunctionSignature("@L_or");
+		}else if(astBinary instanceof Comparison){
+			switch(((Comparison)astBinary).getOp()){
+			case EQ:
+				func = GeneratorRegistry.getFunctionSignature("@C_eq");
+				break;
+			case NEQ:
+				func = GeneratorRegistry.getFunctionSignature("@C_neq");
+				break;
+			case GT:
+				func = GeneratorRegistry.getFunctionSignature("@C_gt");
+				break;
+			case GE:
+				func = GeneratorRegistry.getFunctionSignature("@C_ge");
+				break;
+			case LT:
+				func = GeneratorRegistry.getFunctionSignature("@C_lt");
+				break;
+			case LE:
+				func = GeneratorRegistry.getFunctionSignature("@C_le");
+				break;
+			}
+		}else if(astBinary instanceof Arithmetic){
+			switch(((Arithmetic)astBinary).getOp()){
+			case ADD:
+				func = GeneratorRegistry.getFunctionSignature("@A_add");
+				break;
+			case SUB:
+				func = GeneratorRegistry.getFunctionSignature("@A_sub");
+				break;
+			case MUL:
+				func = GeneratorRegistry.getFunctionSignature("@A_mul");
+				break;
+			case DIV:
+				func = GeneratorRegistry.getFunctionSignature("@A_div");
+				break;
+			case MOD:
+				func = GeneratorRegistry.getFunctionSignature("@A_mod");
+				break;
+			}
+		}
+		
+		int rootIndex = graph.addNode(func.getMainSignature().getId());
+		parseExpression(astBinary.left, rootIndex, 0);
+		parseExpression(astBinary.right, rootIndex, 1);
+		
+		if(parentIndex == -1){
+			graphCollection.add(graph.finishGraph());
+		}else{
+			graph.addEdge(parentIndex, rootIndex, edgeLabel, true);
+		}
+	}
+	
+	/**
+	 * For parameters see {@link ADLNestingEncoder#parseFunction(Function, int, int)}
+	 */
+	private void parseASTUnary(ASTUnary astUnary, int parentIndex, int edgeLabel){
+		if(parentIndex == -1){
+			graph.createNewGraph(GraphCreationHelper.getID());
+		}
+		
+		FunctionMainSignature func = null;
+		if(astUnary.op == ASTUnary.UnaryOp.NOT){
+			func = GeneratorRegistry.getFunctionSignature("@U_not");
+		}else{
+			func = GeneratorRegistry.getFunctionSignature("@U_neg");
+		}
+		
+		int rootIndex = graph.addNode(func.getMainSignature().getId());
+		parseExpression(astUnary.getNode(), rootIndex, 0);
 		
 		if(parentIndex == -1){
 			graphCollection.add(graph.finishGraph());

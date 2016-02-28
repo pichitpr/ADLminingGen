@@ -223,6 +223,40 @@ public class TestInitializer {
 		GeneratorRegistry.registerFunctionSignature("RandomPositionInRange", 
 				new FunctionMainSignature(Datatype.POSITION, 
 						Datatype.POSITION,Datatype.POSITION));
+		
+		//==============================
+		//v5 (23/2/59) -- Special function converted from expression
+		
+		GeneratorRegistry.registerFunctionSignature("@U_neg", 
+				new FunctionMainSignature(Datatype.DECIMAL, Datatype.DECIMAL));
+		GeneratorRegistry.registerFunctionSignature("@U_not", 
+				new FunctionMainSignature(Datatype.BOOL, Datatype.BOOL));
+		GeneratorRegistry.registerFunctionSignature("@L_and", 
+				new FunctionMainSignature(Datatype.BOOL, Datatype.BOOL, Datatype.BOOL));
+		GeneratorRegistry.registerFunctionSignature("@L_or", 
+				new FunctionMainSignature(Datatype.BOOL, Datatype.BOOL, Datatype.BOOL));
+		GeneratorRegistry.registerFunctionSignature("@C_eq", 
+				new FunctionMainSignature(Datatype.BOOL, Datatype.ABSTRACT, Datatype.ABSTRACT));
+		GeneratorRegistry.registerFunctionSignature("@C_neq", 
+				new FunctionMainSignature(Datatype.BOOL, Datatype.ABSTRACT, Datatype.ABSTRACT));
+		GeneratorRegistry.registerFunctionSignature("@C_gt", 
+				new FunctionMainSignature(Datatype.BOOL, Datatype.DECIMAL, Datatype.DECIMAL));
+		GeneratorRegistry.registerFunctionSignature("@C_lt", 
+				new FunctionMainSignature(Datatype.BOOL, Datatype.DECIMAL, Datatype.DECIMAL));
+		GeneratorRegistry.registerFunctionSignature("@C_ge", 
+				new FunctionMainSignature(Datatype.BOOL, Datatype.DECIMAL, Datatype.DECIMAL));
+		GeneratorRegistry.registerFunctionSignature("@C_le", 
+				new FunctionMainSignature(Datatype.BOOL, Datatype.DECIMAL, Datatype.DECIMAL));
+		GeneratorRegistry.registerFunctionSignature("@A_add", 
+				new FunctionMainSignature(Datatype.DECIMAL, Datatype.DECIMAL, Datatype.DECIMAL));
+		GeneratorRegistry.registerFunctionSignature("@A_sub", 
+				new FunctionMainSignature(Datatype.DECIMAL, Datatype.DECIMAL, Datatype.DECIMAL));
+		GeneratorRegistry.registerFunctionSignature("@A_mul", 
+				new FunctionMainSignature(Datatype.DECIMAL, Datatype.DECIMAL, Datatype.DECIMAL));
+		GeneratorRegistry.registerFunctionSignature("@A_div", 
+				new FunctionMainSignature(Datatype.DECIMAL, Datatype.DECIMAL, Datatype.DECIMAL));
+		GeneratorRegistry.registerFunctionSignature("@A_mod", 
+				new FunctionMainSignature(Datatype.DECIMAL, Datatype.DECIMAL, Datatype.DECIMAL));
 	}
 	
 	public static void init(){
