@@ -6,8 +6,20 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
+import adl_2daa.ast.ASTExpression;
 import adl_2daa.ast.ASTStatement;
+import adl_2daa.ast.expression.ASTBinary;
+import adl_2daa.ast.expression.ASTUnary;
+import adl_2daa.ast.expression.And;
+import adl_2daa.ast.expression.Arithmetic;
+import adl_2daa.ast.expression.BooleanConstant;
+import adl_2daa.ast.expression.Comparison;
+import adl_2daa.ast.expression.FloatConstant;
+import adl_2daa.ast.expression.Function;
 import adl_2daa.ast.expression.Identifier;
+import adl_2daa.ast.expression.IntConstant;
+import adl_2daa.ast.expression.Or;
+import adl_2daa.ast.expression.StringConstant;
 import adl_2daa.ast.statement.Action;
 import adl_2daa.ast.structure.Agent;
 import adl_2daa.ast.structure.Root;
@@ -282,5 +294,53 @@ public class ASTUtility {
 		List<ASTStatement> statement = new LinkedList<ASTStatement>();
 		Sequence seq = new Sequence(identifier, statement);
 		return seq;
+	}
+	
+	/**
+	 * Create a copy of provided exp
+	 */
+	public static ASTExpression copy(ASTExpression exp){
+		if(exp instanceof ASTUnary){
+			ASTUnary unary = (ASTUnary)exp;
+			return new ASTUnary(unary.op, copy(unary.node));
+		}else if(exp instanceof ASTBinary){
+			ASTBinary bin = (ASTBinary)exp;
+			if(exp instanceof And)
+				return new And(copy(bin.left), copy(bin.right));
+			else if(exp instanceof Or)
+				return new Or(copy(bin.left), copy(bin.right));
+			else if(exp instanceof Comparison)
+				return new Comparison(copy(bin.left), ((Comparison)exp).getOp(), copy(bin.right));
+			else if(exp instanceof Arithmetic)
+				return new Arithmetic(copy(bin.left), ((Arithmetic)exp).getOp(), copy(bin.right));
+		}else if(exp instanceof Function){
+			Function function = (Function)exp;
+			List<ASTExpression> params = new ArrayList<ASTExpression>();
+			for(ASTExpression arg : function.getParams()){
+				params.add(copy(arg));
+			}
+			return new Function(function.getName(), params, function.hasSingleQuery());
+		}else{
+			if(exp instanceof BooleanConstant){
+				return new BooleanConstant(""+((BooleanConstant)exp).isValue());
+			}else if(exp instanceof FloatConstant){
+				return new FloatConstant(""+((FloatConstant)exp).getValue());
+			}else if(exp instanceof IntConstant){
+				return new IntConstant(""+((IntConstant)exp).getValue());
+			}else if(exp instanceof StringConstant){
+				return new StringConstant(((StringConstant)exp).getValue());
+			}else if(exp instanceof Identifier){
+				return new Identifier("."+((Identifier)exp).getValue());
+			}else if(exp instanceof ExpressionSkeleton){
+				return new ExpressionSkeleton(((ExpressionSkeleton)exp).getType());
+			}
+		}
+		
+		//Impossible case
+		System.out.println("Reach impossible case for ASTExpression copy");
+		StringBuilder strb = new StringBuilder();
+		exp.toScript(strb, 2);
+		System.out.println(strb);
+		return null; 
 	}
 }
