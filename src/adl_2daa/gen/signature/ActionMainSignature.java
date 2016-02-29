@@ -7,6 +7,10 @@ public class ActionMainSignature extends MainSignature{
 		ID_COUNT = 0;
 	}
 	
+	public static int getTotalActionCount(){
+		return ID_COUNT;
+	}
+	
 	public ActionMainSignature(int minParamSize, int choiceParamIndex,
 			Datatype... param){
 		super(ID_COUNT, Datatype.VOID, minParamSize, choiceParamIndex, param);

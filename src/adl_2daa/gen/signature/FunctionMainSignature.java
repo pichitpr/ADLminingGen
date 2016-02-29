@@ -7,6 +7,10 @@ public class FunctionMainSignature extends MainSignature{
 		ID_COUNT = 0;
 	}
 	
+	public static int getTotalFunctionCount(){
+		return ID_COUNT;
+	}
+	
 	public FunctionMainSignature(Datatype returnType, int minParamSize, int choiceParamIndex,
 			Datatype... param){
 		super(ID_COUNT, returnType, minParamSize, choiceParamIndex, param);
