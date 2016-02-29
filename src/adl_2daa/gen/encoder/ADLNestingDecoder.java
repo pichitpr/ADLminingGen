@@ -109,15 +109,22 @@ public class ADLNestingDecoder {
 	private ASTBinary parseASTBinary(Node<Integer, Integer> root){
 		int functionID = root.getLabel()-EncodeTable.idOffset;
 		String op = GeneratorRegistry.getFunctionName(functionID);
+		Signature sig = GeneratorRegistry.getFunctionSignature(op).getMainSignature();
 		ASTExpression left=null,right=null;
 		Iterator<Edge<Integer,Integer>> edgeIt = root.outgoingEdgeIterator();
 		while(edgeIt.hasNext()){
 			Edge<Integer, Integer> edge = edgeIt.next();
 			if(edge.getLabel() == 0){
 				left = decodeExpression(edge.getOtherNode(root));
-			}else{
+			}else if(edge.getLabel() == 1){
 				right = decodeExpression(edge.getOtherNode(root));
 			}
+		}
+		if(left == null){
+			left = new ExpressionSkeleton(sig.getParamType()[0]);
+		}
+		if(right == null){
+			right = new ExpressionSkeleton(sig.getParamType()[1]);
 		}
 		
 		switch(op){
@@ -143,8 +150,15 @@ public class ADLNestingDecoder {
 	private ASTUnary parseASTUnary(Node<Integer, Integer> root){
 		int functionID = root.getLabel()-EncodeTable.idOffset;
 		String op = GeneratorRegistry.getFunctionName(functionID);
+		Signature sig = GeneratorRegistry.getFunctionSignature(op).getMainSignature();
 		Iterator<Edge<Integer,Integer>> edgeIt = root.outgoingEdgeIterator();
-		ASTExpression exp = decodeExpression(edgeIt.next().getOtherNode(root));
+		ASTExpression exp = null;
+		if(edgeIt.hasNext()){
+			exp = decodeExpression(edgeIt.next().getOtherNode(root));
+		}
+		if(exp == null){
+			exp = new ExpressionSkeleton(sig.getParamType()[0]);
+		}
 		return new ASTUnary(op.equals("@U_neg") ? UnaryOp.NEG : UnaryOp.NOT, exp);
 	}
 	
