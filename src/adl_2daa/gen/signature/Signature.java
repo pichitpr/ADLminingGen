@@ -28,4 +28,8 @@ public class Signature {
 	public Datatype[] getParamType(){
 		return param;
 	}
+
+	public int getMinParamSize() {
+		return minParamSize;
+	}
 }

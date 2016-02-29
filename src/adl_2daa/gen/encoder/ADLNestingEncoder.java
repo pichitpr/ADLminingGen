@@ -219,7 +219,7 @@ public class ADLNestingEncoder {
 			}
 		}
 		
-		int rootIndex = graph.addNode(func.getMainSignature().getId());
+		int rootIndex = graph.addNode(func.getMainSignature().getId()+EncodeTable.idOffset);
 		parseExpression(astBinary.left, rootIndex, 0);
 		parseExpression(astBinary.right, rootIndex, 1);
 		
@@ -245,7 +245,7 @@ public class ADLNestingEncoder {
 			func = GeneratorRegistry.getFunctionSignature("@U_neg");
 		}
 		
-		int rootIndex = graph.addNode(func.getMainSignature().getId());
+		int rootIndex = graph.addNode(func.getMainSignature().getId()+EncodeTable.idOffset);
 		parseExpression(astUnary.getNode(), rootIndex, 0);
 		
 		if(parentIndex == -1){
