@@ -357,18 +357,17 @@ public class DatabaseCreator {
 	 * @return 0:DB 1:agentIDMap
 	 */
 	public Object[] createDatabaseForNesting(){
-		Collection<Graph<Integer,Integer>> db = new LinkedList<Graph<Integer,Integer>>();
+		List<Graph<Integer,Integer>> db = new LinkedList<Graph<Integer,Integer>>();
 		List<Integer> agentIDMap = new LinkedList<Integer>();
 		
 		it.reset();
 		GraphCreationHelper.resetID();
 		
 		int agentID = 0;
-		int graphCounter;
+		int lastGraphID = -1;
 		while(it.hasNext()){
 			Root root = loadScriptAsAST(it.next());
 			for(Agent agent : root.getRelatedAgents()){
-				graphCounter = db.size();
 				if(agent.getInit() != null){
 					db.addAll(
 							ADLNestingEncoder.instance.parseAsGraphCollection(agent.getInit())
@@ -386,9 +385,11 @@ public class DatabaseCreator {
 								);
 					}
 				}
-				for(int i=1; i<=db.size()-graphCounter; i++){
+				int currentGraphID = db.get(db.size()-1).getID();
+				for(int i=lastGraphID+1; i<=currentGraphID; i++){
 					agentIDMap.add(agentID);
 				}
+				lastGraphID = currentGraphID;
 				agentID++;
 			}
 		}
