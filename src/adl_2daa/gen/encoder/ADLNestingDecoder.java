@@ -144,6 +144,7 @@ public class ADLNestingDecoder {
 		}
 		
 		//Impossible case
+		System.out.println("Reach impossible case for NestingDecode "+op);
 		return null;
 	}
 	
@@ -165,10 +166,16 @@ public class ADLNestingDecoder {
 	private List<ASTExpression> decodeParameter(Node<Integer, Integer> root, String functionName, 
 			Signature signature, String choice){
 		List<ASTExpression> paramList = new ArrayList<ASTExpression>();
-		if(choice != null) paramList.add(new StringConstant(choice));
+		//Function with choice has its first parameter trimmed result in parameter count
+		//got from GeneratorRegistry lower than the actual function by 1
+		int paramCountOffset = 0; 
+		if(choice != null){ 
+			paramList.add(new StringConstant(choice));
+			paramCountOffset++;
+		}
 		
 		//Fill up param to match the signature
-		while(paramList.size() < signature.getParamType().length){
+		while(paramList.size() < signature.getParamType().length+paramCountOffset){
 			paramList.add(null);
 		}
 		
@@ -181,17 +188,21 @@ public class ADLNestingDecoder {
 						" found! function name="+functionName);
 				continue;
 			}
-			Datatype expectingType = signature.getParamType()[edge.getLabel()];
+			Datatype expectingType = signature.getParamType()[edge.getLabel()-paramCountOffset];
 			ASTExpression exp = decodeExpression(edge.getOtherNode(root));
 			if(!(new ExpressionSkeleton(expectingType)).isCompatibleWith(exp)){
-				System.out.println("Expecting type " + expectingType.name() + " not matched");
+				StringBuilder strb = new StringBuilder();
+				exp.toScript(strb, 0);
+				System.out.println("Function " + functionName + "#" + choice + 
+						"[" + edge.getLabel() + "] expecting type " + expectingType.name() + 
+						" not matched with " + strb.toString());
 				continue;
 			}
 			paramList.set(edge.getLabel(), exp);
 		}
 	
 		//Trim all tail null until the param length is at minimum
-		while(paramList.size() > signature.getMinParamSize()){
+		while(paramList.size() > signature.getMinParamSize()+paramCountOffset){
 			if(paramList.get(paramList.size()-1) != null)
 				break;
 			paramList.remove(paramList.size()-1);
@@ -200,7 +211,7 @@ public class ADLNestingDecoder {
 		//Change null to ExpressionSkeleton instead
 		for(int i=0; i<paramList.size(); i++){
 			if(paramList.get(i) == null){
-				paramList.set(i, new ExpressionSkeleton(signature.getParamType()[i]) );
+				paramList.set(i, new ExpressionSkeleton(signature.getParamType()[i-paramCountOffset]) );
 			}
 		}
 		

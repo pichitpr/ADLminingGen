@@ -73,6 +73,10 @@ public class Skeleton {
 		InterEntityParallelMerger.instance.merge(skel, relation);
 	}
 	
+	public void mergeNesting(List<GraphPattern<Integer,Integer>> relation){
+		NestingMerger.instance.merge(skel, relation);
+	}
+	
 	public void saveAsScript(File dir) throws Exception{
 		StringBuilder strb = new StringBuilder();
 		skel.toScript(strb, 0);

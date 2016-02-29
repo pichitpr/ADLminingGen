@@ -1,6 +1,5 @@
 package adl_2daa.gen.encoder;
 
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -40,7 +39,7 @@ public class ADLNestingEncoder {
 	 * Parse a sequence as nesting relation graphs. The function ID used here differs
 	 * from sequence encoding scheme (+offset so there is no duplicated ID)
 	 */
-	protected Collection<Graph<Integer,Integer>> parseAsGraphCollection(Sequence astSequence){
+	protected List<Graph<Integer,Integer>> parseAsGraphCollection(Sequence astSequence){
 		graphCollection = new LinkedList<Graph<Integer,Integer>>();
 		
 		for(ASTStatement st : astSequence.getStatements()){
