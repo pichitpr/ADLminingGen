@@ -281,41 +281,42 @@ public class TestDatabaseCreator {
 		Iterator<Graph<String,Integer>> it = db.iterator();
 		while(it.hasNext()){
 			Graph<String,Integer> graph = it.next();
-			switch(graph.getID()){
+			int graphID = Integer.parseInt(graph.getName());
+			switch(graphID){
 			case 0:
 				//FlameMan.flame(1) -> Spawn .FlameShield(1) *6
-				assertEquals(2+15+7, graph.getNodeCount());
-				assertEquals(0, (int)agentIDMap.get(graph.getID()));
+				assertEquals(4+14+6, graph.getNodeCount());
+				assertEquals(0, (int)agentIDMap.get(graphID));
 				break;
 			case 1:
 				//FlameMan.bullet(1) -> Spawn .FlameShot(1) *1
-				assertEquals(2+8+2+2, graph.getNodeCount());
-				assertEquals(0, (int)agentIDMap.get(graph.getID()));
+				assertEquals(5+3+1+1, graph.getNodeCount());
+				assertEquals(0, (int)agentIDMap.get(graphID));
 				break;
 			case 2:
 				//Lakitu.state0(2) -> Spawn .SpinyEgg(1)
-				assertEquals(2+3+3+2, graph.getNodeCount());
-				assertEquals(6, (int)agentIDMap.get(graph.getID()));
+				assertEquals(5+2+2+1, graph.getNodeCount());
+				assertEquals(6, (int)agentIDMap.get(graphID));
 				break;
 			case 3:
-				//TomahawkMan.feather -> Spawn .FeatherBullet1 (1)
-				assertEquals(2+6+2, graph.getNodeCount());
-				assertEquals(9, (int)agentIDMap.get(graph.getID()));
+				//TomahawkMan.feather -> Spawn .FeatherBullet2 (1)
+				assertEquals(4+5+1, graph.getNodeCount());
+				assertEquals(9, (int)agentIDMap.get(graphID));
 				break;
 			case 4:
-				//TomahawkMan.feather -> Spawn .FeatherBullet2 (1)
-				assertEquals(2+6+2, graph.getNodeCount());
-				assertEquals(9, (int)agentIDMap.get(graph.getID()));
+				//TomahawkMan.feather -> Spawn .FeatherBullet1 (1)
+				assertEquals(4+5+1, graph.getNodeCount());
+				assertEquals(9, (int)agentIDMap.get(graphID));
 				break;
 			case 5:
 				//TomahawkMan.feather -> Spawn .FeatherBullet3 (1)
-				assertEquals(2+6+2, graph.getNodeCount());
-				assertEquals(9, (int)agentIDMap.get(graph.getID()));
+				assertEquals(4+5+1, graph.getNodeCount());
+				assertEquals(9, (int)agentIDMap.get(graphID));
 				break;
 			case 6:
 				//TomahawkMan.tomahawk -> Spawn .Tomahawk(1) *1
-				assertEquals(2+4+2, graph.getNodeCount());
-				assertEquals(9, (int)agentIDMap.get(graph.getID()));
+				assertEquals(4+3+1, graph.getNodeCount());
+				assertEquals(9, (int)agentIDMap.get(graphID));
 				break;
 			}
 		}
@@ -377,16 +378,21 @@ public class TestDatabaseCreator {
 		Collection<Graph<String,Integer>> db = (Collection<Graph<String,Integer>>)dbCreatorResult[0];
 		List<Integer> agentIDMap = (List<Integer>)dbCreatorResult[1];
 		
-		int flameManGraph = (9+7+14+3+1)+(8+6)+(7+1);
+		int flameManGraph = (9+7+14+4+1)+(8+6)+(7+1);
+		int flameManInvalidGraph = 6;
 		assertEquals(0, (int)agentIDMap.get(0));
 		int koopaGraph = (9+3+1)+(7+2+1)+(7+3+5);
+		int koopaInvalidGraph = 4;
 		assertEquals(3, (int)agentIDMap.get(flameManGraph));
 		int lakituGraph = (9+5)+(3+2+1)+(8+2);
+		int lakituInvalidGraph = 1;
 		assertEquals(6, (int)agentIDMap.get(flameManGraph+koopaGraph));
 		int tomahawkManGraph = (9+9+5+3)+(6+1)+(6+1)+(6+1)+(7+1);
+		int tomahawkManInvalidGraph = 4;
 		assertEquals(9, (int)agentIDMap.get(flameManGraph+koopaGraph+lakituGraph));
-		assertEquals(flameManGraph+koopaGraph+lakituGraph+tomahawkManGraph, db.size());
-		assertTrue(isGraphIDConsistent(db));
+		assertEquals(flameManGraph+koopaGraph+lakituGraph+tomahawkManGraph
+				-(flameManInvalidGraph+koopaInvalidGraph+lakituInvalidGraph+tomahawkManInvalidGraph), 
+				db.size());
 	}
 	
 	private <N,E> boolean isGraphIDConsistent(Collection<Graph<N,E>> graphDB){

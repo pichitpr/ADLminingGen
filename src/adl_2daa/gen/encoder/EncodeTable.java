@@ -31,6 +31,9 @@ public class EncodeTable {
 	//ID offset for mixing actionID and functionID under the same order
 	public static final int idOffset = 128;
 	
+	//Edge label offset indicating an outgoing edge to LiteralCollection node in NestingEncoding
+	public static final int collectionEdgeLabelOffset = 1024;
+	
 	//===========================================
 	
 	public static final int STATE_SEQUENCE_EDGE = 0;

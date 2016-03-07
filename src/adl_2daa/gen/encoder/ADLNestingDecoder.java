@@ -19,6 +19,7 @@ import adl_2daa.ast.expression.StringConstant;
 import adl_2daa.ast.statement.Action;
 import adl_2daa.gen.generator.ExpressionSkeleton;
 import adl_2daa.gen.signature.Datatype;
+import adl_2daa.gen.signature.FunctionMainSignature;
 import adl_2daa.gen.signature.GeneratorRegistry;
 import adl_2daa.gen.signature.Signature;
 import de.parsemis.graph.Edge;
@@ -28,6 +29,11 @@ import de.parsemis.graph.Node;
 public class ADLNestingDecoder {
 
 	public static final ADLNestingDecoder instance = new ADLNestingDecoder();
+	
+	public static boolean isLiteral(int encodedData){
+		int maxFunctionID = FunctionMainSignature.getTotalFunctionCount()+EncodeTable.idOffset;
+		return Math.abs(encodedData) > maxFunctionID;
+	}
 	
 	public Object decode(Graph<Integer,Integer> graph){
 		Node<Integer,Integer> root = null;

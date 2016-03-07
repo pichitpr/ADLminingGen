@@ -5,6 +5,7 @@ import adl_2daa.gen.encoder.TestDatabaseCreator;
 import adl_2daa.gen.encoder.TestExpressionDecoder;
 import adl_2daa.gen.encoder.TestExpressionEncoder;
 import adl_2daa.gen.encoder.TestNestingEncoder;
+import adl_2daa.gen.encoder.TestNestingLiteralEncoding;
 import adl_2daa.gen.encoder.TestSequenceDecoder;
 import adl_2daa.gen.encoder.TestSequenceEncoder;
 import adl_2daa.gen.filter.TestDistinctEOBFilter;
@@ -18,6 +19,7 @@ import adl_2daa.gen.generator.TestSequenceWrapper;
 	TestExpressionDecoder.class,
 	TestExpressionEncoder.class,
 	TestNestingEncoder.class,
+	TestNestingLiteralEncoding.class,
 	TestSequenceDecoder.class,
 	TestSequenceEncoder.class,
 	

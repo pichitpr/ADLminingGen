@@ -21,6 +21,7 @@ import spmf.extension.patterns.itemset_list_generic.ItemsetGen;
 import spmf.extension.prefixspan.JSPatternGen;
 import adl_2daa.gen.encoder.DatabaseCreator;
 import adl_2daa.gen.encoder.EncodeTable;
+import adl_2daa.gen.encoder.NestingLiteralCollector;
 import adl_2daa.gen.signature.GeneratorRegistry;
 import adl_2daa.gen.testtool.TestUtility;
 import de.parsemis.graph.Edge;
@@ -351,6 +352,7 @@ public class Miner {
 			for(int id : pattern.getGraphIDs()){
 				dbCreator.getProfile(idMap.get(id)).addNestingRelationUsage();
 			}
+			NestingLiteralCollector.collectPossibleLiteral(graphDB, pattern);
 			if(verbose){
 				System.out.println("===============");
 				System.out.println(TestUtility.nestingGraphToString(pattern.getGraph()));
@@ -359,4 +361,5 @@ public class Miner {
 			}
 		}
 	}
+	
 }

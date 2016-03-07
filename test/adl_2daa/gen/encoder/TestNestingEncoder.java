@@ -51,8 +51,8 @@ public class TestNestingEncoder {
 		
 		//Set("texture", DynamicFilter("this"), 4)
 		graph = it.next();
-		assertEquals(2, graph.getNodeCount());
-		assertEquals(1, graph.getEdgeCount());
+		assertEquals(3, graph.getNodeCount());
+		assertEquals(2, graph.getEdgeCount());
 		assertEquals(
 				GeneratorRegistry.getActionSignature("Set").getChoiceSignature("texture").getId(), 
 				(int)graph.getNode(0).getLabel()
@@ -61,12 +61,17 @@ public class TestNestingEncoder {
 				GeneratorRegistry.getFunctionSignature("DynamicFilter").getChoiceSignature("this").getId(), 
 				(int)graph.getNode(1).getLabel()-EncodeTable.idOffset
 				);
+		assertEquals(
+				NestingLiteralCollectionExp.Integer.encode(4),
+				(int)graph.getNode(2).getLabel()
+				);
 		assertEquals(1, (int)graph.getEdge(0).getLabel());
+		assertEquals(2, (int)graph.getEdge(1).getLabel());
 		
 		//Set("position", DynamicFilter("this"), "c(400,200)");
 		graph = it.next();
-		assertEquals(2, graph.getNodeCount());
-		assertEquals(1, graph.getEdgeCount());
+		assertEquals(3, graph.getNodeCount());
+		assertEquals(2, graph.getEdgeCount());
 		assertEquals(
 				GeneratorRegistry.getActionSignature("Set").getChoiceSignature("position").getId(), 
 				(int)graph.getNode(0).getLabel()
@@ -75,7 +80,12 @@ public class TestNestingEncoder {
 				GeneratorRegistry.getFunctionSignature("DynamicFilter").getChoiceSignature("this").getId(), 
 				(int)graph.getNode(1).getLabel()-EncodeTable.idOffset
 				);
+		assertEquals(
+				NestingLiteralCollectionExp.Position.encode("c(400,200)"),
+				(int)graph.getNode(2).getLabel()
+				);
 		assertEquals(1, (int)graph.getEdge(0).getLabel());
+		assertEquals(2, (int)graph.getEdge(1).getLabel());
 	}		
 		
 	@Test
@@ -86,50 +96,61 @@ public class TestNestingEncoder {
 		
 		State state = sample.getStates().get(0);
 		graphs = ADLNestingEncoder.instance.parseAsGraphCollection(state.getSequences().get(0));
-		assertEquals(11, graphs.size());
+		assertEquals(6, graphs.size());
 		it = graphs.iterator();
 		
 		//Wait(TimePass() >= 60);
 		graph = it.next();
-		assertEquals(2, graph.getNodeCount());
-		assertEquals(1, graph.getEdgeCount());
+		assertEquals(4, graph.getNodeCount());
+		assertEquals(3, graph.getEdgeCount());
 		assertEquals(
 				GeneratorRegistry.getActionSignature("Wait").getMainSignature().getId(), 
 				(int)graph.getNode(0).getLabel()
 				);
 		assertEquals(
+				GeneratorRegistry.getFunctionSignature("@C_ge").getMainSignature().getId(), 
+				(int)graph.getNode(1).getLabel()-EncodeTable.idOffset
+				);
+		assertEquals(
 				GeneratorRegistry.getFunctionSignature("TimePass").getMainSignature().getId(), 
-				(int)graph.getNode(1).getLabel()-EncodeTable.idOffset
+				(int)graph.getNode(2).getLabel()-EncodeTable.idOffset
+				);
+		assertEquals(
+				NestingLiteralCollectionExp.Integer.encode(60), 
+				(int)graph.getNode(3).getLabel()
 				);
 		assertEquals(0, (int)graph.getEdge(0).getLabel());
+		assertEquals(1, (int)graph.getEdge(1).getLabel());
+		assertEquals(0, (int)graph.getEdge(2).getLabel());
 		
-		//Abs(DistanceToPlayer("Y")) <= 30)
-		graph = it.next();
-		assertEquals(2, graph.getNodeCount());
-		assertEquals(1, graph.getEdgeCount());
-		assertEquals(
-				GeneratorRegistry.getFunctionSignature("Abs").getMainSignature().getId(), 
-				(int)graph.getNode(0).getLabel()-EncodeTable.idOffset
-				);
-		assertEquals(
-				GeneratorRegistry.getFunctionSignature("DistanceToPlayer").getChoiceSignature("Y").getId(),
-				(int)graph.getNode(1).getLabel()-EncodeTable.idOffset
-				);
-		assertEquals(0, (int)graph.getEdge(0).getLabel());
-		
-		//Despawn();
-		graph = it.next();
-		assertEquals(1, graph.getNodeCount());
-		assertEquals(0, graph.getEdgeCount());
-		assertEquals(
-				GeneratorRegistry.getActionSignature("Despawn").getMainSignature().getId(), 
-				(int)graph.getNode(0).getLabel()
-				);
-		
-		//RunStraight(Get("direction", DynamicFilter("this")), 2, TimePass() >= 150);
+		//Abs(DistanceToPlayer("Y")) <= 30
 		graph = it.next();
 		assertEquals(4, graph.getNodeCount());
 		assertEquals(3, graph.getEdgeCount());
+		assertEquals(
+				GeneratorRegistry.getFunctionSignature("@C_le").getMainSignature().getId(), 
+				(int)graph.getNode(0).getLabel()-EncodeTable.idOffset
+				);
+		assertEquals(
+				GeneratorRegistry.getFunctionSignature("Abs").getMainSignature().getId(), 
+				(int)graph.getNode(1).getLabel()-EncodeTable.idOffset
+				);
+		assertEquals(
+				GeneratorRegistry.getFunctionSignature("DistanceToPlayer").getChoiceSignature("Y").getId(),
+				(int)graph.getNode(2).getLabel()-EncodeTable.idOffset
+				);
+		assertEquals(
+				NestingLiteralCollectionExp.Integer.encode(30), 
+				(int)graph.getNode(3).getLabel()
+				);
+		assertEquals(0, (int)graph.getEdge(0).getLabel());
+		assertEquals(0, (int)graph.getEdge(1).getLabel());
+		assertEquals(1, (int)graph.getEdge(2).getLabel());
+		
+		//RunStraight(Get("direction", DynamicFilter("this")), 2, TimePass() >= 150);
+		graph = it.next();
+		assertEquals(7, graph.getNodeCount());
+		assertEquals(6, graph.getEdgeCount());
 		assertEquals(
 				GeneratorRegistry.getActionSignature("RunStraight").getMainSignature().getId(), 
 				(int)graph.getNode(0).getLabel()
@@ -143,32 +164,68 @@ public class TestNestingEncoder {
 				(int)graph.getNode(2).getLabel()-EncodeTable.idOffset
 				);
 		assertEquals(
+				NestingLiteralCollectionExp.Integer.encode(2), 
+				(int)graph.getNode(3).getLabel()
+				);
+		assertEquals(
+				GeneratorRegistry.getFunctionSignature("@C_ge").getMainSignature().getId(), 
+				(int)graph.getNode(4).getLabel()-EncodeTable.idOffset
+				);
+		assertEquals(
 				GeneratorRegistry.getFunctionSignature("TimePass").getMainSignature().getId(), 
-				(int)graph.getNode(3).getLabel()-EncodeTable.idOffset
+				(int)graph.getNode(5).getLabel()-EncodeTable.idOffset
+				);
+		assertEquals(
+				NestingLiteralCollectionExp.Integer.encode(150), 
+				(int)graph.getNode(6).getLabel()
 				);
 		assertEquals(1, (int)graph.getEdge(0).getLabel());
 		assertEquals(0, (int)graph.getEdge(1).getLabel());
-		assertEquals(2, (int)graph.getEdge(2).getLabel());
+		assertEquals(1, (int)graph.getEdge(2).getLabel());
+		assertEquals(0, (int)graph.getEdge(3).getLabel());
+		assertEquals(1, (int)graph.getEdge(4).getLabel());
+		assertEquals(2, (int)graph.getEdge(5).getLabel());
 		
-		//Skip some
-		graph = it.next();
-		graph = it.next();
-		graph = it.next();
-		graph = it.next();
-		
-		//Abs(DistanceToPlayer("Y"))$ <= 60
+		//FlipDirection("H")
 		graph = it.next();
 		assertEquals(2, graph.getNodeCount());
 		assertEquals(1, graph.getEdgeCount());
 		assertEquals(
+				GeneratorRegistry.getActionSignature("FlipDirection").getMainSignature().getId(), 
+				(int)graph.getNode(0).getLabel()
+				);
+		assertEquals(
+				NestingLiteralCollectionExp.Direction.encode("H"), 
+				(int)graph.getNode(1).getLabel()
+				);
+		assertEquals(0, (int)graph.getEdge(0).getLabel());
+		
+		//Skip DistanceToPlayer("X") <= 30
+		graph = it.next();
+		
+		//Abs(DistanceToPlayer("Y"))$ <= 60
+		graph = it.next();
+		assertEquals(4, graph.getNodeCount());
+		assertEquals(3, graph.getEdgeCount());
+		assertEquals(
+				GeneratorRegistry.getFunctionSignature("@C_le").getMainSignature().getId(), 
+				(int)graph.getNode(0).getLabel()-EncodeTable.idOffset
+				);
+		assertEquals(
 				GeneratorRegistry.getFunctionSignature("Abs").getMainSignature().getId(), 
-				(int)-graph.getNode(0).getLabel()-EncodeTable.idOffset
+				(int)-graph.getNode(1).getLabel()-EncodeTable.idOffset
 				);
 		assertEquals(
 				GeneratorRegistry.getFunctionSignature("DistanceToPlayer").getChoiceSignature("Y").getId(),
-				(int)graph.getNode(1).getLabel()-EncodeTable.idOffset
+				(int)graph.getNode(2).getLabel()-EncodeTable.idOffset
+				);
+		assertEquals(
+				NestingLiteralCollectionExp.Integer.encode(60), 
+				(int)graph.getNode(3).getLabel()
 				);
 		assertEquals(0, (int)graph.getEdge(0).getLabel());
+		assertEquals(0, (int)graph.getEdge(1).getLabel());
+		assertEquals(1, (int)graph.getEdge(2).getLabel());
 	}
 		
 	@Test
@@ -185,8 +242,8 @@ public class TestNestingEncoder {
 		
 		//Random(DecimalSet(1,6,1))
 		graph = it.next();
-		assertEquals(2, graph.getNodeCount());
-		assertEquals(1, graph.getEdgeCount());
+		assertEquals(5, graph.getNodeCount());
+		assertEquals(4, graph.getEdgeCount());
 		assertEquals(
 				GeneratorRegistry.getFunctionSignature("Random").getMainSignature().getId(), 
 				(int)graph.getNode(0).getLabel()-EncodeTable.idOffset
@@ -195,21 +252,46 @@ public class TestNestingEncoder {
 				GeneratorRegistry.getFunctionSignature("DecimalSet").getMainSignature().getId(),
 				(int)graph.getNode(1).getLabel()-EncodeTable.idOffset
 				);
+		assertEquals(
+				NestingLiteralCollectionExp.Integer.encode(1), 
+				(int)graph.getNode(2).getLabel()
+				);
+		assertEquals(
+				NestingLiteralCollectionExp.Integer.encode(6), 
+				(int)graph.getNode(3).getLabel()
+				);
+		assertEquals(
+				NestingLiteralCollectionExp.Integer.encode(1), 
+				(int)graph.getNode(4).getLabel()
+				);
 		assertEquals(0, (int)graph.getEdge(0).getLabel());
+		assertEquals(1, (int)graph.getEdge(1).getLabel());
+		assertEquals(2, (int)graph.getEdge(2).getLabel());
+		assertEquals(0, (int)graph.getEdge(3).getLabel());
 		
 		//Wait(TimePass() >= 60);
 		graph = it.next();
-		assertEquals(2, graph.getNodeCount());
-		assertEquals(1, graph.getEdgeCount());
+		assertEquals(4, graph.getNodeCount());
+		assertEquals(3, graph.getEdgeCount());
 		assertEquals(
 				GeneratorRegistry.getActionSignature("Wait").getMainSignature().getId(), 
 				(int)graph.getNode(0).getLabel()
 				);
 		assertEquals(
-				GeneratorRegistry.getFunctionSignature("TimePass").getMainSignature().getId(), 
+				GeneratorRegistry.getFunctionSignature("@C_ge").getMainSignature().getId(), 
 				(int)graph.getNode(1).getLabel()-EncodeTable.idOffset
 				);
+		assertEquals(
+				GeneratorRegistry.getFunctionSignature("TimePass").getMainSignature().getId(), 
+				(int)graph.getNode(2).getLabel()-EncodeTable.idOffset
+				);
+		assertEquals(
+				NestingLiteralCollectionExp.Integer.encode(60), 
+				(int)graph.getNode(3).getLabel()
+				);
 		assertEquals(0, (int)graph.getEdge(0).getLabel());
+		assertEquals(1, (int)graph.getEdge(1).getLabel());
+		assertEquals(0, (int)graph.getEdge(2).getLabel());
 	}	
 		
 	@Test
@@ -226,8 +308,9 @@ public class TestNestingEncoder {
 		
 		//RunStraight(Get("direction",DynamicFilter("this")), 6, Abs(DistanceToPlayer("X")) + DistanceToPlayer("Y") > 10);
 		graph = it.next();
-		assertEquals(6, graph.getNodeCount());
-		assertEquals(5, graph.getEdgeCount());
+		assertEquals(10, graph.getNodeCount());
+		assertEquals(9, graph.getEdgeCount());
+		//Pre-order depth first node creation
 		assertEquals(
 				GeneratorRegistry.getActionSignature("RunStraight").getMainSignature().getId(), 
 				(int)graph.getNode(0).getLabel()
@@ -241,21 +324,42 @@ public class TestNestingEncoder {
 				(int)graph.getNode(2).getLabel()-EncodeTable.idOffset
 				);
 		assertEquals(
-				GeneratorRegistry.getFunctionSignature("Abs").getMainSignature().getId(), 
-				(int)graph.getNode(3).getLabel()-EncodeTable.idOffset
+				NestingLiteralCollectionExp.Integer.encode(6), 
+				(int)graph.getNode(3).getLabel()
 				);
 		assertEquals(
-				GeneratorRegistry.getFunctionSignature("DistanceToPlayer").getChoiceSignature("X").getId(), 
+				GeneratorRegistry.getFunctionSignature("@C_gt").getMainSignature().getId(), 
 				(int)graph.getNode(4).getLabel()-EncodeTable.idOffset
 				);
 		assertEquals(
-				GeneratorRegistry.getFunctionSignature("DistanceToPlayer").getChoiceSignature("Y").getId(), 
+				GeneratorRegistry.getFunctionSignature("@A_add").getMainSignature().getId(), 
 				(int)graph.getNode(5).getLabel()-EncodeTable.idOffset
 				);
+		assertEquals(
+				GeneratorRegistry.getFunctionSignature("Abs").getMainSignature().getId(), 
+				(int)graph.getNode(6).getLabel()-EncodeTable.idOffset
+				);
+		assertEquals(
+				GeneratorRegistry.getFunctionSignature("DistanceToPlayer").getChoiceSignature("X").getId(), 
+				(int)graph.getNode(7).getLabel()-EncodeTable.idOffset
+				);
+		assertEquals(
+				GeneratorRegistry.getFunctionSignature("DistanceToPlayer").getChoiceSignature("Y").getId(), 
+				(int)graph.getNode(8).getLabel()-EncodeTable.idOffset
+				);
+		assertEquals(
+				NestingLiteralCollectionExp.Integer.encode(10), 
+				(int)graph.getNode(9).getLabel()
+				);
+		//Post-order depth first edge creation
 		assertEquals(1, (int)graph.getEdge(0).getLabel());
 		assertEquals(0, (int)graph.getEdge(1).getLabel());
-		assertEquals(0, (int)graph.getEdge(2).getLabel());
-		assertEquals(2, (int)graph.getEdge(3).getLabel());
-		assertEquals(2, (int)graph.getEdge(4).getLabel());
+		assertEquals(1, (int)graph.getEdge(2).getLabel());
+		assertEquals(0, (int)graph.getEdge(3).getLabel());
+		assertEquals(0, (int)graph.getEdge(4).getLabel());
+		assertEquals(1, (int)graph.getEdge(5).getLabel());
+		assertEquals(0, (int)graph.getEdge(6).getLabel());
+		assertEquals(1, (int)graph.getEdge(7).getLabel());
+		assertEquals(2, (int)graph.getEdge(8).getLabel());
 	}
 }

@@ -10,8 +10,11 @@ import adl_2daa.ast.expression.ASTBinary;
 import adl_2daa.ast.expression.ASTUnary;
 import adl_2daa.ast.expression.And;
 import adl_2daa.ast.expression.Arithmetic;
+import adl_2daa.ast.expression.BooleanConstant;
 import adl_2daa.ast.expression.Comparison;
+import adl_2daa.ast.expression.FloatConstant;
 import adl_2daa.ast.expression.Function;
+import adl_2daa.ast.expression.IntConstant;
 import adl_2daa.ast.expression.Or;
 import adl_2daa.ast.expression.StringConstant;
 import adl_2daa.ast.statement.Action;
@@ -19,6 +22,7 @@ import adl_2daa.ast.statement.Condition;
 import adl_2daa.ast.statement.Loop;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.gen.signature.ActionMainSignature;
+import adl_2daa.gen.signature.Datatype;
 import adl_2daa.gen.signature.FunctionMainSignature;
 import adl_2daa.gen.signature.GeneratorRegistry;
 import adl_2daa.gen.signature.MainSignature;
@@ -75,7 +79,9 @@ public class ADLNestingEncoder {
 		
 		for(int i=0; i<action.getParams().length; i++){
 			if(i == 0 && mainSig.hasChoice()) continue;
-			parseExpression(action.getParams()[i], rootIndex, i);
+			parseExpression(action.getParams()[i], rootIndex, i, 
+					sig.getParamType()[mainSig.hasChoice() ? i-1 : i]
+							);
 			/*
 			Function func = getFirstFunctionInExpression(action.getParams()[i]);
 			if(func != null){
@@ -88,7 +94,7 @@ public class ADLNestingEncoder {
 	}
 	
 	private void parseConditionStruct(Condition conditionStruct){
-		parseExpression(conditionStruct.getCondition(), -1, -1);
+		parseExpression(conditionStruct.getCondition(), -1, -1, Datatype.BOOL);
 		for(ASTStatement st : conditionStruct.getIfblock()){
 			parseStatement(st);
 		}
@@ -100,7 +106,7 @@ public class ADLNestingEncoder {
 	}
 	
 	private void parseLoop(Loop loop){
-		parseExpression(loop.getLoopCount(), -1, -1);
+		parseExpression(loop.getLoopCount(), -1, -1, Datatype.INT);
 		for(ASTStatement st : loop.getContent()){
 			parseStatement(st);
 		}
@@ -113,15 +119,16 @@ public class ADLNestingEncoder {
 	 * parentIndex = -1 <br/>
 	 * edgeLabel = any <br/> 
 	 */
-	private void parseExpression(ASTExpression exp, int parentIndex, int edgeLabel){
+	private void parseExpression(ASTExpression exp, int parentIndex, int edgeLabel, Datatype expectedType){
 		if(exp instanceof Function){
 			parseFunction((Function)exp, parentIndex, edgeLabel);
 		}else if(exp instanceof ASTBinary){
 			parseASTBinary((ASTBinary)exp, parentIndex, edgeLabel);
 		}else if(exp instanceof ASTUnary){
 			parseASTUnary((ASTUnary)exp, parentIndex, edgeLabel);
+		}else{
+			parseLiteral(exp, parentIndex, edgeLabel, expectedType);
 		}
-		//Do nothing for Literal
 	}
 	
 	/**
@@ -148,7 +155,9 @@ public class ADLNestingEncoder {
 		
 		for(int i=0; i<function.getParams().length; i++){
 			if(i == 0 && mainSig.hasChoice()) continue;
-			parseExpression(function.getParams()[i], rootIndex, i);
+			parseExpression(function.getParams()[i], rootIndex, i, 
+					sig.getParamType()[mainSig.hasChoice() ? i-1 : i] //Parameters are trimmed for choiced signature
+							);
 			/*
 			Function func = getFirstFunctionInExpression(function.getParams()[i]);
 			if(func != null){
@@ -219,8 +228,8 @@ public class ADLNestingEncoder {
 		}
 		
 		int rootIndex = graph.addNode(func.getMainSignature().getId()+EncodeTable.idOffset);
-		parseExpression(astBinary.left, rootIndex, 0);
-		parseExpression(astBinary.right, rootIndex, 1);
+		parseExpression(astBinary.left, rootIndex, 0, func.getMainSignature().getParamType()[0]);
+		parseExpression(astBinary.right, rootIndex, 1, func.getMainSignature().getParamType()[1]);
 		
 		if(parentIndex == -1){
 			graphCollection.add(graph.finishGraph());
@@ -245,8 +254,58 @@ public class ADLNestingEncoder {
 		}
 		
 		int rootIndex = graph.addNode(func.getMainSignature().getId()+EncodeTable.idOffset);
-		parseExpression(astUnary.getNode(), rootIndex, 0);
+		parseExpression(astUnary.getNode(), rootIndex, 0, func.getMainSignature().getParamType()[0]);
 		
+		if(parentIndex == -1){
+			graphCollection.add(graph.finishGraph());
+		}else{
+			graph.addEdge(parentIndex, rootIndex, edgeLabel, true);
+		}
+	}
+	
+	private void parseLiteral(ASTExpression exp, int parentIndex, int edgeLabel, Datatype expectedType){
+		if(parentIndex == -1){
+			graph.createNewGraph(GraphCreationHelper.getID());
+		}
+		
+		int encoded;		
+		if(exp instanceof BooleanConstant){
+			encoded = NestingLiteralCollectionExp.Boolean.encode( ((BooleanConstant)exp).isValue() );
+		}else if(exp instanceof IntConstant){
+			encoded = NestingLiteralCollectionExp.Integer.encode( ((IntConstant)exp).getValue() );
+		}else if(exp instanceof FloatConstant){
+			encoded = NestingLiteralCollectionExp.Float.encode( ((FloatConstant)exp).getValue() );
+		}else if(exp instanceof StringConstant){
+			//Choice case is excluded since it is already handled
+			String value = ((StringConstant)exp).getValue();
+			if(expectedType == Datatype.DIRECTION){
+				encoded = NestingLiteralCollectionExp.Direction.encode(value);
+			}else if(expectedType == Datatype.POSITION){
+				encoded = NestingLiteralCollectionExp.Position.encode(value);
+			}else if(expectedType == Datatype.COLLIDER){
+				encoded = NestingLiteralCollectionExp.Collider.encode(value);
+			}else if(expectedType == Datatype.ABSTRACT){
+				//This is unlikely, but the code should try to parse in this order: Position > Direction
+				try{
+					encoded = NestingLiteralCollectionExp.Position.encode(value);
+				}catch(Exception ex){
+					try{
+						encoded = NestingLiteralCollectionExp.Direction.encode(value);
+					}catch(Exception ex2){
+						return;
+					}
+				}
+			}else{
+				return;
+			}
+		}else{
+			//Identifier is excluded as it provides no meaning (context specific)
+			return;
+		}
+
+		int rootIndex = graph.addNode(encoded);
+		
+		//Prevent loop(int) case which can be an interger without parent
 		if(parentIndex == -1){
 			graphCollection.add(graph.finishGraph());
 		}else{

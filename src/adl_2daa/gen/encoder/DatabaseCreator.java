@@ -314,11 +314,11 @@ public class DatabaseCreator {
 						
 						//Spawner parallel sequence
 						for(ADLSequence eSeq : eState.sequences){
-							if(!eSeq.allSpawnerSequence.containsKey(spawnableAgentName))
-								continue;
+							if(eSeq.allSpawnerSequence.containsKey(spawnableAgentName))
+								eSeq = eSeq.allSpawnerSequence.get(spawnableAgentName);
 							int seqRootNode = graph.addNode(ADLSequenceEncoder.dummyEncodedAction);
 							graph.addEdge(rootNode, seqRootNode, EncodeTable.STATE_SEQUENCE_EDGE, true);
-							for(String eAct : eSeq.allSpawnerSequence.get(spawnableAgentName).encodedSequence){
+							for(String eAct : eSeq.encodedSequence){
 								graph.addEdge(seqRootNode, graph.addNode(eAct), EncodeTable.SEQUENCE_ACTION_EDGE, true);
 							}
 						}
@@ -337,7 +337,8 @@ public class DatabaseCreator {
 								graph.addNode(new String(new byte[]{(byte)childInitialState.sequences.size()}, StandardCharsets.US_ASCII)), 
 								EncodeTable.TAG_EDGE, true);
 						
-						db.add(graph.finishGraph());
+						Graph<String,Integer> g =graph.finishGraph(); 
+						db.add(g);
 						agentIDMap.add(agentID);
 					}
 				}
@@ -385,7 +386,7 @@ public class DatabaseCreator {
 								);
 					}
 				}
-				int currentGraphID = db.get(db.size()-1).getID();
+				int currentGraphID = Integer.parseInt(db.get(db.size()-1).getName());
 				for(int i=lastGraphID+1; i<=currentGraphID; i++){
 					agentIDMap.add(agentID);
 				}
