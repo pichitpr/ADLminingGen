@@ -11,6 +11,9 @@ public class ADLSequence {
 	protected String identifier;
 	protected List<String> encodedSequence;
 	protected List<ADLSequence> allFlowToTerminal;
+	/**
+	 * Spawner sequence version (@Spawn encoded) of this sequence for each spawned child agent
+	 */
 	protected HashMap<String, ADLSequence> allSpawnerSequence;
 	
 	public ADLSequence(String identifier, List<String> encodedSequence){
