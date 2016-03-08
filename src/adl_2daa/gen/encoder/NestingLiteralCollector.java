@@ -35,7 +35,6 @@ public class NestingLiteralCollector {
 		while(edgeIt.hasNext()){
 			Edge<Integer,Integer> edge = edgeIt.next();
 			Iterator<Edge<Integer,Integer>> patternEdgeIt = patternRoot.outgoingEdgeIterator();
-			int literalCollectionEdgeLabel = edge.getLabel() + EncodeTable.collectionEdgeLabelOffset;
 			
 			/*
 			 * Check if this subgraph edge should be explored. The edge should be explored IF
@@ -46,15 +45,14 @@ public class NestingLiteralCollector {
 			Node<Integer,Integer> literalCollectionNode = null;
 			while(patternEdgeIt.hasNext()){
 				Edge<Integer,Integer> patternEdge = patternEdgeIt.next();
-				//Pattern edge with the same label -- the edge is not valid
 				if(patternEdge.getLabel() == edge.getLabel()){
-					shouldExplorethisEdge = false;
-					break;
-				}
-				//Pattern edge with corresponding LiteralCollection node
-				if(patternEdge.getLabel() == literalCollectionEdgeLabel){
-					shouldExplorethisEdge = true;
-					literalCollectionNode = patternEdge.getOtherNode(patternRoot);
+					//Edge label matched -- explore if it is LiteralCollection (otherwise, this means it has function and should not be explored)
+					if(patternEdge.getOtherNode(patternRoot).getLabel() == EncodeTable.LITERAL_COLLECTION_ROOT){
+						shouldExplorethisEdge = true;
+						literalCollectionNode = patternEdge.getOtherNode(patternRoot);
+					}else{
+						shouldExplorethisEdge = false;
+					}
 					break;
 				}
 			}
@@ -66,9 +64,10 @@ public class NestingLiteralCollector {
 				continue;
 			
 			MutableGraph<Integer, Integer> patternGraph = (MutableGraph<Integer, Integer>)patternRoot.getGraph();
+			//LiteralCollection node not exist (new literal that should be explored found)
 			if(literalCollectionNode == null){
-				literalCollectionNode = patternGraph.addNode(0);
-				patternGraph.addEdge(patternRoot, literalCollectionNode, literalCollectionEdgeLabel, Edge.OUTGOING);
+				literalCollectionNode = patternGraph.addNode(EncodeTable.LITERAL_COLLECTION_ROOT);
+				patternGraph.addEdge(patternRoot, literalCollectionNode, edge.getLabel(), Edge.OUTGOING);
 			}
 			
 			patternGraph.addNodeAndEdge(literalCollectionNode, exploringNode.getLabel(), literalCollectionNode.getOutDegree(), 
