@@ -31,6 +31,15 @@ public abstract class NestingLiteralCollectionExp<T> extends ASTExpression {
 	
 	public abstract void decodeAndAdd(int encodedData);
 	
+	@Override
+	public void compile(List<Instruction> ins, ADLCompiler compiler) {}
+
+	@Override
+	public void toScript(StringBuilder str, int indent) {
+		str.append("^"+type.name());
+	}
+	
+	@SuppressWarnings("rawtypes")
 	public static NestingLiteralCollectionExp parseEncodedLiteral(List<java.lang.Integer> literalList){
 		NestingLiteralCollectionExp collection = null;
 		int type = (literalList.get(0) >> 29) & 7;
@@ -67,14 +76,6 @@ public abstract class NestingLiteralCollectionExp<T> extends ASTExpression {
 		point += intPart;
 		point = isNeg ? -point : point;
 		return point;
-	}
-	
-	@Override
-	public void compile(List<Instruction> ins, ADLCompiler compiler) {}
-
-	@Override
-	public void toScript(StringBuilder str, int indent) {
-		str.append("^"+type.name());
 	}
 	
 	//Encoding scheme : 32bit = [31-29:type] [28-0:value]

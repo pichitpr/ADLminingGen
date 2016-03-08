@@ -17,8 +17,8 @@ import adl_2daa.ast.expression.Function;
 import adl_2daa.ast.expression.Or;
 import adl_2daa.ast.expression.StringConstant;
 import adl_2daa.ast.statement.Action;
+import adl_2daa.gen.Utility;
 import adl_2daa.gen.generator.ExpressionSkeleton;
-import adl_2daa.gen.signature.Datatype;
 import adl_2daa.gen.signature.FunctionMainSignature;
 import adl_2daa.gen.signature.GeneratorRegistry;
 import adl_2daa.gen.signature.Signature;
@@ -36,13 +36,11 @@ public class ADLNestingDecoder {
 	}
 	
 	public Object decode(Graph<Integer,Integer> graph){
-		Node<Integer,Integer> root = null;
-		Iterator<Node<Integer,Integer>> nodeIt = graph.nodeIterator();
-		while(nodeIt.hasNext()){
-			root = nodeIt.next();
-			if(root.getInDegree() == 0){
-				break;
-			}
+		Node<Integer,Integer> root = Utility.findFirstRoot(graph);
+		//Root should be either Action or Function, should not be literal
+		if(root.getLabel() == EncodeTable.LITERAL_COLLECTION_ROOT){
+			System.out.println("Impossible case : literal collection as root");
+			return null;
 		}
 		if(root.getLabel() < EncodeTable.idOffset && root.getLabel() >= 0){
 			//Action
@@ -72,6 +70,9 @@ public class ADLNestingDecoder {
 	}
 	
 	private ASTExpression decodeExpression(Node<Integer, Integer> root){
+		if(root.getLabel() == EncodeTable.LITERAL_COLLECTION_ROOT){
+			return decodeLiteralCollection(root);
+		}
 		int functionID = root.getLabel();
 		if(functionID < 0) functionID = -functionID;
 		functionID -= EncodeTable.idOffset;
@@ -84,6 +85,20 @@ public class ADLNestingDecoder {
 		}else{
 			return parseASTBinary(root);
 		}
+	}
+	
+	@SuppressWarnings("rawtypes")
+	private NestingLiteralCollectionExp decodeLiteralCollection(Node<Integer, Integer> root){
+		List<Integer> literalCollection = new ArrayList<Integer>();
+		Iterator<Edge<Integer,Integer>> edgeIt = root.outgoingEdgeIterator();
+		while(edgeIt.hasNext()){
+			literalCollection.add(edgeIt.next().getLabel());
+		}
+		if(literalCollection.size() == 0){
+			System.out.println("Impossible case : literal collection found without item in collection");
+			return null;
+		}
+		return NestingLiteralCollectionExp.parseEncodedLiteral(literalCollection);
 	}
 	
 	private Function decodeFunction(Node<Integer, Integer> root){
@@ -194,8 +209,10 @@ public class ADLNestingDecoder {
 						" found! function name="+functionName);
 				continue;
 			}
-			Datatype expectingType = signature.getParamType()[edge.getLabel()-paramCountOffset];
+			//Datatype expectingType = signature.getParamType()[edge.getLabel()-paramCountOffset];
 			ASTExpression exp = decodeExpression(edge.getOtherNode(root));
+			/*
+			//NOTE:: Compatibility check -- currently not support NestingLiteralCollection
 			if(!(new ExpressionSkeleton(expectingType)).isCompatibleWith(exp)){
 				StringBuilder strb = new StringBuilder();
 				exp.toScript(strb, 0);
@@ -204,6 +221,7 @@ public class ADLNestingDecoder {
 						" not matched with " + strb.toString());
 				continue;
 			}
+			*/
 			paramList.set(edge.getLabel(), exp);
 		}
 	
