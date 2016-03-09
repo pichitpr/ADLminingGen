@@ -1,6 +1,7 @@
 package adl_2daa.gen.encoder;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import adl_2daa.ast.ASTExpression;
@@ -37,6 +38,9 @@ public abstract class NestingLiteralCollectionExp<T> extends ASTExpression {
 	@Override
 	public void toScript(StringBuilder str, int indent) {
 		str.append("^"+type.name());
+		HashSet<T> set = new HashSet<T>();
+		for(T val : values) set.add(val);
+		for(T val : set) str.append(' ').append(val.toString());
 	}
 	
 	@SuppressWarnings("rawtypes")

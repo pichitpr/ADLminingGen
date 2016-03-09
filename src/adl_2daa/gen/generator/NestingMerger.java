@@ -7,6 +7,7 @@ import java.util.List;
 import parsemis.extension.GraphPattern;
 import adl_2daa.ast.ASTExpression;
 import adl_2daa.ast.ASTStatement;
+import adl_2daa.ast.Reversible;
 import adl_2daa.ast.expression.ASTUnary;
 import adl_2daa.ast.expression.ASTUnary.UnaryOp;
 import adl_2daa.ast.expression.And;
@@ -41,6 +42,14 @@ public class NestingMerger {
 	public void merge(Root root, List<GraphPattern<Integer,Integer>> relation){
 		generateUsageMap(relation);
 		fill(root);
+	}
+	
+	public void decodeAndDumpRelation(List<GraphPattern<Integer,Integer>> relation, StringBuilder strb){
+		for(GraphPattern<Integer,Integer> graph : relation){
+			Reversible reversible = (Reversible)ADLNestingDecoder.instance.decode(graph.getGraph());
+			reversible.toScript(strb, 0);
+			strb.append('\n').append('\n');
+		}
 	}
 	
 	@SuppressWarnings("unchecked")

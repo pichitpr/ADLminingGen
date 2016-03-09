@@ -33,6 +33,16 @@ public class ParallelMerger {
 		merge(skel);
 	}
 	
+	public void decodeAndDumpRelation(GraphPattern<String,Integer> relation, StringBuilder strb){
+		decodeRelation(relation);
+		if(decodedRelations.size() == 0) return;
+		(new Sequence("parallel_0", decodedRelations.get(0))).toScript(strb, 0);
+		for(int i=1; i<decodedRelations.size(); i++){
+			strb.append('\n').append("//////////////////////").append('\n');
+			(new Sequence("parallel_"+i, decodedRelations.get(i))).toScript(strb, 0);
+		}
+	}
+	
 	private void decodeRelation(GraphPattern<String,Integer> relation){
 		decodedRelations = new LinkedList<List<ASTStatement>>();
 		

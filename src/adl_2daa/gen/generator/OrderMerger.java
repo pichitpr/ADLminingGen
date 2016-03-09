@@ -33,6 +33,11 @@ public class OrderMerger {
 		ASTMergeOperator.fillIncompleteKeyAction(skel, selection);
 	}
 	
+	public void decodeAndDumpRelation(SequentialPatternGen<String> relation, StringBuilder strb){
+		decodeRelation(relation);
+		(new Sequence("seq", decodedRelation)).toScript(strb, 0);
+	}
+	
 	private void decodeRelation(SequentialPatternGen<String> relation){
 		List<String> eSeq = new LinkedList<String>();
 		for(ItemsetGen<String> iset : relation.getItemsets()){

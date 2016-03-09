@@ -58,6 +58,27 @@ public class InterEntityParallelMerger {
 		merge(skel, false);
 	}
 	
+	public void decodeAndDumpRelation(GraphPattern<String,Integer> relation, StringBuilder strb){
+		spawnerDecodedRel = new LinkedList<List<ASTStatement>>();
+		childDecodedRel = new LinkedList<List<ASTStatement>>();
+		decodeRelation(relation);
+		strb.append("Child sequence count "+childSequenceCount).append('\n');
+		if(spawnerDecodedRel.size() > 0){
+			(new Sequence("spawner_0", spawnerDecodedRel.get(0))).toScript(strb, 0);
+			for(int i=1; i<spawnerDecodedRel.size(); i++){
+				strb.append('\n').append("//////////////////////").append('\n');
+				(new Sequence("spawner_"+i, spawnerDecodedRel.get(i))).toScript(strb, 0);
+			}
+		}
+		strb.append('\n').append("########################").append('\n');
+		if(childDecodedRel.size() > 0){
+			(new Sequence("child_0", childDecodedRel.get(0))).toScript(strb, 0);
+			for(int i=1; i<childDecodedRel.size(); i++){
+				(new Sequence("child_"+i, childDecodedRel.get(i))).toScript(strb, 0);
+			}
+		}
+	}
+	
 	private void decodeRelation(GraphPattern<String,Integer> relation){
 		//Find root
 		Node<String,Integer> root = null;

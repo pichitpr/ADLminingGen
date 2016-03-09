@@ -39,6 +39,14 @@ public class InterStateOrderMerger {
 		ASTMergeOperator.fillIncompleteKeyAction(rootSkel, targetSkelSelection);
 	}
 	
+	public void decodeAndDumpRelation(boolean desType, JSPatternGen<String> relation, StringBuilder strb){
+		strb.append("Tag: ").append(relation.getTag()).append('\n');
+		decodeRelation(desType, relation);
+		(new Sequence("start",startingDecodedRel)).toScript(strb, 0);
+		strb.append('\n').append("------------->").append('\n');
+		(new Sequence("target",targetDecodedRel)).toScript(strb, 0);
+	}
+	
 	private void decodeRelation(boolean desType, JSPatternGen<String> relation){
 		List<String> startESeq = new LinkedList<String>();
 		for(ItemsetGen<String> iset : relation.getLeftSide().getItemsets()){
