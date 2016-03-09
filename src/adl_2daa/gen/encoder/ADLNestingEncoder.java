@@ -264,11 +264,7 @@ public class ADLNestingEncoder {
 	}
 	
 	private void parseLiteral(ASTExpression exp, int parentIndex, int edgeLabel, Datatype expectedType){
-		if(parentIndex == -1){
-			graph.createNewGraph(GraphCreationHelper.getID());
-		}
-		
-		int encoded;		
+		int encoded = 0;		
 		if(exp instanceof BooleanConstant){
 			encoded = NestingLiteralCollectionExp.Boolean.encode( ((BooleanConstant)exp).isValue() );
 		}else if(exp instanceof IntConstant){
@@ -302,14 +298,14 @@ public class ADLNestingEncoder {
 			//Identifier is excluded as it provides no meaning (context specific)
 			return;
 		}
-
-		int rootIndex = graph.addNode(encoded);
 		
 		//Prevent loop(int) case which can be an interger without parent
 		if(parentIndex == -1){
+			graph.createNewGraph(GraphCreationHelper.getID());
+			graph.addNode(encoded);
 			graphCollection.add(graph.finishGraph());
 		}else{
-			graph.addEdge(parentIndex, rootIndex, edgeLabel, true);
+			graph.addEdge(parentIndex, graph.addNode(encoded), edgeLabel, true);
 		}
 	}
 	

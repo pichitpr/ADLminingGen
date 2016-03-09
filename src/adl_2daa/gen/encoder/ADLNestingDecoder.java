@@ -116,7 +116,8 @@ public class ADLNestingDecoder {
 		List<Integer> literalCollection = new ArrayList<Integer>();
 		Iterator<Edge<Integer,Integer>> edgeIt = root.outgoingEdgeIterator();
 		while(edgeIt.hasNext()){
-			literalCollection.add(edgeIt.next().getLabel());
+			Node<Integer,Integer> literalNode = edgeIt.next().getOtherNode(root);
+			literalCollection.add(literalNode.getLabel());
 		}
 		if(literalCollection.size() == 0){
 			System.out.println("Impossible case : literal collection found without item in collection");
