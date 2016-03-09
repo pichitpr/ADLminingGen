@@ -24,6 +24,7 @@ import adl_2daa.ast.structure.Root;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.ast.structure.State;
 import adl_2daa.gen.encoder.ADLNestingDecoder;
+import adl_2daa.gen.encoder.NestingLiteralCollectionExp;
 
 public class NestingMerger {
 
@@ -155,7 +156,13 @@ public class NestingMerger {
 		int fillingLength = (params.length > template.length) ? template.length : params.length;
 		for(int i=0; i<fillingLength; i++){
 			if(params[i] instanceof ExpressionSkeleton){
-				params[i] = ASTUtility.copy(template[i]);
+				if(template[i] instanceof NestingLiteralCollectionExp){
+					@SuppressWarnings("rawtypes")
+					NestingLiteralCollectionExp exp = (NestingLiteralCollectionExp)template[i];
+					params[i] = exp.getAsExpression(ASTUtility.randomRange(0, exp.size()-1));
+				}else{
+					params[i] = ASTUtility.copy(template[i]);
+				}
 			}
 		}
 	}

@@ -72,6 +72,8 @@ public class ADLNestingDecoder {
 	private ASTExpression decodeExpression(Node<Integer, Integer> root){
 		if(root.getLabel() == EncodeTable.LITERAL_COLLECTION_ROOT){
 			return decodeLiteralCollection(root);
+		}else if(isLiteral(root.getLabel())){
+			return decodeLiteral(root);
 		}
 		int functionID = root.getLabel();
 		if(functionID < 0) functionID = -functionID;
@@ -85,6 +87,28 @@ public class ADLNestingDecoder {
 		}else{
 			return parseASTBinary(root);
 		}
+	}
+	
+	private ASTExpression decodeLiteral(Node<Integer, Integer> root){
+		List<Integer> dummyCollection = new ArrayList<Integer>();
+		dummyCollection.add(root.getLabel());
+		@SuppressWarnings("rawtypes")
+		NestingLiteralCollectionExp collectionExp = NestingLiteralCollectionExp.parseEncodedLiteral(dummyCollection);
+		return collectionExp.getAsExpression(0);
+		/*
+		switch(collectionExp.type){
+		case BOOL: return new BooleanConstant(""+(boolean)collectionExp.values.get(0));
+		case INT: return new IntConstant(""+(int)collectionExp.values.get(0));
+		case DECIMAL: return new FloatConstant(""+(float)collectionExp.values.get(0));
+		case DIRECTION:
+		case POSITION:
+		case COLLIDER:
+			return new StringConstant(collectionExp.values.get(0).toString());
+		default:
+			System.out.println("Impossible case : unknown literal encoding");
+			return null;
+		}
+		*/
 	}
 	
 	@SuppressWarnings("rawtypes")

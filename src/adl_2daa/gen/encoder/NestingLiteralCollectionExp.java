@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import adl_2daa.ast.ASTExpression;
+import adl_2daa.ast.expression.BooleanConstant;
+import adl_2daa.ast.expression.FloatConstant;
+import adl_2daa.ast.expression.IntConstant;
+import adl_2daa.ast.expression.StringConstant;
 import adl_2daa.gen.Utility;
 import adl_2daa.gen.signature.Datatype;
 import adl_2daa.internal.Instruction;
@@ -19,17 +23,13 @@ public abstract class NestingLiteralCollectionExp<T> extends ASTExpression {
 		this.values = new ArrayList<T>();
 	}
 	
-	/*
-	public T get(int index){
-		return values.get(index);
-	}
+	public abstract void decodeAndAdd(int encodedData);
 	
 	public int size(){
-		return values.size();
+		return this.values.size();
 	}
-	*/
 	
-	public abstract void decodeAndAdd(int encodedData);
+	public abstract ASTExpression getAsExpression(int index);
 	
 	@Override
 	public void compile(List<Instruction> ins, ADLCompiler compiler) {}
@@ -42,8 +42,8 @@ public abstract class NestingLiteralCollectionExp<T> extends ASTExpression {
 	@SuppressWarnings("rawtypes")
 	public static NestingLiteralCollectionExp parseEncodedLiteral(List<java.lang.Integer> literalList){
 		NestingLiteralCollectionExp collection = null;
-		int type = (literalList.get(0) >> 29) & 7;
-		switch(type){
+		int expectType = (literalList.get(0) >> 29) & 7;
+		switch(expectType){
 		case 0: collection = new NestingLiteralCollectionExp.Boolean(); break;
 		case 1: collection = new NestingLiteralCollectionExp.Integer(); break;
 		case 2: collection = new NestingLiteralCollectionExp.Float(); break;
@@ -54,6 +54,10 @@ public abstract class NestingLiteralCollectionExp<T> extends ASTExpression {
 			collection = new NestingLiteralCollectionExp.Collider(); break;
 		}
 		for(int encodedLiteral : literalList){
+			int type = (encodedLiteral >> 29) & 7;
+			if(type != expectType){
+				System.out.println("Literal collection type "+expectType+" : unexpected type found "+type);
+			}
 			collection.decodeAndAdd(encodedLiteral);
 		}
 		return collection;
@@ -95,6 +99,11 @@ public abstract class NestingLiteralCollectionExp<T> extends ASTExpression {
 		public static int encode(boolean value){
 			return (((value ? 1 : 0) & 0x1) << 28) | (1 << 27);
 		}
+
+		@Override
+		public ASTExpression getAsExpression(int index) {
+			return new BooleanConstant(""+values.get(index));
+		}
 		
 	}
 	
@@ -116,6 +125,11 @@ public abstract class NestingLiteralCollectionExp<T> extends ASTExpression {
 			int absValue = isNeg ? -value : value;
 			
 			return ((1 & 0x7) << 29) | (((isNeg ? 1 : 0) & 0x1) << 28) | (absValue & 0xFFFFFFF);
+		}
+
+		@Override
+		public ASTExpression getAsExpression(int index) {
+			return new IntConstant(""+values.get(index));
 		}
 	}
 	
@@ -140,6 +154,11 @@ public abstract class NestingLiteralCollectionExp<T> extends ASTExpression {
 			int floatingPoint =  getFloatingPointAsInt(absValue-intPart, 1);
 
 			return ((2 & 0x7) << 29) | (((isNeg ? 1 : 0) & 0x1) << 28) | ((intPart & 0xFFFFFF) << 4) | (floatingPoint & 0xF);
+		}
+
+		@Override
+		public ASTExpression getAsExpression(int index) {
+			return new FloatConstant(""+values.get(index));
 		}
 	}
 	
@@ -200,6 +219,11 @@ public abstract class NestingLiteralCollectionExp<T> extends ASTExpression {
 				return ((3 & 0x7) << 29) | ((constantType & 0x7) << 26);
 			}
 		}
+
+		@Override
+		public ASTExpression getAsExpression(int index) {
+			return new StringConstant(values.get(index));
+		}
 	}
 	
 	public static class Position extends NestingLiteralCollectionExp<String>{
@@ -247,6 +271,11 @@ public abstract class NestingLiteralCollectionExp<T> extends ASTExpression {
 			return ((type & 0x7) << 29) | ((int1 & Utility.createBitMask(10)) << 19) | ((floatingPoint1 & 0xF) << 15) |
 					(((isNeg2 ? 1 : 0) & 0x1) << 14) | ((int2 & Utility.createBitMask(10)) << 4) | (floatingPoint2 & 0xF);
 		}
+
+		@Override
+		public ASTExpression getAsExpression(int index) {
+			return new StringConstant(values.get(index));
+		}
 	}
 	
 	public static class Collider extends NestingLiteralCollectionExp<String>{
@@ -267,6 +296,11 @@ public abstract class NestingLiteralCollectionExp<T> extends ASTExpression {
 			int width = java.lang.Integer.parseInt(info[0]);
 			int height = java.lang.Integer.parseInt(info[1]);
 			return ((7 & 0x7) << 29) | ((width & Utility.createBitMask(14)) << 14) | (height & Utility.createBitMask(14));
+		}
+
+		@Override
+		public ASTExpression getAsExpression(int index) {
+			return new StringConstant(values.get(index));
 		}
 	}
 }

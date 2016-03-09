@@ -18,14 +18,17 @@ public class NestingLiteralCollector {
 	 */
 	public static void collectPossibleLiteral(Collection<Graph<Integer,Integer>> graphDB, GraphPattern<Integer,Integer> pattern){
 		Node<Integer,Integer> patternRoot = Utility.findFirstRoot(pattern.getGraph());
-		
 		Iterator<Graph<Integer,Integer>> it = graphDB.iterator();
 		while(it.hasNext()){
 			Graph<Integer,Integer> graph = it.next();
-			if(!pattern.getGraphIDs().contains(graph.getID())) continue;
-			Node<Integer,Integer> root = Utility.findFirstRoot(graph);
-			if(!Utility.exactSubgraphTest(root,patternRoot)) continue;
-			collectLiteral(root, patternRoot);
+			int graphID = Integer.parseInt(graph.getName());
+			if(!pattern.getGraphIDs().contains(graphID)) continue;
+			Iterator<Node<Integer,Integer>> nodeIt = graph.nodeIterator();
+			while(nodeIt.hasNext()){
+				Node<Integer,Integer> node = nodeIt.next();
+				if(!Utility.exactSubgraphTest(node,patternRoot)) continue;
+				collectLiteral(node, patternRoot);
+			}
 		}
 	}
 	
