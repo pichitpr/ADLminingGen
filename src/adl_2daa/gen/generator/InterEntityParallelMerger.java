@@ -199,7 +199,7 @@ public class InterEntityParallelMerger {
 	 */
 	private void selectAndGrow(List<ResultAgent> agents, 
 			boolean isChild){
-		List<List<ASTStatement>> relation = isChild ? spawnerDecodedRel : childDecodedRel;
+		List<List<ASTStatement>> relation = isChild ? childDecodedRel : spawnerDecodedRel;
 		
 		/*
 		 * Phase 1:
@@ -235,6 +235,7 @@ public class InterEntityParallelMerger {
 		for(ResultAgent agent : agents){
 			List<ResultState> filteredState = new LinkedList<ResultState>();
 			for(ResultState state : agent.getResultStates()){
+				//ResultState comes from result of ASTFilterOperator.filterHighestSpawnMatch()
 				assert(state.getResultSequences().size() == relation.size());
 				
 				//Clone ResultState/relation (since it will be changed from original state during
@@ -258,8 +259,9 @@ public class InterEntityParallelMerger {
 				boolean[] isMatchedSpawn = new boolean[relation.size()]; //A flag
 				int index = 0;
 				int transitionCount = 0;
+				//Loop through ASTFilterOperator.filterHighestSpawnMatch() result
 				for(Sequence seq : state.getResultSequences()){
-					if(seq == null){ 
+					if(seq == null){
 						//relation[index] is not matched, check if the relation contains EOB-T
 						Action transition = ASTUtility.removeAllEOBTransition(dupRelation.get(index));
 						if(transition != null){
@@ -424,7 +426,7 @@ public class InterEntityParallelMerger {
 		}
 		
 		//Grow new sequence according to sequence count
-		int requiredSequenceCount = isChild ? spawnerSequenceCount : childSequenceCount;
+		int requiredSequenceCount = isChild ? childSequenceCount : spawnerSequenceCount;
 		while(selectedState.getSequences().size() < requiredSequenceCount){
 			Sequence emptySequence = ASTUtility.createEmptySequence("seq"+
 					selectedState.getSequences().size());
@@ -520,7 +522,9 @@ public class InterEntityParallelMerger {
 			}
 			
 			//Queue relation (with key action matching) and finalize
-			ASTMergeOperator.queueSequenceInsertion(wrappedSkel, wrappedRel, transitionSlot[0]);
+			if(wrappedRel.getActionCount() > 0){
+				ASTMergeOperator.queueSequenceInsertion(wrappedSkel, wrappedRel, transitionSlot[0]);
+			}
 			if(requireTransitionInsertion){
 				wrappedSkel.queueInsertion(transitionSlot[0], transition);
 			}

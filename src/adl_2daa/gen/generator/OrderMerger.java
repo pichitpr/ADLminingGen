@@ -96,7 +96,9 @@ public class OrderMerger {
 				//System.out.println("[EOS] "+transitionSlot[0]);
 			}
 		}
-		ASTMergeOperator.queueSequenceInsertion(wrappedSkel, wrappedRel, transitionSlot[0]);
+		if(wrappedRel.getActionCount() > 0){
+			ASTMergeOperator.queueSequenceInsertion(wrappedSkel, wrappedRel, transitionSlot[0]);
+		}
 		if(requireTransitionInsertion){
 			wrappedSkel.queueInsertion(transitionSlot[0], transition);
 		}

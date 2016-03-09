@@ -243,7 +243,9 @@ public class ParallelMerger {
 					transitionSlot[0] = existingEOS.get(existingEOS.size()-1);
 				}
 			}
-			ASTMergeOperator.queueSequenceInsertion(wrappedSkel, wrappedRel, transitionSlot[0]);
+			if(wrappedRel.getActionCount() > 0){
+				ASTMergeOperator.queueSequenceInsertion(wrappedSkel, wrappedRel, transitionSlot[0]);
+			}
 			if(requireTransitionInsertion){
 				wrappedSkel.queueInsertion(transitionSlot[0], transition);
 			}

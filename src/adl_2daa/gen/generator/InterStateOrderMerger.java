@@ -197,8 +197,10 @@ public class InterStateOrderMerger {
 				transition, false, transitionSlot)){
 			requireTransitionInsertion = true;
 		}
-		ASTMergeOperator.queueSequenceInsertion(wrappedStartingSeq, wrappedStartingRel, 
+		if(wrappedStartingRel.getActionCount() > 0){
+			ASTMergeOperator.queueSequenceInsertion(wrappedStartingSeq, wrappedStartingRel, 
 				transitionSlot[0]);
+		}
 		if(requireTransitionInsertion){
 			wrappedStartingSeq.queueInsertion(transitionSlot[0], transition);
 		}

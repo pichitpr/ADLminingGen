@@ -355,7 +355,7 @@ public class ASTFilterOperator {
 	 * spawn() in skeleton as many as possible.<br/>
 	 * Result: <br/>
 	 * - var[i*2] : specify a sequence that i-th relation should be matched to.
-	 * If the value is less than 0, this means the relation cannot be matched.
+	 * If the value is less than 0, this means the relation cannot be matched.<br/>
 	 * - var[i*2+1] : related match score for i-th relation. Usually not used.
 	 */
 	private static class SpawnMatchProblem implements CSPTemplate{
