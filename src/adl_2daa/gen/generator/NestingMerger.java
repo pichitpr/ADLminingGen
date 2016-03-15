@@ -166,9 +166,8 @@ public class NestingMerger {
 		for(int i=0; i<fillingLength; i++){
 			if(params[i] instanceof ExpressionSkeleton){
 				if(template[i] instanceof NestingLiteralCollectionExp){
-					@SuppressWarnings("rawtypes")
 					NestingLiteralCollectionExp exp = (NestingLiteralCollectionExp)template[i];
-					params[i] = exp.getAsExpression(ASTUtility.randomRange(0, exp.size()-1));
+					params[i] = exp.random();
 				}else{
 					params[i] = ASTUtility.copy(template[i]);
 				}

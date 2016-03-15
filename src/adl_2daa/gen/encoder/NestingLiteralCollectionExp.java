@@ -1,70 +1,78 @@
 package adl_2daa.gen.encoder;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 import adl_2daa.ast.ASTExpression;
 import adl_2daa.ast.expression.BooleanConstant;
 import adl_2daa.ast.expression.FloatConstant;
+import adl_2daa.ast.expression.Function;
 import adl_2daa.ast.expression.IntConstant;
 import adl_2daa.ast.expression.StringConstant;
 import adl_2daa.gen.Utility;
-import adl_2daa.gen.signature.Datatype;
+import adl_2daa.gen.generator.merger1.ASTUtility;
 import adl_2daa.internal.Instruction;
 import adl_2daa.tool.ADLCompiler;
 
-public abstract class NestingLiteralCollectionExp<T> extends ASTExpression {
+public class NestingLiteralCollectionExp extends ASTExpression {
 
-	protected Datatype type;
-	protected List<T> values;
+	protected List<ASTExpression> values;
 	
-	private NestingLiteralCollectionExp(Datatype type) {
-		this.type = type;
-		this.values = new ArrayList<T>();
+	public NestingLiteralCollectionExp() {
+		this.values = new ArrayList<ASTExpression>();
 	}
 	
-	public abstract void decodeAndAdd(int encodedData);
+	public void add(ASTExpression exp){
+		values.add(exp);
+	}
 	
 	public int size(){
-		return this.values.size();
+		return values.size();
 	}
 	
-	public abstract ASTExpression getAsExpression(int index);
+	public ASTExpression random(){
+		return ASTUtility.randomUniform(values);
+	}
 	
 	@Override
 	public void compile(List<Instruction> ins, ADLCompiler compiler) {}
 
 	@Override
-	public void toScript(StringBuilder str, int indent) {
-		str.append("^"+type.name());
-		HashSet<T> set = new HashSet<T>();
-		for(T val : values) set.add(val);
-		for(T val : set) str.append(' ').append(val.toString());
+	public void toScript(StringBuilder strb, int indent) {
+		strb.append("^[");
+		for(ASTExpression exp : values){
+			if(exp instanceof Function){
+				strb.append(((Function)exp).getName()+" ");
+			}else if(exp instanceof BooleanConstant){
+				strb.append(((BooleanConstant)exp).isValue());
+			}else if(exp instanceof IntConstant){
+				strb.append(((IntConstant)exp).getValue());
+			}else if(exp instanceof FloatConstant){
+				strb.append(((FloatConstant)exp).getValue());
+			}else if(exp instanceof StringConstant){
+				strb.append(((StringConstant)exp).getValue());
+			}else {
+				strb.append("?");
+			}
+			strb.append(' ');
+		}
+		strb.append(']');
 	}
 	
-	@SuppressWarnings("rawtypes")
-	public static NestingLiteralCollectionExp parseEncodedLiteral(List<java.lang.Integer> literalList){
-		NestingLiteralCollectionExp collection = null;
-		int expectType = (literalList.get(0) >> 29) & 7;
+	public static ASTExpression decodeLiteral(int encodedLiteral){
+		int expectType = (encodedLiteral >> 29) & 7;
 		switch(expectType){
-		case 0: collection = new NestingLiteralCollectionExp.Boolean(); break;
-		case 1: collection = new NestingLiteralCollectionExp.Integer(); break;
-		case 2: collection = new NestingLiteralCollectionExp.Float(); break;
-		case 3: collection = new NestingLiteralCollectionExp.Direction(); break;
+		case 0: return NestingLiteralCollectionExp.Boolean.decode(encodedLiteral);
+		case 1: return NestingLiteralCollectionExp.Integer.decode(encodedLiteral);
+		case 2: return NestingLiteralCollectionExp.Float.decode(encodedLiteral);
+		case 3: return NestingLiteralCollectionExp.Direction.decode(encodedLiteral);
 		case 4: case 5: case 6:
-			collection = new NestingLiteralCollectionExp.Position(); break;
+			return NestingLiteralCollectionExp.Position.decode(encodedLiteral);
 		case 7:
-			collection = new NestingLiteralCollectionExp.Collider(); break;
+			return NestingLiteralCollectionExp.Collider.decode(encodedLiteral);
 		}
-		for(int encodedLiteral : literalList){
-			int type = (encodedLiteral >> 29) & 7;
-			if(type != expectType){
-				System.out.println("Literal collection type "+expectType+" : unexpected type found "+type);
-			}
-			collection.decodeAndAdd(encodedLiteral);
-		}
-		return collection;
+		System.out.println("Impossible case : unexpected literal type : "+expectType);
+		return null;
 	}
 	
 	private static int getFloatingPointAsInt(float zeroLeadingF, int places){
@@ -88,67 +96,43 @@ public abstract class NestingLiteralCollectionExp<T> extends ASTExpression {
 	
 	//Encoding scheme : 32bit = [31-29:type] [28-0:value]
 	
-	public static class Boolean extends NestingLiteralCollectionExp<java.lang.Boolean> {
+	public static class Boolean extends NestingLiteralCollectionExp {
 		//Type 0 [28:bool][27:1][26-0:0]-- Bit allocation 3,1,1,27
-		public Boolean(){
-			super(Datatype.BOOL);
-		}
 		
-		@Override
-		public void decodeAndAdd(int encodedData) {
+		public static BooleanConstant decode(int encodedData) {
 			boolean value = ((encodedData >> 28) & 0x1) == 1;
-			this.values.add(value);
+			return new BooleanConstant(""+value);
 		}
 		
 		public static int encode(boolean value){
 			return (((value ? 1 : 0) & 0x1) << 28) | (1 << 27);
 		}
-
-		@Override
-		public ASTExpression getAsExpression(int index) {
-			return new BooleanConstant(""+values.get(index));
-		}
-		
 	}
 	
-	public static class Integer extends NestingLiteralCollectionExp<java.lang.Integer>{
+	public static class Integer extends NestingLiteralCollectionExp {
 		//Type 1 [28:sign 0=add,1=neg] [27-0:value] -- Bit allocation 3,1,28
-		public Integer(){
-			super(Datatype.INT);
-		}
 		
-		@Override
-		public void decodeAndAdd(int encodedData) {
+		public static IntConstant decode(int encodedData) {
 			boolean isNeg = ((encodedData >> 28) & 0x1) == 1;
 			int value = encodedData & 0xFFFFFFF;
-			this.values.add(isNeg ? -value : value);
+			return new IntConstant(""+(isNeg ? -value : value));
 		}
 		
 		public static int encode(int value){
 			boolean isNeg = value < 0;
 			int absValue = isNeg ? -value : value;
-			
 			return ((1 & 0x7) << 29) | (((isNeg ? 1 : 0) & 0x1) << 28) | (absValue & 0xFFFFFFF);
-		}
-
-		@Override
-		public ASTExpression getAsExpression(int index) {
-			return new IntConstant(""+values.get(index));
 		}
 	}
 	
-	public static class Float extends NestingLiteralCollectionExp<java.lang.Float>{
+	public static class Float extends NestingLiteralCollectionExp {
 		//Type 2 [28:sign 0=add,1=neg] [27-4:value] [3-0:floating point] -- Bit allocation 3,1,24,4 
-		public Float(){
-			super(Datatype.DECIMAL);
-		}
 		
-		@Override
-		public void decodeAndAdd(int encodedData) {
+		public static FloatConstant decode(int encodedData) {
 			boolean isNeg = ((encodedData >> 28) & 0x1) == 1;
 			int intPart = ((encodedData >> 4) & 0xFFFFFF);
 			int floatingPoint = encodedData & 0xF;
-			this.values.add(constructFloat(isNeg, intPart, floatingPoint));
+			return new FloatConstant(""+constructFloat(isNeg, intPart, floatingPoint));
 		}
 		
 		public static int encode(float value){
@@ -159,22 +143,13 @@ public abstract class NestingLiteralCollectionExp<T> extends ASTExpression {
 
 			return ((2 & 0x7) << 29) | (((isNeg ? 1 : 0) & 0x1) << 28) | ((intPart & 0xFFFFFF) << 4) | (floatingPoint & 0xF);
 		}
-
-		@Override
-		public ASTExpression getAsExpression(int index) {
-			return new FloatConstant(""+values.get(index));
-		}
 	}
 	
-	public static class Direction extends NestingLiteralCollectionExp<String>{
+	public static class Direction extends NestingLiteralCollectionExp {
 		//Type 3 [28-26: constant {north,east,south,west,v,h,useValue}] [25:sign][24-7:value] [6-0:floating point]
 		//Bit allocation 3,3,1,18,7
-		public Direction(){
-			super(Datatype.DIRECTION);
-		}
 		
-		@Override
-		public void decodeAndAdd(int encodedData) {
+		public static StringConstant decode(int encodedData) {
 			String value;
 			int constantType = (encodedData >> 26) & 0x7;
 			switch(constantType){
@@ -191,7 +166,7 @@ public abstract class NestingLiteralCollectionExp<T> extends ASTExpression {
 				value = ""+constructFloat(isNeg, intPart, floatingPoint);
 				break;
 			}
-			this.values.add(value);
+			return new StringConstant(value);
 		}
 		
 		public static int encode(String value){
@@ -223,14 +198,9 @@ public abstract class NestingLiteralCollectionExp<T> extends ASTExpression {
 				return ((3 & 0x7) << 29) | ((constantType & 0x7) << 26);
 			}
 		}
-
-		@Override
-		public ASTExpression getAsExpression(int index) {
-			return new StringConstant(values.get(index));
-		}
 	}
 	
-	public static class Position extends NestingLiteralCollectionExp<String>{
+	public static class Position extends NestingLiteralCollectionExp {
 		/*
 		 * Type 4 +X cartesian [28-19:value][18-15:floating point] , [14:sign][13-4:value][3-0:floating point]
 		 * Type 5 -X cartesian
@@ -238,12 +208,8 @@ public abstract class NestingLiteralCollectionExp<T> extends ASTExpression {
 		 * 
 		 * Bit allocation 3,10,4,1,10,4
 		 */
-		public Position(){
-			super(Datatype.POSITION);
-		}
-		
-		@Override
-		public void decodeAndAdd(int encodedData) {
+
+		public static StringConstant decode(int encodedData) {
 			boolean isPolar = ((encodedData >> 29) & 7) == 6;
 			boolean isNeg1 = ((encodedData >> 29) & 7) == 5;
 			int intPart1 = (encodedData >> 19) & Utility.createBitMask(10);
@@ -253,7 +219,7 @@ public abstract class NestingLiteralCollectionExp<T> extends ASTExpression {
 			int floatingPoint2 = encodedData & 0xF;
 			String value = (isPolar ? "p(" : "c(") + constructFloat(isNeg1, intPart1, floatingPoint1) + "," + 
 					constructFloat(isNeg2, intPart2, floatingPoint2) + ")";
-			this.values.add(value);
+			return new StringConstant(value);
 		}
 		
 		public static int encode(String value){
@@ -275,24 +241,15 @@ public abstract class NestingLiteralCollectionExp<T> extends ASTExpression {
 			return ((type & 0x7) << 29) | ((int1 & Utility.createBitMask(10)) << 19) | ((floatingPoint1 & 0xF) << 15) |
 					(((isNeg2 ? 1 : 0) & 0x1) << 14) | ((int2 & Utility.createBitMask(10)) << 4) | (floatingPoint2 & 0xF);
 		}
-
-		@Override
-		public ASTExpression getAsExpression(int index) {
-			return new StringConstant(values.get(index));
-		}
 	}
 	
-	public static class Collider extends NestingLiteralCollectionExp<String>{
+	public static class Collider extends NestingLiteralCollectionExp {
 		//Type 7 [28:0][27-14:width][13-0:height] --- Bit allocation 3,1,14,14
-		public Collider(){
-			super(Datatype.COLLIDER);
-		}
 		
-		@Override
-		public void decodeAndAdd(int encodedData) {
+		public static StringConstant decode(int encodedData) {
 			int width = (encodedData >> 14) & Utility.createBitMask(14);
 			int height = encodedData & Utility.createBitMask(14);
-			this.values.add(width+","+height);
+			return new StringConstant(width+","+height);
 		}
 		
 		public static int encode(String value){
@@ -300,11 +257,6 @@ public abstract class NestingLiteralCollectionExp<T> extends ASTExpression {
 			int width = java.lang.Integer.parseInt(info[0]);
 			int height = java.lang.Integer.parseInt(info[1]);
 			return ((7 & 0x7) << 29) | ((width & Utility.createBitMask(14)) << 14) | (height & Utility.createBitMask(14));
-		}
-
-		@Override
-		public ASTExpression getAsExpression(int index) {
-			return new StringConstant(values.get(index));
 		}
 	}
 }

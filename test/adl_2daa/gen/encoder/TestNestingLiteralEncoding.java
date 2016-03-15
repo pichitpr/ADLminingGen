@@ -20,11 +20,9 @@ public class TestNestingLiteralEncoding {
 			true,
 			false
 		};
-		NestingLiteralCollectionExp.Boolean dBoolean = new NestingLiteralCollectionExp.Boolean();
 		for(int i=0; i<encoded.length; i++){
 			assertEquals(encoded[i], NestingLiteralCollectionExp.Boolean.encode(decoded[i]));
-			dBoolean.decodeAndAdd(encoded[i]);
-			assertEquals(decoded[i], dBoolean.values.get(i));
+			assertEquals(decoded[i], NestingLiteralCollectionExp.Boolean.decode(encoded[i]).isValue());
 		}
 	}
 	
@@ -40,11 +38,9 @@ public class TestNestingLiteralEncoding {
 			-1023,
 			542
 		};
-		NestingLiteralCollectionExp.Integer dInteger = new NestingLiteralCollectionExp.Integer();
 		for(int i=0; i<encoded.length; i++){
 			assertEquals(encoded[i], NestingLiteralCollectionExp.Integer.encode(decoded[i]));
-			dInteger.decodeAndAdd(encoded[i]);
-			assertEquals(decoded[i], (int)dInteger.values.get(i));
+			assertEquals(decoded[i], NestingLiteralCollectionExp.Integer.decode(encoded[i]).getValue());
 		}
 	}
 	
@@ -60,11 +56,10 @@ public class TestNestingLiteralEncoding {
 			123456.78f,
 			-9100.632f
 		};
-		NestingLiteralCollectionExp.Float dFloat = new NestingLiteralCollectionExp.Float();
 		for(int i=0; i<encoded.length; i++){
 			assertEquals(encoded[i], NestingLiteralCollectionExp.Float.encode(decoded[i]));
-			dFloat.decodeAndAdd(encoded[i]);
-			assertEquals(decoded[i], dFloat.values.get(i), 0.1f); //Value is trimmed until 1 floating point left
+			//Value is trimmed until 1 floating point left
+			assertEquals(decoded[i], NestingLiteralCollectionExp.Float.decode(encoded[i]).getValue(), 0.1f);
 		}
 		
 	}
@@ -89,11 +84,9 @@ public class TestNestingLiteralEncoding {
 				"north",
 				"-1554.12"
 		};
-		NestingLiteralCollectionExp.Direction dDirection = new NestingLiteralCollectionExp.Direction();
 		for(int i=0; i<encoded.length; i++){
 			assertEquals(encoded[i], NestingLiteralCollectionExp.Direction.encode(value[i]));
-			dDirection.decodeAndAdd(encoded[i]);
-			assertEquals(decoded[i], dDirection.values.get(i));
+			assertEquals(decoded[i], NestingLiteralCollectionExp.Direction.decode(encoded[i]).getValue());
 		}
 	}
 	
@@ -117,11 +110,9 @@ public class TestNestingLiteralEncoding {
 			"p(176.1,250.3)",
 			"p(176.0,250.3)"
 		};
-		NestingLiteralCollectionExp.Position dPosition = new NestingLiteralCollectionExp.Position();
 		for(int i=0; i<encoded.length; i++){
 			assertEquals(encoded[i], NestingLiteralCollectionExp.Position.encode(value[i]));
-			dPosition.decodeAndAdd(encoded[i]);
-			assertEquals(decoded[i], dPosition.values.get(i));
+			assertEquals(decoded[i], NestingLiteralCollectionExp.Position.decode(encoded[i]).getValue());
 		}
 	}
 	
@@ -129,8 +120,8 @@ public class TestNestingLiteralEncoding {
 	public void testCollider(){
 		int value = NestingLiteralCollectionExp.Collider.encode("500,300");
 		assertEquals(binaryStringToDec("111 0 00 0001 1111 0100 00 0001 0010 1100"), value);
-		NestingLiteralCollectionExp.Collider dCollider = new NestingLiteralCollectionExp.Collider();
-		dCollider.decodeAndAdd( binaryStringToDec("111 0 00 0001 1111 0100 00 0001 0010 1100") );
-		assertEquals("500,300", dCollider.values.get(0));
+		assertEquals("500,300", 
+				NestingLiteralCollectionExp.Collider.decode( binaryStringToDec("111 0 00 0001 1111 0100 00 0001 0010 1100") ).getValue()
+				);
 	}
 }

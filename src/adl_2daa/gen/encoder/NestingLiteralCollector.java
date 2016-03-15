@@ -61,20 +61,37 @@ public class NestingLiteralCollector {
 			}
 			if(!shouldExplorethisEdge) continue;
 			
-			//Explore the node, add to the collection in pattern if it is literal
-			Node<Integer,Integer> exploringNode  = edge.getOtherNode(root);
-			if(!ADLNestingDecoder.isLiteral(exploringNode.getLabel()))
-				continue;
-			
+			//LiteralCollection node not exist, create new one
 			MutableGraph<Integer, Integer> patternGraph = (MutableGraph<Integer, Integer>)patternRoot.getGraph();
-			//LiteralCollection node not exist (new literal that should be explored found)
 			if(literalCollectionNode == null){
 				literalCollectionNode = patternGraph.addNode(EncodeTable.LITERAL_COLLECTION_ROOT);
 				patternGraph.addEdge(patternRoot, literalCollectionNode, edge.getLabel(), Edge.OUTGOING);
 			}
 			
-			patternGraph.addNodeAndEdge(literalCollectionNode, exploringNode.getLabel(), literalCollectionNode.getOutDegree(), 
-					Edge.OUTGOING);
+			//Explore the node and add it to the collection (encoding used if literal)
+			Node<Integer,Integer> exploringNode  = edge.getOtherNode(root);
+			if(ADLNestingDecoder.isLiteral(exploringNode.getLabel())){
+				patternGraph.addNodeAndEdge(literalCollectionNode, exploringNode.getLabel(), literalCollectionNode.getOutDegree(), 
+						Edge.OUTGOING);
+			}else{
+				 cloneGraphAndAttach(exploringNode, literalCollectionNode, literalCollectionNode.getOutDegree(), patternGraph);
+			}
+		}
+	}
+	
+	/**
+	 * Create a copy of originalNode and attach the new node to attachTarget using OUTGOING edge (attachTarget --> new node) 
+	 * with edgeLabel as label. edgeLabel should be the same as the INCOMING edge that connect originalNode
+	 * (??? --> originalNode)
+	 */
+	private static void cloneGraphAndAttach(Node<Integer,Integer> originalNode, Node<Integer,Integer> attachTarget, 
+			int edgeLabel, MutableGraph<Integer, Integer> graphBuilder){
+		Node<Integer,Integer> newNode = graphBuilder.addNodeAndEdge(attachTarget, originalNode.getLabel(), edgeLabel, 
+				Edge.OUTGOING);
+		Iterator<Edge<Integer,Integer>> edgeIt = originalNode.outgoingEdgeIterator();
+		while(edgeIt.hasNext()){
+			Edge<Integer,Integer> edge = edgeIt.next();
+			cloneGraphAndAttach(edge.getOtherNode(originalNode), newNode, edge.getLabel(), graphBuilder);
 		}
 	}
 }
