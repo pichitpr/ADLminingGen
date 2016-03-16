@@ -8,6 +8,7 @@ import parsemis.extension.GraphPattern;
 import adl_2daa.ast.ASTExpression;
 import adl_2daa.ast.ASTStatement;
 import adl_2daa.ast.Reversible;
+import adl_2daa.ast.expression.ASTBinary;
 import adl_2daa.ast.expression.ASTUnary;
 import adl_2daa.ast.expression.ASTUnary.UnaryOp;
 import adl_2daa.ast.expression.And;
@@ -129,41 +130,95 @@ public class NestingMerger {
 				}
 			}else if(st instanceof Condition){
 				Condition cond = (Condition)st;
-				fillExpression(cond.getCondition());
+				fillExpression(cond.getCondition(), null);
 				fillStatementBlock(cond.getIfblock());
 				if(cond.getElseblock() != null){
 					fillStatementBlock(cond.getElseblock());
 				}
 			}else{
 				Loop loop = (Loop)st;
-				fillExpression(loop.getLoopCount());
+				fillExpression(loop.getLoopCount(), null);
 				fillStatementBlock(loop.getContent());
 			}
 		}
 	}
 	
-	private void fillExpression(ASTExpression exp){
-		//TODO: Finish nest merge
-		if(exp instanceof And){
-			
-		}else if(exp instanceof Or){
-			
-		}else if(exp instanceof Comparison){
-			
-		}else if(exp instanceof Arithmetic){
-			
-		}else if(exp instanceof ASTUnary){
-			
-		}else if(exp instanceof Function){
-			
-		}
-		
-		//Do nothing for literal
+	/**
+	 * Test template against target and return new ASTExpression that should replace the target OR null if nothing should be done
+	 */
+	private ASTExpression fillExpression(ASTExpression target, ASTExpression template){
+		if(template == null){
+			//Root
+			if(target instanceof ASTBinary){
+				if(target instanceof And){
+					template = ASTUtility.randomUniform(andUsage);
+				}else if(target instanceof Or){
+					template = ASTUtility.randomUniform(orUsage);
+				}else if(target instanceof Comparison){
+					List<Comparison> opUsage = compUsage[((Comparison)target).getOp().ordinal()];
+					template = ASTUtility.randomUniform(opUsage);
+				}else if(target instanceof Arithmetic){
+					List<Arithmetic> opUsage = arithUsage[((Arithmetic)target).getOp().ordinal()];
+					template = ASTUtility.randomUniform(opUsage);
+				}else{
+					System.out.println("Impossible case : unknown binary when merge nesting");
+				}
+				ASTBinary binTarget = (ASTBinary)target;
+				ASTExpression replacement;
+				replacement = fillExpression(binTarget.left, ((ASTBinary)template).getLeft());
+				if(replacement != null) binTarget.left = replacement;
+				replacement = fillExpression(binTarget.right, ((ASTBinary)template).getRight());
+				if(replacement != null) binTarget.right = replacement;
+			}else if(target instanceof ASTUnary){
+				if(((ASTUnary)target).op == UnaryOp.NEG){
+					template = ASTUtility.randomUniform(negUsage);
+				}else if(((ASTUnary)target).op == UnaryOp.NOT){
+					template = ASTUtility.randomUniform(notUsage);
+				}else{
+					System.out.println("Impossible case : unknown unary when merge nesting");
+				}
+				ASTUnary unaryTarget = (ASTUnary)target;
+				ASTExpression replacement = fillExpression(unaryTarget.node, ((ASTUnary)template).node);
+				if(replacement != null) unaryTarget.node = replacement;
+			}else if(target instanceof Function){
+				Function function = (Function)target;
+				if(functionUsage.containsKey(function.getName())){
+					template = ASTUtility.randomUniform(functionUsage.get(function.getName()) );
+					fillParameters(function.getParams(), ((Function)template).getParams());
+				}
+			}else{
+				System.out.println("Impossible case : incompatible root expression");
+			}
+			return null;
+		}else{
+			//Deeper level expression -- just copy
+			if(target instanceof ExpressionSkeleton){
+				if(template instanceof NestingLiteralCollectionExp){
+					NestingLiteralCollectionExp exp = (NestingLiteralCollectionExp)template;
+					return exp.random();
+				}else{
+					return ASTUtility.copy(template);
+				}
+			}
+			return null;
+		}		
+		//We don't consider literal (there is one possible case: loop(int) but we ignore. There is no collection for this case anyway)
+		//if(true/false) does not make any sense
 	}
+	
+	/*
+	private void fillExpression(ASTExpression target, ASTExpression template){
+		assert(target != null && template != null);
+		
+	}
+	*/
 	
 	private void fillParameters(ASTExpression[] params, ASTExpression[] template){
 		int fillingLength = (params.length > template.length) ? template.length : params.length;
 		for(int i=0; i<fillingLength; i++){
+			ASTExpression replacement = fillExpression(params[i], template[i]);
+			if(replacement != null) params[i] = replacement;
+			/*
 			if(params[i] instanceof ExpressionSkeleton){
 				if(template[i] instanceof NestingLiteralCollectionExp){
 					NestingLiteralCollectionExp exp = (NestingLiteralCollectionExp)template[i];
@@ -172,6 +227,7 @@ public class NestingMerger {
 					params[i] = ASTUtility.copy(template[i]);
 				}
 			}
+			*/
 		}
 	}
 }
