@@ -54,16 +54,13 @@ public class ASTComparator {
 	}
 
 	/**
-	 * Compare 2 expressions for "depth" levels. Negative level will compare the entire
-	 * tree<br/>
+	 * Compare 2 expressions for "depth" levels. Negative level will compare the entire tree.<br/>
 	 * Example: <br/>
 	 * - Given an expression (a+b >= c-d)
 	 * - Level 1 : compare >= to another
 	 * - Level 2 : compare + on the left side && compare - on the right side
 	 * - Level 3 : compare all a,b,c,d literal type and topology respectively
 	 */
-	//TODO: Special literal comp for FloatConstant VS IntConstant , $ case
-	//Dont forget to run test case after changing this part
 	public static boolean astExpressionEquals(ASTExpression exp1, ASTExpression exp2, int depth){
 		if(depth == 0) return true;
 		if(exp1 == exp2) return true;
@@ -111,7 +108,7 @@ public class ASTComparator {
 	
 	public static boolean astFunctionEquals(Function f1, Function f2, int depth){
 		String fname = f1.getName();
-		if(!fname.equals(f2.getName())) return false;
+		if(!fname.equals(f2.getName()) || (f1.hasSingleQuery() != f2.hasSingleQuery()) ) return false;
 		assert(f1.getParams().length == f2.getParams().length);
 		FunctionMainSignature fsig = GeneratorRegistry.getFunctionSignature(fname);
 		int startExpIndex = 0;
