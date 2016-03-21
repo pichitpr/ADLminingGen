@@ -5,6 +5,7 @@ import java.util.Iterator;
 
 import parsemis.extension.GraphPattern;
 import adl_2daa.gen.Utility;
+import adl_2daa.gen.signature.GeneratorRegistry;
 import de.parsemis.graph.Edge;
 import de.parsemis.graph.Graph;
 import de.parsemis.graph.MutableGraph;
@@ -17,6 +18,13 @@ public class NestingLiteralCollector {
 	 * for each parameter in the pattern.
 	 */
 	public static void collectPossibleLiteral(Collection<Graph<Integer,Integer>> graphDB, GraphPattern<Integer,Integer> pattern){
+		/*
+		System.out.println("PATTERN "+pattern.getGraph().getID());
+		for(Integer gid : pattern.getGraphIDs()){
+			System.out.print(gid+" ");
+		}
+		System.out.println("");
+		*/
 		Node<Integer,Integer> patternRoot = Utility.findFirstRoot(pattern.getGraph());
 		Iterator<Graph<Integer,Integer>> it = graphDB.iterator();
 		while(it.hasNext()){
@@ -30,6 +38,7 @@ public class NestingLiteralCollector {
 				collectLiteral(node, patternRoot);
 			}
 		}
+		//System.out.println("#############################################");
 	}
 	
 	private static void collectLiteral(Node<Integer,Integer> root, Node<Integer,Integer> patternRoot){
@@ -76,6 +85,47 @@ public class NestingLiteralCollector {
 			}else{
 				 cloneGraphAndAttach(exploringNode, literalCollectionNode, literalCollectionNode.getOutDegree(), patternGraph);
 			}
+			
+			/*
+			System.out.println("GraphID "+patternGraph.getID());
+			Iterator<Edge<Integer,Integer>> edgeIt_ = literalCollectionNode.incommingEdgeIterator();
+			Edge<Integer,Integer> edge__ = edgeIt_.next();
+			int funcLabel = edge__.getOtherNode(literalCollectionNode).getLabel();
+			if(funcLabel < EncodeTable.idOffset && funcLabel >= 0){
+				if(!GeneratorRegistry.getActionName(funcLabel).equals("Set#direction"))
+					return;
+				System.out.print("Action: "+GeneratorRegistry.getActionName(funcLabel));
+			}else{
+				System.out.print("Function: "+GeneratorRegistry.getFunctionName(funcLabel-EncodeTable.idOffset));
+				return;
+			}
+			System.out.println("["+edge__.getLabel()+"]");
+			edgeIt_ = literalCollectionNode.outgoingEdgeIterator();
+			while(edgeIt_.hasNext()){
+				Edge<Integer,Integer> edge_ = edgeIt_.next();
+				System.out.print(edge_.getLabel()+" ");
+				int label_ = edge_.getOtherNode(literalCollectionNode).getLabel();
+				if(ADLNestingDecoder.isLiteral(label_)){
+					int expectType = (label_ >> 29) & 7;
+					switch(expectType){
+					case 0: System.out.println("Boolean"); break;
+					case 1: System.out.println("Int"); break;
+					case 2: System.out.println("Float"); break;
+					case 3: System.out.println("Direction"); break;
+					case 4: case 5: case 6:
+						System.out.println("Position"); break;
+					case 7:
+						System.out.println("Collider"); break;
+					default:
+						System.out.println("NOTFOUND"); break;
+					}
+				}else{
+					System.out.println("function: "+GeneratorRegistry.getFunctionName(label_-EncodeTable.idOffset));
+				}
+			}
+			
+			System.out.println("-------------------------------------------->>>>>>>");
+			*/
 		}
 	}
 	
