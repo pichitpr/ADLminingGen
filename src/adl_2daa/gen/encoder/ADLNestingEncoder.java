@@ -82,12 +82,6 @@ public class ADLNestingEncoder {
 			parseExpression(action.getParams()[i], rootIndex, i, 
 					sig.getParamType()[mainSig.hasChoice() ? i-1 : i]
 							);
-			/*
-			Function func = getFirstFunctionInExpression(action.getParams()[i]);
-			if(func != null){
-				parseFunction(func, graph, rootIndex, i);
-			}
-			*/
 		}
 		
 		graphCollection.add(graph.finishGraph());
@@ -158,12 +152,6 @@ public class ADLNestingEncoder {
 			parseExpression(function.getParams()[i], rootIndex, i, 
 					sig.getParamType()[mainSig.hasChoice() ? i-1 : i] //Parameters are trimmed for choiced signature
 							);
-			/*
-			Function func = getFirstFunctionInExpression(function.getParams()[i]);
-			if(func != null){
-				parseFunction(func, graph, rootIndex, i);
-			}
-			*/
 		}
 		
 		if(parentIndex == -1){
@@ -308,24 +296,4 @@ public class ADLNestingEncoder {
 			graph.addEdge(parentIndex, graph.addNode(encoded), edgeLabel, true);
 		}
 	}
-	
-	/**
-	 * Find first function that appears in the expression using DFS. 
-	 * Return null if no function found
-	 */
-	/*private Function getFirstFunctionInExpression(ASTExpression exp){
-		if(exp instanceof Function){
-			return (Function)exp;
-		}else if(exp instanceof ASTBinary){
-			Function func =  getFirstFunctionInExpression( ((ASTBinary)exp).left );
-			if(func == null){
-				func = getFirstFunctionInExpression( ((ASTBinary)exp).right );
-			}
-			return func;
-		}else if(exp instanceof ASTUnary){
-			return getFirstFunctionInExpression( ((ASTUnary)exp).node );
-		}
-		//Null for Literal
-		return null;
-	}*/
 }
