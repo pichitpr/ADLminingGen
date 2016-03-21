@@ -18,6 +18,7 @@ import adl_2daa.ast.expression.Comparison;
 import adl_2daa.ast.expression.Comparison.Comp;
 import adl_2daa.ast.expression.Function;
 import adl_2daa.ast.expression.Or;
+import adl_2daa.ast.expression.StringConstant;
 import adl_2daa.ast.statement.Action;
 import adl_2daa.ast.statement.Condition;
 import adl_2daa.ast.statement.Loop;
@@ -27,6 +28,7 @@ import adl_2daa.ast.structure.Sequence;
 import adl_2daa.ast.structure.State;
 import adl_2daa.gen.encoder.ADLNestingDecoder;
 import adl_2daa.gen.encoder.NestingLiteralCollectionExp;
+import adl_2daa.gen.signature.GeneratorRegistry;
 
 public class NestingMerger {
 
@@ -70,16 +72,18 @@ public class NestingMerger {
 			Object obj = ADLNestingDecoder.instance.decode(graph.getGraph());
 			if(obj instanceof Action){
 				Action action = (Action)obj;
-				if(!actionUsage.containsKey(action.getName())){
-					actionUsage.put(action.getName(), new ArrayList<Action>());
+				String key = extractActionName(action);
+				if(!actionUsage.containsKey(key)){
+					actionUsage.put(key, new ArrayList<Action>());
 				}
-				actionUsage.get(action.getName()).add(action);
+				actionUsage.get(key).add(action);
 			}else if(obj instanceof Function){
 				Function function = (Function)obj;
-				if(!functionUsage.containsKey(function.getName())){
-					functionUsage.put(function.getName(), new ArrayList<Function>());
+				String key = extractFunctionName(function);
+				if(!functionUsage.containsKey(key)){
+					functionUsage.put(key, new ArrayList<Function>());
 				}
-				functionUsage.get(function.getName()).add(function);
+				functionUsage.get(key).add(function);
 			}else if(obj instanceof And){
 				andUsage.add((And)obj);
 			}else if(obj instanceof Or){
@@ -124,8 +128,9 @@ public class NestingMerger {
 		for(ASTStatement st : block){
 			if(st instanceof Action){
 				Action action = (Action)st;
-				if(actionUsage.containsKey(action.getName())){
-					Action template = ASTUtility.randomUniform(actionUsage.get(action.getName()) );
+				String key = extractActionName(action);
+				if(actionUsage.containsKey(key)){
+					Action template = ASTUtility.randomUniform(actionUsage.get(key) );
 					fillParameters(action.getParams(), template.getParams());
 				}
 			}else if(st instanceof Condition){
@@ -182,8 +187,9 @@ public class NestingMerger {
 				if(replacement != null) unaryTarget.node = replacement;
 			}else if(target instanceof Function){
 				Function function = (Function)target;
-				if(functionUsage.containsKey(function.getName())){
-					template = ASTUtility.randomUniform(functionUsage.get(function.getName()) );
+				String key = extractFunctionName(function);
+				if(functionUsage.containsKey(key)){
+					template = ASTUtility.randomUniform(functionUsage.get(key) );
 					fillParameters(function.getParams(), ((Function)template).getParams());
 				}
 			}else{
@@ -229,5 +235,21 @@ public class NestingMerger {
 			}
 			*/
 		}
+	}
+	
+	private String extractActionName(Action action){
+		String key = action.getName();
+		if(GeneratorRegistry.getActionSignature(key).hasChoice()){
+			key += "#"+((StringConstant)action.getParams()[0]).getValue();
+		}
+		return key;
+	}
+	
+	private String extractFunctionName(Function function){
+		String key = function.getName();
+		if(GeneratorRegistry.getFunctionSignature(key).hasChoice()){
+			key += "#"+((StringConstant)function.getParams()[0]).getValue();
+		}
+		return key;
 	}
 }
