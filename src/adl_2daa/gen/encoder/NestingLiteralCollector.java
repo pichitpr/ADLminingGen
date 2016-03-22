@@ -26,7 +26,7 @@ public class NestingLiteralCollector {
 			Iterator<Node<Integer,Integer>> nodeIt = graph.nodeIterator();
 			while(nodeIt.hasNext()){
 				Node<Integer,Integer> node = nodeIt.next();
-				if(!Utility.exactSubgraphTest(node,patternRoot)) continue;
+				if(!exactSubgraphTest(node,patternRoot)) continue;
 				collectLiteral(node, patternRoot);
 			}
 		}
@@ -93,5 +93,36 @@ public class NestingLiteralCollector {
 			Edge<Integer,Integer> edge = edgeIt.next();
 			cloneGraphAndAttach(edge.getOtherNode(originalNode), newNode, edge.getLabel(), graphBuilder);
 		}
+	}
+	
+	private static <N,E> boolean exactSubgraphTest(Node<N,E> root, Node<N,E> patternRoot){
+		//Test node
+		if(!root.getLabel().equals(patternRoot.getLabel()))
+			return false;
+		
+		//Test edge and subgraph
+		Iterator<Edge<N,E>> patternEdgeIt = patternRoot.outgoingEdgeIterator();
+		while(patternEdgeIt.hasNext()){
+			Edge<N,E> patternEdge = patternEdgeIt.next();
+			Iterator<Edge<N,E>> edgeIt = root.outgoingEdgeIterator();
+			Edge<N,E> matchingEdge = null;
+			boolean matchingEdgeFound = false;
+			while(edgeIt.hasNext()){
+				matchingEdge = edgeIt.next();
+				if(matchingEdge.getLabel().equals(patternEdge.getLabel())){
+					matchingEdgeFound = true;
+					break;
+				}
+			}
+			if(!matchingEdgeFound)
+				return false;
+			//Do not explore further if literalCollection found (this kind of node is appended during collecting process)
+			if(patternEdge.getOtherNode(patternRoot).getLabel().equals(EncodeTable.LITERAL_COLLECTION_ROOT))
+				return true;
+			if(!exactSubgraphTest(matchingEdge.getOtherNode(root), patternEdge.getOtherNode(patternRoot)) )
+				return false;
+		}
+		
+		return true;
 	}
 }
