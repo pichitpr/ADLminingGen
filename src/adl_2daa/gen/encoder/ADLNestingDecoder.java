@@ -31,6 +31,7 @@ public class ADLNestingDecoder {
 	public static final ADLNestingDecoder instance = new ADLNestingDecoder();
 	
 	public static boolean isLiteral(int encodedData){
+		if(encodedData == Integer.MIN_VALUE) return true; //Abs(MIN value) = MIN due to how 2's complement works 
 		int maxFunctionID = FunctionMainSignature.getTotalFunctionCount()+EncodeTable.idOffset;
 		return Math.abs(encodedData) > maxFunctionID;
 	}
