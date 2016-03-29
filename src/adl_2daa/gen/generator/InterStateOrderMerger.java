@@ -57,7 +57,7 @@ public class InterStateOrderMerger {
 		List<String> targetESeq = new LinkedList<String>(); //Target can be empty
 		String eAct;
 		for(ItemsetGen<String> iset : relation.getRightSide().getItemsets()){
-			eAct = iset.get(0).trim();
+			eAct = iset.get(0);
 			if(!eAct.isEmpty()) targetESeq.add(eAct);
 		}
 		targetDecodedRel = ADLSequenceDecoder.instance.decode(targetESeq);
