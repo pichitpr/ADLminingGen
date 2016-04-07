@@ -197,48 +197,9 @@ public class ASTFilterOperator {
 			seqIndex++;
 		}
 		//Solve for all allocations, get coverage count and record solutions
-		CSPTemplate allocationProblem = new EOBTransitionAllocationProblem(eobDomains);
+		CSPTemplate allocationProblem = new CSPTemplate.BestEffortAssignment(eobDomains);
 		int allocationCost = JaCopUtility.solveAllSolutionCSP(allocationProblem);
 		return allocationCost;
-	}
-	
-	private static class EOBTransitionAllocationProblem implements CSPTemplate{
-
-		private IntDomain[] dom;
-		public EOBTransitionAllocationProblem(IntDomain[] dom){
-			this.dom = dom;
-		}
-		
-		@Override
-		public CSPInstance newInstance() {
-			IntDomain[] varsDomClone = new IntDomain[dom.length];
-			for(int i=0; i<dom.length; i++){
-				varsDomClone[i] = new IntervalDomain();
-				varsDomClone[i].addDom(dom[i]);
-			}
-			
-			Store store = new Store();
-			IntVar[] vars = new IntVar[varsDomClone.length];
-			for(int i=0; i<vars.length; i++){
-				vars[i] = new IntVar(store);
-				vars[i].addDom(varsDomClone[i]);
-			}
-			
-			IntVar[] costCounters = new IntVar[vars.length];
-			int uniqueIndex = -1;
-			for(int i=0; i<costCounters.length; i++){
-				vars[i].addDom(uniqueIndex, uniqueIndex);
-				costCounters[i] = new IntVar(store, 0, 1);
-				store.impose(new Count(vars, costCounters[i], uniqueIndex));
-				uniqueIndex--;
-			}
-			IntVar costVar = new IntVar(store, 0, vars.length);
-			store.impose(new Sum(costCounters, costVar));
-			store.impose(new Alldiff(vars));
-			
-			return new CSPInstance(store, vars, costVar);
-		}
-		
 	}
 	
 	/**
