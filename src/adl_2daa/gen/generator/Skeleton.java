@@ -10,11 +10,14 @@ import parsemis.extension.GraphPattern;
 import spmf.extension.algorithm.seqgen.SequentialPatternGen;
 import spmf.extension.prefixspan.JSPatternGen;
 import adl_2daa.ast.ASTStatement;
+import adl_2daa.ast.statement.Action;
 import adl_2daa.ast.structure.Agent;
 import adl_2daa.ast.structure.Root;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.ast.structure.State;
 import adl_2daa.gen.profile.AgentProfile;
+import adl_2daa.gen.profile.ReachProfile;
+import adl_2daa.gen.signature.GeneratorRegistry;
 
 public class Skeleton {
 
@@ -75,6 +78,41 @@ public class Skeleton {
 	
 	public void mergeNesting(List<GraphPattern<Integer,Integer>> relation){
 		NestingMerger.instance.merge(skel, relation);
+	}
+	
+	public void finalizeSkeleton(){
+		//Trim empty block
+		for(int i=skel.getRelatedAgents().size()-1; i>=0; i--){
+			Agent agent = skel.getRelatedAgents().get(i);
+			List<ASTStatement> seq;
+			if(agent.getDes() != null){
+				String dummyActionName = GeneratorRegistry.getActionName(
+						GeneratorRegistry.getDummyActionSignature().getMainSignature().getId()
+						);
+				seq = agent.getDes().getStatements();
+				for(int j=seq.size()-1; j>=0; j--){
+					if(seq.get(j) instanceof Action && ((Action)seq.get(j)).getName().equals(dummyActionName)){
+						seq.remove(j);
+					}
+				}
+			}
+			for(int j=agent.getStates().size()-1; j>=0; j--){
+				State state = agent.getStates().get(j);
+				for(int k=state.getSequences().size()-1; k>=0; k--){
+					if(state.getSequences().get(k).getStatements().size() == 0){
+						state.getSequences().remove(k);
+					}
+				}
+				if(state.getSequences().size() == 0){
+					agent.getStates().remove(j);
+				}
+			}
+		}
+		
+		//Analyze reach and modify key action target. If target is missing, use new target
+		IdentifierFiller.instance.fillMissingIdentifier(skel);
+		
+		System.out.println( (new ReachProfile(skel)).profileToString(skel) );
 	}
 	
 	public void saveAsScript(File dir) throws Exception{
