@@ -35,8 +35,6 @@ public class InterStateOrderMerger {
 		decodeRelation(desType, relation);
 		select(rootSkel, desType, useTag ? relation.getTag() : -1);
 		merge(desType);
-		ASTMergeOperator.fillIncompleteKeyAction(rootSkel, startingSkelSelection);
-		ASTMergeOperator.fillIncompleteKeyAction(rootSkel, targetSkelSelection);
 	}
 	
 	public void decodeAndDumpRelation(boolean desType, JSPatternGen<String> relation, StringBuilder strb){

@@ -30,7 +30,6 @@ public class OrderMerger {
 		decodeRelation(relation);
 		select(skel);
 		merge(skel);
-		ASTMergeOperator.fillIncompleteKeyAction(skel, selection);
 	}
 	
 	public void decodeAndDumpRelation(SequentialPatternGen<String> relation, StringBuilder strb){

@@ -14,7 +14,6 @@ import org.jacop.core.Store;
 import adl_2daa.ast.ASTStatement;
 import adl_2daa.ast.expression.Identifier;
 import adl_2daa.ast.statement.Action;
-import adl_2daa.ast.structure.Root;
 import adl_2daa.gen.filter.ASTNodeFilter;
 import adl_2daa.jacop.JaCopUtility;
 
@@ -303,8 +302,9 @@ public class ASTMergeOperator {
 	 * try to make every state/agent reachable (has incoming/outgoing transition).
 	 * Growing is done if needed
 	 */
-	//TODO: finish this - skel growing for key action with ? parameter
+	/*
 	public static void fillIncompleteKeyAction(Root skel, ASTSequenceSelection selection){
 		
 	}
+	*/
 }
