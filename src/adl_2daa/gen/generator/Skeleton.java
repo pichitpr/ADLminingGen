@@ -81,7 +81,7 @@ public class Skeleton {
 	}
 	
 	public void finalizeSkeleton(){
-		//Trim empty block
+		//Trim block
 		for(int i=skel.getRelatedAgents().size()-1; i>=0; i--){
 			Agent agent = skel.getRelatedAgents().get(i);
 			List<ASTStatement> seq;
@@ -91,8 +91,11 @@ public class Skeleton {
 						);
 				seq = agent.getDes().getStatements();
 				for(int j=seq.size()-1; j>=0; j--){
-					if(seq.get(j) instanceof Action && ((Action)seq.get(j)).getName().equals(dummyActionName)){
-						seq.remove(j);
+					if(seq.get(j) instanceof Action){
+						String actionName = ((Action)seq.get(j)).getName();
+						//NOTE:: temporary solution to issue #1 written on Github
+						if(actionName.equals("Goto") || actionName.equals("Despawn") || actionName.equals(dummyActionName))
+							seq.remove(j);
 					}
 				}
 			}
