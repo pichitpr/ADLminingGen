@@ -10,7 +10,7 @@ import adl_2daa.ast.expression.Function;
 import adl_2daa.ast.expression.IntConstant;
 import adl_2daa.ast.expression.StringConstant;
 import adl_2daa.gen.Utility;
-import adl_2daa.gen.generator.merger1.ASTUtility;
+import adl_2daa.gen.generator.ASTUtility;
 import adl_2daa.internal.Instruction;
 import adl_2daa.tool.ADLCompiler;
 
