@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.jacop.core.IntDomain;
@@ -36,6 +37,9 @@ public class IdentifierFiller {
 	private HashMap<Action, List<Integer>> gotoTarget;
 	private HashMap<Action, List<Integer>> spawnTarget;
 	
+	// A map indicating a sequence block that the action is in
+	private HashMap<Action, List<ASTStatement>> spawnOwningSequence;
+	
 	/*
 	 * Label map for Agent/State. Get the label using List#indexOf
 	 */
@@ -46,14 +50,45 @@ public class IdentifierFiller {
 	 * Fill all Goto/Spawn 's missing identifier and ensure that as many existing Agent/State are reachable. 
 	 */
 	//NOTE:: future feature: Spawn may be added to ensure all Agents are spawned. Goto may be added at the valid spot in the code
+	//Reachability from first state???
 	public void fillMissingIdentifier(Root root){
 		reachProfile = new ReachProfile(root);
 		gotoTarget = new HashMap<Action, List<Integer>>();
 		spawnTarget = new HashMap<Action, List<Integer>>();
+		spawnOwningSequence = new HashMap<Action, List<ASTStatement>>();
 		constructEntityLabel(root);
-		populateTargetMap(root);
+		
+		//First phase: Fill missing identifier so that unreachable target can be reached (as many as possible)
+		populateTargetMap(root, true);
 		assignTarget(true);
 		assignTarget(false);
+		
+		//Second phase: Fill the remaining missing identifier
+		gotoTarget.clear();
+		spawnTarget.clear();
+		populateTargetMap(root, false);
+		for(Entry<Action, List<Integer>> entry : gotoTarget.entrySet()){
+			entry.getKey().getParams()[0] = new Identifier("."+
+					stateLabelMap.get(ASTUtility.randomUniform(entry.getValue())).getIdentifier()
+					);
+		}
+		for(Entry<Action, List<Integer>> entry : spawnTarget.entrySet()){
+			if(entry.getValue().size() == 0){
+				//If no valid spawn target, trim Spawn()
+				Action action = entry.getKey();
+				List<ASTStatement> block = spawnOwningSequence.get(action);
+				for(int i=0; i<block.size(); i++){
+					if(block.get(i) == action){
+						block.remove(i);
+						break;
+					}
+				}
+			}else{
+				entry.getKey().getParams()[0] = new Identifier("."+
+						agentLabelMap.get(ASTUtility.randomUniform(entry.getValue())).getIdentifier()
+						);
+			}
+		}
 	}
 	
 	private void constructEntityLabel(Root root){
@@ -67,39 +102,49 @@ public class IdentifierFiller {
 		}
 	}
 	
-	private void populateTargetMap(Root root){
+	private void populateTargetMap(Root root, boolean unreachableOnly){
 		for(Agent agent : root.getRelatedAgents()){
 			if(agent.getDes() != null){
-				populateTargetMap(root, agent, null, agent.getDes().getStatements());
+				populateTargetMap(root, agent, null, agent.getDes().getStatements(), unreachableOnly);
 			}
 			for(State state : agent.getStates()){
 				for(Sequence seq : state.getSequences()){
-					populateTargetMap(root, agent, state, seq.getStatements());
+					populateTargetMap(root, agent, state, seq.getStatements(), unreachableOnly);
 				}
 			}
 		}
 	}
 	
-	private void populateTargetMap(Root owningRoot, Agent owningAgent, State owningState, List<ASTStatement> seq){
+	private void populateTargetMap(Root owningRoot, Agent owningAgent, State owningState, List<ASTStatement> seq, 
+			boolean unreachableOnly){
 		for(ASTStatement st : seq){
 			if(st instanceof Action){
 				Action action = (Action)st;
 				ASTExpression param;
+				Agent mainAgent = null;
 				List<Integer> labelList;
 				if(action.getName().equals("Spawn")){
 					param = action.getParams()[0];
 					labelList = new LinkedList<Integer>();
 					if(param instanceof ExpressionSkeleton){
 						for(Agent agent : owningRoot.getRelatedAgents()){
-							if(agent == owningAgent){
-								//Do not spawn its own
+							if(mainAgent == null){
+								mainAgent = agent;
+							}
+							if(agent == owningAgent || agent == mainAgent){
+								//Do not spawn its own OR main agent
 								continue;
 							}
-							if(!reachProfile.hasSpawnReach(agent)){
+							if(!unreachableOnly || !reachProfile.hasSpawnReach(agent)){
 								labelList.add(agentLabelMap.indexOf(agent));
 							}
 						}
 						spawnTarget.put(action, labelList);
+						
+						//Second phase, we need to collect enclosing block so that we can trim this action if needed
+						if(!unreachableOnly){
+							spawnOwningSequence.put(action, seq);
+						}
 					}
 				}else if(action.getName().equals("Goto")){
 					if(owningState == null){
@@ -114,7 +159,7 @@ public class IdentifierFiller {
 								//Goto  must not transition to its own state
 								continue;
 							}
-							if(!reachProfile.hasTransitionReach(state)){
+							if(!unreachableOnly || !reachProfile.hasTransitionReach(state)){
 								labelList.add(stateLabelMap.indexOf(state));
 							}
 						}
@@ -123,12 +168,12 @@ public class IdentifierFiller {
 				}
 			}else if(st instanceof Condition){
 				Condition cond = (Condition)st;
-				populateTargetMap(owningRoot, owningAgent, owningState, cond.getIfblock());
+				populateTargetMap(owningRoot, owningAgent, owningState, cond.getIfblock(), unreachableOnly);
 				if(cond.getElseblock() != null){
-					populateTargetMap(owningRoot, owningAgent, owningState, cond.getElseblock());
+					populateTargetMap(owningRoot, owningAgent, owningState, cond.getElseblock(), unreachableOnly);
 				}
 			}else{
-				populateTargetMap(owningRoot, owningAgent, owningState, ((Loop)st).getContent());
+				populateTargetMap(owningRoot, owningAgent, owningState, ((Loop)st).getContent(), unreachableOnly);
 			}
 		}
 	}
@@ -138,6 +183,8 @@ public class IdentifierFiller {
 		
 		HashMap<Action, List<Integer>> possibleTargetMap = assignForGoto ? gotoTarget : spawnTarget;
 		Set<Action> actions = possibleTargetMap.keySet();
+		if(actions.size() == 0)
+			return;
 		IntDomain[] doms = new IntDomain[actions.size()];
 		Iterator<Action> it = actions.iterator();
 		int index=0;
