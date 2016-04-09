@@ -33,6 +33,7 @@ import adl_2daa.gen.generator.ASTNode;
 import adl_2daa.gen.generator.ASTSequenceWrapper;
 import adl_2daa.jacop.CSPInstance;
 import adl_2daa.jacop.CSPTemplate;
+import adl_2daa.jacop.CSPTemplate.BestEffortAssignmentVariedCost;
 import adl_2daa.jacop.JaCopUtility;
 
 
@@ -241,8 +242,13 @@ public class ASTFilterOperator {
 				/*System.out.println("======== "+agent.getActualAgent().getIdentifier()+"."+
 						state.getActualState().getIdentifier()+" =======");*/
 				//Testing for current state
-				SpawnMatchProblem spawnMatchCSP = new SpawnMatchProblem(
-						wrappedRel.size(), state.getResultSequences().size());
+				/*
+				 * Variable= relation, Domain value= target sequence index that this relation should be merged with
+				 * Result
+				 * var[i*2] : specify a sequence that i-th relation should be matched to.
+				 * var[i*2+1 : corresponding non-matched cost
+				 */
+				BestEffortAssignmentVariedCost spawnMatchCSP = new BestEffortAssignmentVariedCost(wrappedRel.size());
 				
 				//Construct skel-rel non-match cost table, calculate cost threshold
 				//A valid solution's non-match cost must not equals to this threshold
@@ -260,12 +266,12 @@ public class ASTFilterOperator {
 						int matchCount = lcsResult.iterator().next().size();
 						int nonMatchCost = highestNonMatchCost - matchCount;
 						assert(nonMatchCost >= 0);
-						spawnMatchCSP.putNonMatchCost(relSeqIndex, skelSeqIndex, nonMatchCost);
+						spawnMatchCSP.putAssignmentCost(relSeqIndex, skelSeqIndex, nonMatchCost);
 						skelSeqIndex++;
 					}
 					
 					//Also add cost if relSeq is not matched with any skelSeq
-					spawnMatchCSP.putNotMatchedSequenceCase(relSeqIndex, highestNonMatchCost);
+					spawnMatchCSP.finalizeCostTableSetup(relSeqIndex, highestNonMatchCost);
 					
 					//Add cost to threshold
 					costThreshold += highestNonMatchCost;
@@ -309,100 +315,5 @@ public class ASTFilterOperator {
 				filteredAgent.add(new ResultAgent(agent.getActualAgent(), filteredState));
 		}
 		return filteredAgent;
-	}
-	
-	/**
-	 * CSP problem for matching multiple spawn() in merging parallel relation with existing
-	 * spawn() in skeleton as many as possible.<br/>
-	 * Result: <br/>
-	 * - var[i*2] : specify a sequence that i-th relation should be matched to.
-	 * If the value is less than 0, this means the relation cannot be matched.<br/>
-	 * - var[i*2+1] : related match score for i-th relation. Usually not used.
-	 */
-	private static class SpawnMatchProblem implements CSPTemplate{
-
-		//Every lowest non-match cost (highest match score) skel-rel sequence pairs
-		private HashMap<Integer,Integer>[] nonMatchCostTable; //<skelSeqIndex, nonMatchCost>
-		private int skelSeqCount;
-		private int uniqueDomain; //Unique value for relSeq when no skelSeq match
-		
-		@SuppressWarnings("unchecked")
-		public SpawnMatchProblem(int relSeqCount, int skelSeqCount){
-			nonMatchCostTable = new HashMap[relSeqCount];
-			for(int i=0; i<relSeqCount; i++){
-				nonMatchCostTable[i] = new HashMap<Integer,Integer>();
-			}
-			this.skelSeqCount = skelSeqCount;
-			uniqueDomain = -1;
-		}
-		
-		public void putNonMatchCost(int relSeqIndex, int skelSeqIndex, int nonMatchCost){
-			nonMatchCostTable[relSeqIndex].put(skelSeqIndex, nonMatchCost);
-		}
-		
-		public void putNotMatchedSequenceCase(int relSeqIndex, int highestNonMatchCost){
-			putNonMatchCost(relSeqIndex, uniqueDomain, highestNonMatchCost);
-			uniqueDomain--;
-		}
-		
-		public void printNonMatchCostTable(){
-			int relSeqIndex = 0;
-			for(HashMap<Integer,Integer> hash : nonMatchCostTable){
-				System.out.println("Relation sequence #"+relSeqIndex);
-				for(Entry<Integer,Integer> entry : hash.entrySet()){
-					System.out.println("Skel "+entry.getKey()+"= "+
-							entry.getValue());
-				}
-				relSeqIndex++;
-			}
-		}
-		
-		@Override
-		public CSPInstance newInstance() {
-			Store store = new Store();
-			//vars[i*2] = skelSeqIndex for i-th relation sequence
-			//vars[i*2+1] = non-match cost for i-th relation sequence when skelSeqIndex is selected
-			IntVar[] vars = new IntVar[nonMatchCostTable.length*2];
-			IntVar[] allDiffVars = new IntVar[nonMatchCostTable.length];
-			IntVar[] allMatchScoreVars = new IntVar[nonMatchCostTable.length];
-			IntVar costVar = new IntVar(store, 0, Integer.MAX_VALUE);
-			
-			//Every <skelSeqIndex, non-match cost> pairs for each relation sequence
-			for(int i=0; i<nonMatchCostTable.length; i++){
-				vars[i*2] = new IntVar(store, uniqueDomain, skelSeqCount-1);
-				//vars[i*2+1] = new IntVar(store, 0, Integer.MAX_VALUE);
-				vars[i*2+1] = new IntVar(store);
-				FSM fsm = new FSM();
-				FSMState start = new FSMState();
-				FSMState end = new FSMState();
-				fsm.allStates.add(start);
-				fsm.allStates.add(end);
-				fsm.initState = start;
-				fsm.finalStates.add(end);
-				for(Entry<Integer,Integer> entry : nonMatchCostTable[i].entrySet()){
-					FSMState intermediate = new FSMState();
-					fsm.allStates.add(intermediate);
-					start.transitions.add(new FSMTransition(
-							new IntervalDomain(entry.getKey(), entry.getKey()), intermediate)
-							);
-					intermediate.transitions.add(new FSMTransition(
-							new IntervalDomain(entry.getValue(), entry.getValue()), end)
-							);
-					//If this is <notMatchedID, highestNonMatchCost> case, setup nonMatchCost var domain
-					if(entry.getKey() < 0){
-						vars[i*2+1].addDom(0, entry.getValue());
-					}
-				}
-				store.impose(new Regular(fsm, new IntVar[]{vars[i*2], vars[i*2+1]} ));
-				
-				allDiffVars[i] = vars[i*2];
-				allMatchScoreVars[i] = vars[i*2+1];
-			}
-			
-			store.impose(new Alldiff(allDiffVars));
-			store.impose(new Sum(allMatchScoreVars, costVar));
-			
-			return new CSPInstance(store, vars, costVar);
-		}
 	}
 }
