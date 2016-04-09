@@ -1,10 +1,8 @@
 package adl_2daa.gen.filter;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
@@ -12,17 +10,8 @@ import java.util.function.Predicate;
 import lcs.LCSSequenceEmbedding;
 import lcs.SimpleLCSEmbedding;
 
-import org.jacop.constraints.Alldiff;
-import org.jacop.constraints.Count;
-import org.jacop.constraints.Sum;
-import org.jacop.constraints.regular.Regular;
 import org.jacop.core.IntDomain;
-import org.jacop.core.IntVar;
 import org.jacop.core.IntervalDomain;
-import org.jacop.core.Store;
-import org.jacop.util.fsm.FSM;
-import org.jacop.util.fsm.FSMState;
-import org.jacop.util.fsm.FSMTransition;
 
 import adl_2daa.ast.ASTStatement;
 import adl_2daa.ast.statement.Action;
@@ -31,7 +20,6 @@ import adl_2daa.ast.structure.Sequence;
 import adl_2daa.ast.structure.State;
 import adl_2daa.gen.generator.ASTNode;
 import adl_2daa.gen.generator.ASTSequenceWrapper;
-import adl_2daa.jacop.CSPInstance;
 import adl_2daa.jacop.CSPTemplate;
 import adl_2daa.jacop.CSPTemplate.BestEffortAssignmentVariedCost;
 import adl_2daa.jacop.JaCopUtility;
@@ -278,7 +266,6 @@ public class ASTFilterOperator {
 					
 					relSeqIndex++;
 				}
-				//spawnMatchCSP.printNonMatchCostTable();
 
 				//Solve and record if current state is qualified
 				int usedNonMatchCost = JaCopUtility.solveAllSolutionCSP(spawnMatchCSP);
