@@ -67,6 +67,68 @@ public class ReachProfile {
 		return !stateReach.get(state).isEmpty();
 	}
 	
+	public void updateSpawnReach(Agent agent, Agent spawner){
+		if(!agentReach.containsKey(agent)){
+			agentReach.put(agent, new ArrayList<Agent>());
+		}
+		agentReach.get(agent).add(spawner);
+	}
+	
+	public void updateTransitionReach(State state, State startingState){
+		if(!stateReach.containsKey(state)){
+			stateReach.put(state, new ArrayList<State>());
+		}
+		stateReach.get(state).add(startingState);
+	}
+	
+	public boolean initialStateCanReachAllOthers(Agent agent){
+		//Do not explore if provided agent is not profiled
+		if(!agentReach.containsKey(agent) || agent.getStates().size() == 0)
+			return false;
+		//[i][j] is true means that there is a transition from i-th state to j-th state 
+		boolean[][] stateReachTable = new boolean[agent.getStates().size()][agent.getStates().size()];
+		//Build initial reach table
+		for(int i=0; i<agent.getStates().size(); i++){
+			State targetState = agent.getStates().get(i);
+			stateReachTable[i][i] = true;
+			//Stop exploring if untracked state found
+			if(!stateReach.containsKey(targetState)){
+				return false;
+			}
+			for(State startingState : stateReach.get(targetState)){
+				int startingStateIndex = agent.getStates().indexOf(startingState);
+				//Stop exploring if untracked state found
+				if(startingStateIndex == -1){
+					return false;
+				}
+				stateReachTable[startingStateIndex][i] = true;
+			}
+		}
+		//Check if there is a reach to all other nodes
+		for(int i=1; i<agent.getStates().size(); i++){
+			if(!hasStateReach(0, i, stateReachTable, new boolean[stateReachTable.length]))
+				return false;
+		}
+		return true;
+	}
+	
+	private boolean hasStateReach(int from, int to, boolean[][] reachTable, boolean[] explored){
+		if(reachTable[from][to]) return true;
+		if(explored[from]) return false;
+		explored[from] = true;
+		for(int j=0; j<reachTable[from].length; j++){
+			if(j == from || j == to)
+				continue;
+			//Recursively do DFS using available edge from->j as stepping stone
+			if(reachTable[from][j]){
+				if(hasStateReach(j, to, reachTable, explored)){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 	private void populate(Root root){
 		for(Agent agent : root.getRelatedAgents()){
 			if(agent.getDes() != null){
