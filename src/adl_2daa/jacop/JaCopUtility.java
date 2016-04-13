@@ -6,6 +6,7 @@ import org.jacop.constraints.Alldiff;
 import org.jacop.constraints.Count;
 import org.jacop.constraints.Sum;
 import org.jacop.constraints.XeqC;
+import org.jacop.constraints.XltC;
 import org.jacop.core.Domain;
 import org.jacop.core.IntVar;
 import org.jacop.core.Store;
@@ -33,10 +34,21 @@ public class JaCopUtility {
 	}
 	
 	/**
-	 * Solve the given CSP problem and caches all solution. Minimum cost is also returned
+	 * Solve the given CSP problem and caches all solutions with minimum cost (if specified). Minimum cost is also returned
 	 * or 0 if no cost function provided
 	 */
 	public static int solveAllSolutionCSP(CSPTemplate problemTemplate){
+		return solveAllSolutionCSP(problemTemplate, Integer.MIN_VALUE);
+	}
+	
+	/**
+	 * Solve the given CSP problem and caches all solutions that has cost less than costThreshold (OR only solutions with
+	 * minimum cost if costThreshold == Integer.MIN_VALUE). <br/>
+	 * Return value: <br/>
+	 * - Minimum cost mode with cost variable provided: minimum cost <br/>
+	 * - Else: 0
+	 */
+	public static int solveAllSolutionCSP(CSPTemplate problemTemplate, int costThreshold){
 		CSPInstance problem = problemTemplate.newInstance();
 		
 		Search<IntVar> search = new DepthFirstSearch<IntVar>();
@@ -47,18 +59,22 @@ public class JaCopUtility {
 		solutions.recordSolutions(true);
 		int minimumCost = 0;
 		if(problem.getCostVar() != null){
-			search.labeling(problem.getStore(), select, problem.getCostVar());
-			minimumCost = problem.getCostVar().value();
-			problem = problemTemplate.newInstance();
-			problem.getStore().impose(new XeqC(problem.getCostVar(), minimumCost));
-			
-			//Recreate search strategy
-			search = new DepthFirstSearch<IntVar>();
-			search.setPrintInfo(false);
-			solutions = search.getSolutionListener();
-			select = new RandomSelect<IntVar>(problem.getVars(), new IndomainRandom<IntVar>());
-			solutions.searchAll(true);
-			solutions.recordSolutions(true);
+			if(costThreshold == Integer.MIN_VALUE){
+				search.labeling(problem.getStore(), select, problem.getCostVar());
+				minimumCost = problem.getCostVar().value();
+				problem = problemTemplate.newInstance();
+				problem.getStore().impose(new XeqC(problem.getCostVar(), minimumCost));
+
+				//Recreate search strategy
+				search = new DepthFirstSearch<IntVar>();
+				search.setPrintInfo(false);
+				solutions = search.getSolutionListener();
+				select = new RandomSelect<IntVar>(problem.getVars(), new IndomainRandom<IntVar>());
+				solutions.searchAll(true);
+				solutions.recordSolutions(true);
+			}else{
+				problem.getStore().impose(new XltC(problem.getCostVar(), costThreshold));
+			}
 		}
 		search.labeling(problem.getStore(), select);
 		
