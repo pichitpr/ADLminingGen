@@ -112,7 +112,7 @@ public class Skeleton {
 			}
 		}
 		
-		//Analyze reach and modify key action target. If target is missing, use new target
+		//Analyze reach and modify key action target.
 		IdentifierFiller.instance.fillMissingIdentifier(skel);
 		
 		System.out.println( (new ReachProfile(skel)).profileToString(skel) );

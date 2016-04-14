@@ -6,7 +6,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -34,7 +33,7 @@ public class IdentifierFiller {
 
 	public static IdentifierFiller instance = new IdentifierFiller();
 	
-	//Convienient class for storing action and enclosing sequence block together
+	//Convenient class for storing action and enclosing sequence block together
 	private static class ActionInfo {
 		private Agent agent;
 		private State state;
@@ -67,10 +66,11 @@ public class IdentifierFiller {
 	/*
 	 * A map indicating all possible Goto/Spawn targets according to reach profile.
 	 * Target Agent/State is specified by positive label instead of actual object. (Use indexOf to get the actual block from map)
+	 * Unreachable version only contains Agent/State that is currently unreachable (no incoming transition from others)
 	 */
-	private HashMap<ActionInfo, HashSet<Integer>> spawnTarget;
-	private HashMap<ActionInfo, HashSet<Integer>> gotoTarget;
-	private HashMap<GotoStub, HashSet<Integer>> gotoStubTarget;
+	private HashMap<ActionInfo, HashSet<Integer>> spawnTarget, spawnTargetUnreachable;
+	private HashMap<ActionInfo, HashSet<Integer>> gotoTarget, gotoTargetUnreachable;
+	private HashMap<GotoStub, HashSet<Integer>> gotoStubTarget, gotoStubTargetUnreachable;
 	
 	/*
 	 * A map indicating selected target. A default value -1 indicating no target
@@ -78,8 +78,6 @@ public class IdentifierFiller {
 	private HashMap<ActionInfo, Integer> spawnChosenTarget;
 	private HashMap<ActionInfo, Integer> gotoChosenTarget;
 	private HashMap<GotoStub, Integer> gotoStubChosenTarget;
-	
-	///////////TODO: Populate map in single pass and separate target set for unreachableOnly or not
 	
 	/*
 	 * Label map for Agent/State. Get the label using List#indexOf
@@ -95,20 +93,22 @@ public class IdentifierFiller {
 	public void fillMissingIdentifier(Root root){
 		reachProfile = new ReachProfile(root);
 		spawnTarget = new HashMap<ActionInfo, HashSet<Integer>>();
+		spawnTargetUnreachable = new HashMap<ActionInfo, HashSet<Integer>>();
 		gotoTarget = new HashMap<ActionInfo, HashSet<Integer>>();
+		gotoTargetUnreachable = new HashMap<ActionInfo, HashSet<Integer>>();
 		gotoStubTarget = new HashMap<GotoStub, HashSet<Integer>>();
+		gotoStubTargetUnreachable = new HashMap<GotoStub, HashSet<Integer>>();
 		spawnChosenTarget = new HashMap<ActionInfo, Integer>();
 		gotoChosenTarget = new HashMap<ActionInfo, Integer>();
 		gotoStubChosenTarget = new HashMap<GotoStub, Integer>();
 		constructEntityLabel(root);
+		populateTargetMap(root, true);
 		
 		//Phase 1 : try to cover unreachable Agent/State
-		populateTargetMap(root, true, true);
 		assignSpawnTargetWithCSP();
 		assignGotoTargetWithCSP(root);
 		
 		//Phase 2 : apply result + fill the remaining
-		populateTargetMap(root, false, false);
 		applyTarget();
 	}
 	
@@ -124,39 +124,40 @@ public class IdentifierFiller {
 	}
 
 	/**
-	 * Populate target for all target maps. The result is appended to the existing one. 
-	 * If unreachableOnly is true, this method only consider Agent/State as target
-	 * if it has no reach according to current reachProfile. This method also helps setup chosen target with default value (if needed).
+	 * Populate target for all target maps. This method also helps setup chosen target with default value (if needed).
 	 */
-	private void populateTargetMap(Root root, boolean unreachableOnly, boolean setupChosenTarget){
+	private void populateTargetMap(Root root, boolean setupChosenTarget){
 		for(Agent agent : root.getRelatedAgents()){
 			if(agent.getDes() != null){
-				populateTargetMap(root, agent, null, agent.getDes(), agent.getDes().getStatements(), 
-						unreachableOnly, setupChosenTarget);
+				populateTargetMap(root, agent, null, agent.getDes(), agent.getDes().getStatements(), setupChosenTarget);
 			}
 			for(State state : agent.getStates()){
 				for(Sequence seq : state.getSequences()){
-					populateTargetMap(root, agent, state, seq, seq.getStatements(), unreachableOnly, setupChosenTarget);
+					populateTargetMap(root, agent, state, seq, seq.getStatements(), setupChosenTarget);
 					ASTSequenceWrapper wrappedSequence = new ASTSequenceWrapper(seq.getStatements());
 					List<Integer> eobSlots = wrappedSequence.getValidSlots(
 							ASTNodeFilter.eobTransitionSlotFilter(null, false, false)
 							);
 					if(eobSlots.isEmpty()) continue;
 					
-					//Setup GotoStub
+					//Find all possible targets for current stub
 					HashSet<Integer> labelSet = new HashSet<Integer>();
+					HashSet<Integer> unreachableLabelSet = new HashSet<Integer>();
 					for(State _state : agent.getStates()){
 						if(state == _state){
 							//Goto must not transition to its own state
 							continue;
 						}
-						if(!unreachableOnly || !reachProfile.hasTransitionReach(_state)){
-							labelSet.add(stateLabelMap.indexOf(_state));
+						labelSet.add(stateLabelMap.indexOf(_state));
+						if(!reachProfile.hasTransitionReach(_state)){
+							unreachableLabelSet.add(stateLabelMap.indexOf(_state));
 						}
 					}
+					//Setup stub map
 					for(Integer stubIndex : eobSlots){
 						GotoStub stub = new GotoStub(state, wrappedSequence, stubIndex);
 						gotoStubTarget.put(stub, new HashSet<Integer>(labelSet));
+						gotoStubTargetUnreachable.put(stub, new HashSet<Integer>(unreachableLabelSet));
 						if(setupChosenTarget)
 							gotoStubChosenTarget.put(stub, -1);
 					}
@@ -166,17 +167,18 @@ public class IdentifierFiller {
 	}
 	
 	private void populateTargetMap(Root owningRoot, Agent owningAgent, State owningState, Sequence owningSequence, 
-			List<ASTStatement> enclosingBlock, boolean unreachableOnly, boolean setupChosenTarget){
+			List<ASTStatement> enclosingBlock, boolean setupChosenTarget){
 		for(ASTStatement st : enclosingBlock){
 			if(st instanceof Action){
 				Action action = (Action)st;
 				ASTExpression param;
 				Agent mainAgent = null;
-				HashSet<Integer> labelSet;
+				HashSet<Integer> labelSet, unreachableLabelSet;
 				ActionInfo actionInfo;
 				if(action.getName().equals("Spawn")){
 					param = action.getParams()[0];
 					labelSet = new HashSet<Integer>();
+					unreachableLabelSet = new HashSet<Integer>();
 					if(param instanceof ExpressionSkeleton){
 						for(Agent agent : owningRoot.getRelatedAgents()){
 							if(mainAgent == null){
@@ -186,12 +188,14 @@ public class IdentifierFiller {
 								//Do not spawn its own OR main agent
 								continue;
 							}
-							if(!unreachableOnly || !reachProfile.hasSpawnReach(agent)){
-								labelSet.add(agentLabelMap.indexOf(agent));
+							labelSet.add(agentLabelMap.indexOf(agent));
+							if(!reachProfile.hasSpawnReach(agent)){
+								unreachableLabelSet.add(agentLabelMap.indexOf(agent));
 							}
 						}
 						actionInfo = new ActionInfo(owningAgent, owningState, owningSequence, action);
 						spawnTarget.put(actionInfo, labelSet);
+						spawnTargetUnreachable.put(actionInfo, unreachableLabelSet);
 						if(setupChosenTarget)
 							spawnChosenTarget.put(actionInfo, -1);
 					}
@@ -202,64 +206,71 @@ public class IdentifierFiller {
 					}
 					param = action.getParams()[0];
 					labelSet = new HashSet<Integer>();
+					unreachableLabelSet = new HashSet<Integer>();
 					if(param instanceof ExpressionSkeleton){
 						for(State state : owningAgent.getStates()){
 							if(state == owningState){
 								//Goto  must not transition to its own state
 								continue;
 							}
-							if(!unreachableOnly || !reachProfile.hasTransitionReach(state)){
-								labelSet.add(stateLabelMap.indexOf(state));
+							labelSet.add(stateLabelMap.indexOf(state));
+							if(!reachProfile.hasTransitionReach(state)){
+								unreachableLabelSet.add(stateLabelMap.indexOf(state));
 							}
 						}
 						actionInfo = new ActionInfo(owningAgent, owningState, owningSequence, action);
 						gotoTarget.put(actionInfo, labelSet);
+						gotoTargetUnreachable.put(actionInfo, unreachableLabelSet);
 						if(setupChosenTarget)
 							gotoChosenTarget.put(actionInfo, -1);
 					}
 				}
 			}else if(st instanceof Condition){
 				Condition cond = (Condition)st;
-				populateTargetMap(owningRoot, owningAgent, owningState, owningSequence, cond.getIfblock(), 
-						unreachableOnly, setupChosenTarget);
+				populateTargetMap(owningRoot, owningAgent, owningState, owningSequence, cond.getIfblock(), setupChosenTarget);
 				if(cond.getElseblock() != null){
 					populateTargetMap(owningRoot, owningAgent, owningState, owningSequence, cond.getElseblock(), 
-							unreachableOnly, setupChosenTarget);
+							setupChosenTarget);
 				}
 			}else{
 				populateTargetMap(owningRoot, owningAgent, owningState, owningSequence, ((Loop)st).getContent(), 
-						unreachableOnly, setupChosenTarget);
+						setupChosenTarget);
 			}
 		}
 	}
 	
 	/**
-	 * Assign spawn target (in the map, not applying to the actual sequence) using BestEffortAllDiff.
-	 * ReachProfile is also updated. Spawn target map must be populated before calling this.
+	 * Assign spawn target (in the map, not applying to the actual sequence) to cover unreachable Agent using BestEffortAllDiff.
+	 * ReachProfile is also updated. Unreachable Spawn target map must be populated before calling this.
 	 */
 	private void assignSpawnTargetWithCSP(){
-		if(spawnTarget.size() == 0){
+		if(spawnTargetUnreachable.size() == 0){
 			//Do nothing if there is no Spawn(#IDENTIFIER)
 			return;
 		}
-		Set<ActionInfo> actions = spawnTarget.keySet();
+		Set<ActionInfo> actions = spawnTargetUnreachable.keySet();
 		IntDomain[] doms = new IntDomain[actions.size()];
 		Iterator<ActionInfo> it = actions.iterator();
 		int index=0;
-		int noTargetLabel = Integer.MIN_VALUE; //Some actions may has no specific target by default
+		//int noTargetLabel = Integer.MIN_VALUE; //Some actions may has no specific target by default
 		//Convert possible target label into IntDomain
 		while(it.hasNext()){
-			HashSet<Integer> possibleTarget = spawnTarget.get(it.next());
+			HashSet<Integer> possibleTarget = spawnTargetUnreachable.get(it.next());
 			if(possibleTarget.isEmpty()){
 				doms[index] = new IntervalDomain();
+				/*
 				doms[index].unionAdapt(noTargetLabel, noTargetLabel);
+				System.out.print(noTargetLabel);
 				noTargetLabel++;
+				*/
 			}else{
 				doms[index] = new IntervalDomain();
 				for(Integer targetLabel : possibleTarget){
 					doms[index].unionAdapt(targetLabel, targetLabel);
+					System.out.print(targetLabel+" , ");
 				}
 			}
+			System.out.println("");
 			index++;
 		}
 		
@@ -282,12 +293,12 @@ public class IdentifierFiller {
 	}
 	
 	/**
-	 * Assign goto target (in the map, not applying to the actual sequence) using BestEffortAllDiffVariedCost.
-	 * This method tries to cover all unreachable state without using stub first. This method update ReachProfile. 
-	 * Goto/GotoStub target map must be populated before calling this.
+	 * Assign goto target (in the map, not applying to the actual sequence) to cover unreachable state using 
+	 * BestEffortAllDiffVariedCost. This method tries to cover all unreachable state without using stub first. 
+	 * This method update ReachProfile. Unreachable Goto/GotoStub target map must be populated before calling this.
 	 */
 	private void assignGotoTargetWithCSP(Root root){
-		if(gotoTarget.size()+gotoStubTarget.size() == 0){
+		if(gotoTargetUnreachable.size()+gotoStubTargetUnreachable.size() == 0){
 			//Do nothing if there is no Goto(#IDENTIFIER) and no slot to insert Goto stub
 			return;
 		}
@@ -304,16 +315,16 @@ public class IdentifierFiller {
 		
 		//Solve with cost threshold mode
 		BestEffortAssignmentVariedCost csp = new CSPTemplate.BestEffortAssignmentVariedCost(
-				gotoTarget.size()+gotoStubTarget.size());
+				gotoTargetUnreachable.size()+gotoStubTargetUnreachable.size());
 		int index = 0;
-		for(Entry<ActionInfo,HashSet<Integer>> entry : gotoTarget.entrySet()){
+		for(Entry<ActionInfo,HashSet<Integer>> entry : gotoTargetUnreachable.entrySet()){
 			for(Integer target : entry.getValue()){
 				csp.putAssignmentCost(index, target, 0);
 			}
 			csp.finalizeCostTableSetup(index, 100);
 			index++;
 		}
-		for(Entry<GotoStub,HashSet<Integer>> entry : gotoStubTarget.entrySet()){
+		for(Entry<GotoStub,HashSet<Integer>> entry : gotoStubTargetUnreachable.entrySet()){
 			for(Integer target : entry.getValue()){
 				csp.putAssignmentCost(index, target, 10);
 			}
@@ -347,19 +358,19 @@ public class IdentifierFiller {
 		for(Integer solIndex : solutionIndices){
 			//Check reachability of solution
 			int[] checkedSolution = solutions[solIndex];
-			assert(checkedSolution.length/2 == gotoTarget.size()+gotoStubTarget.size());
+			assert(checkedSolution.length/2 == gotoTargetUnreachable.size()+gotoStubTargetUnreachable.size());
 			
 			//First, setup temporary ReachProfile using current solution that we want to check
 			ReachProfile tempProfile = new ReachProfile(root);
 			index = 0;
-			for(ActionInfo actionInfo : gotoTarget.keySet()){
+			for(ActionInfo actionInfo : gotoTargetUnreachable.keySet()){
 				int target = checkedSolution[index*2];
 				if(target >= 0){
 					tempProfile.updateTransitionReach(stateLabelMap.get(target), actionInfo.state);
 				}
 				index++;
 			}
-			for(GotoStub stub : gotoStubTarget.keySet()){
+			for(GotoStub stub : gotoStubTargetUnreachable.keySet()){
 				int target = checkedSolution[index*2];
 				if(target >= 0){
 					tempProfile.updateTransitionReach(stateLabelMap.get(target), stub.owningState);
@@ -403,7 +414,7 @@ public class IdentifierFiller {
 		
 		//Update chosen target and actual ReachProfile
 		index = 0;
-		for(ActionInfo actionInfo : gotoTarget.keySet()){
+		for(ActionInfo actionInfo : gotoTargetUnreachable.keySet()){
 			int target = selectedSolution[index*2];
 			if(target >= 0){
 				gotoChosenTarget.put(actionInfo, target);
@@ -411,7 +422,7 @@ public class IdentifierFiller {
 			}
 			index++;
 		}
-		for(GotoStub stub : gotoStubTarget.keySet()){
+		for(GotoStub stub : gotoStubTargetUnreachable.keySet()){
 			int target = selectedSolution[index*2];
 			if(target >= 0){
 				gotoStubChosenTarget.put(stub, target);
@@ -423,10 +434,10 @@ public class IdentifierFiller {
 	
 	/**
 	 * Assign target for an action, also generate Goto from stub and insert into sequence. If target is not specified for an action,
-	 * this method randomly pick 1 target from target map. If there is no available target for picking, this method remove the
+	 * this method randomly pick 1 target from target map. If there is no available target for picking, this method removes the
 	 * action from its sequence. Target map must be populated before calling.
 	 */
-	private void applyTarget(){
+	private void applyTarget(){		
 		//Insert stub first since insertion relies on slot index which can be changed during target assignment phase
 		HashSet<ASTSequenceWrapper> allWrappedSequences = new HashSet<ASTSequenceWrapper>();
 		for(Entry<GotoStub,Integer> stubTargetPair : gotoStubChosenTarget.entrySet()){
@@ -444,6 +455,23 @@ public class IdentifierFiller {
 		}
 		
 		//Assign Goto() target, remove an action if needed
+		for(Entry<ActionInfo,Integer> gotoTargetPair : gotoChosenTarget.entrySet()){
+			Action gotoAction = gotoTargetPair.getKey().action;
+			int targetLabel = gotoTargetPair.getValue();
+			if(targetLabel == -1){
+				//No assign label, try to get one randomly
+				HashSet<Integer> allPossibleTarget = gotoTarget.get(gotoTargetPair.getKey());
+				if(!allPossibleTarget.isEmpty()){
+					targetLabel = ASTUtility.randomUniform(allPossibleTarget);
+				}
+			}
+			if(targetLabel == -1){
+				ActionInfo info = gotoTargetPair.getKey();
+				info.sequence.getStatements().remove(info.action);
+			}else{
+				gotoAction.getParams()[0] = new Identifier("."+stateLabelMap.get(targetLabel).getIdentifier());
+			}
+		}
 		
 		//Assign Spawn() target, remove an action if needed
 		for(Entry<ActionInfo,Integer> spawnTargetPair : spawnChosenTarget.entrySet()){
@@ -453,11 +481,13 @@ public class IdentifierFiller {
 				//No assign label, try to get one randomly
 				HashSet<Integer> allPossibleTarget = spawnTarget.get(spawnTargetPair.getKey());
 				if(!allPossibleTarget.isEmpty()){
-					//////////////////////////////////////////////
+					targetLabel = ASTUtility.randomUniform(allPossibleTarget);
 				}
 			}
 			if(targetLabel == -1){
-				
+				ActionInfo info = spawnTargetPair.getKey();
+				//NOTE:: sometime, remove return false but there is no bad action in the generated result
+				info.sequence.getStatements().remove(info.action);
 			}else{
 				spawnAction.getParams()[0] = new Identifier("."+agentLabelMap.get(targetLabel).getIdentifier());
 			}
