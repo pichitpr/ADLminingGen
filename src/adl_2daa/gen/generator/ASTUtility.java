@@ -1,6 +1,7 @@
 package adl_2daa.gen.generator;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -77,8 +78,15 @@ public class ASTUtility {
 	/**
 	 * Precondition: non-empty list
 	 */
-	public static <T> T randomUniform(List<T> list){
-		return list.get(randomRange(0, list.size()-1));
+	public static <T> T randomUniform(Collection<T> collection){
+		int index = randomRange(0, collection.size()-1);
+		int i=0;
+		for(T item : collection){
+			if(i == index)
+				return item;
+			i++;
+		}
+		return null;
 	}
 	
 	/**
