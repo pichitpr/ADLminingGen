@@ -136,10 +136,8 @@ public interface CSPTemplate {
 					intermediate.transitions.add(new FSMTransition(
 							new IntervalDomain(entry.getValue(), entry.getValue()), end)
 							);
-					//Also setup domain for corresponding cost
-					if(entry.getKey() < 0){
-						vars[i*2+1].addDom(0, entry.getValue());
-					}
+					//Also setup domain for corresponding cost by union every possible cost to the domain
+					vars[i*2+1].addDom(0, entry.getValue());
 				}
 				store.impose(new Regular(fsm, new IntVar[]{vars[i*2], vars[i*2+1]} ));
 				
