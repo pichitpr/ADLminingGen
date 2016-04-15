@@ -90,6 +90,7 @@ public class IdentifierFiller {
 	 * Goto() may be added to cover unreachable state. This method try to make as many states connected with initial state
 	 * as possible 
 	 */
+	//NOTE:: Spawn coverage is not checked and covered
 	public void fillMissingIdentifier(Root root){
 		reachProfile = new ReachProfile(root);
 		spawnTarget = new HashMap<ActionInfo, HashSet<Integer>>();
@@ -153,6 +154,14 @@ public class IdentifierFiller {
 							unreachableLabelSet.add(stateLabelMap.indexOf(_state));
 						}
 					}
+					/*
+					System.out.print(agent.getIdentifier()+"."+state.getIdentifier()+"."+seq.getIdentifier()+" has "+eobSlots.size()
+							+" stub, reach: ");
+					for(Integer label : unreachableLabelSet){
+						System.out.print(stateLabelMap.get(label).getIdentifier()+"("+label+") ");
+					}
+					System.out.println("");
+					*/
 					//Setup stub map
 					for(Integer stubIndex : eobSlots){
 						GotoStub stub = new GotoStub(state, wrappedSequence, stubIndex);
@@ -223,6 +232,14 @@ public class IdentifierFiller {
 						gotoTargetUnreachable.put(actionInfo, unreachableLabelSet);
 						if(setupChosenTarget)
 							gotoChosenTarget.put(actionInfo, -1);
+						/*
+						System.out.print(owningAgent.getIdentifier()+"."+owningState.getIdentifier()+"."+owningSequence.getIdentifier()
+								+" reach: ");
+						for(Integer label : unreachableLabelSet){
+							System.out.print(stateLabelMap.get(label).getIdentifier()+"("+label+") ");
+						}
+						System.out.println("");
+						*/
 					}
 				}
 			}else if(st instanceof Condition){
@@ -267,10 +284,8 @@ public class IdentifierFiller {
 				doms[index] = new IntervalDomain();
 				for(Integer targetLabel : possibleTarget){
 					doms[index].unionAdapt(targetLabel, targetLabel);
-					System.out.print(targetLabel+" , ");
 				}
 			}
-			System.out.println("");
 			index++;
 		}
 		
@@ -334,7 +349,7 @@ public class IdentifierFiller {
 		JaCopUtility.solveAllSolutionCSP(csp, costThreshold);
 		int[][] solutions = JaCopUtility.allPrecalculatedAssignments();
 		assert(solutions.length > 0); //Always have solution because BestEffort approach
-		
+
 		//Sort solutions by cost (lower cost comes first)
 		final int[] solutionCost = new int[solutions.length];
 		Integer[] solutionIndices = new Integer[solutions.length];
@@ -343,6 +358,7 @@ public class IdentifierFiller {
 			for(int j=1; j<solutions[i].length; j+=2){
 				solutionCost[i] += solutions[i][j];
 			}
+			//System.out.println("SOL "+i+" cost "+solutionCost[i]);
 		}
 		Arrays.sort(solutionIndices, new Comparator<Integer>() {
 			@Override
@@ -385,6 +401,7 @@ public class IdentifierFiller {
 					allReachedAgentCount++;
 				}
 			}
+			//System.out.println("SOL "+solIndex+" reach count "+allReachedAgentCount);
 			
 			//Record value if the solution is good enough OR reset if there is better one
 			if(allReachedAgentCount > highestAllReachedAgentCount){
@@ -445,7 +462,7 @@ public class IdentifierFiller {
 			if(targetLabel > -1){
 				GotoStub stub = stubTargetPair.getKey();
 				List<ASTExpression> param = new ArrayList<ASTExpression>();
-				param.add(new Identifier("."+stateLabelMap.get(targetLabel)));
+				param.add(new Identifier("."+stateLabelMap.get(targetLabel).getIdentifier()));
 				stub.owningWrappedSequence.queueInsertion(stub.insertionIndex, new Action("Goto", param));
 				allWrappedSequences.add(stub.owningWrappedSequence);
 			}

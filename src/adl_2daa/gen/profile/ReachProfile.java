@@ -83,8 +83,9 @@ public class ReachProfile {
 	
 	public boolean initialStateCanReachAllOthers(Agent agent){
 		//Do not explore if provided agent is not profiled
-		if(!agentReach.containsKey(agent) || agent.getStates().size() == 0)
+		if(!agentReach.containsKey(agent) || agent.getStates().size() == 0){
 			return false;
+		}
 		//[i][j] is true means that there is a transition from i-th state to j-th state 
 		boolean[][] stateReachTable = new boolean[agent.getStates().size()][agent.getStates().size()];
 		//Build initial reach table
@@ -96,6 +97,10 @@ public class ReachProfile {
 				return false;
 			}
 			for(State startingState : stateReach.get(targetState)){
+				if(startingState == null){
+					//Skip null symbol (used to indicate initial state)
+					continue;
+				}
 				int startingStateIndex = agent.getStates().indexOf(startingState);
 				//Stop exploring if untracked state found
 				if(startingStateIndex == -1){

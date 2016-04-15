@@ -115,7 +115,7 @@ public class Skeleton {
 		//Analyze reach and modify key action target.
 		IdentifierFiller.instance.fillMissingIdentifier(skel);
 		
-		System.out.println( (new ReachProfile(skel)).profileToString(skel) );
+		//System.out.println( (new ReachProfile(skel)).profileToString(skel) );
 	}
 	
 	public void saveAsScript(File dir) throws Exception{
