@@ -38,12 +38,14 @@ public class IdentifierFiller {
 		private Agent agent;
 		private State state;
 		private Sequence sequence;
+		private List<ASTStatement> block;
 		private Action action;
 		
-		private ActionInfo(Agent agent, State state, Sequence sequence, Action action){
+		private ActionInfo(Agent agent, State state, Sequence sequence, List<ASTStatement> block, Action action){
 			this.agent = agent;
 			this.state = state;
 			this.sequence = sequence;
+			this.block = block;
 			this.action = action;
 		}
 	}
@@ -202,7 +204,7 @@ public class IdentifierFiller {
 								unreachableLabelSet.add(agentLabelMap.indexOf(agent));
 							}
 						}
-						actionInfo = new ActionInfo(owningAgent, owningState, owningSequence, action);
+						actionInfo = new ActionInfo(owningAgent, owningState, owningSequence, enclosingBlock, action);
 						spawnTarget.put(actionInfo, labelSet);
 						spawnTargetUnreachable.put(actionInfo, unreachableLabelSet);
 						if(setupChosenTarget)
@@ -227,7 +229,7 @@ public class IdentifierFiller {
 								unreachableLabelSet.add(stateLabelMap.indexOf(state));
 							}
 						}
-						actionInfo = new ActionInfo(owningAgent, owningState, owningSequence, action);
+						actionInfo = new ActionInfo(owningAgent, owningState, owningSequence, enclosingBlock, action);
 						gotoTarget.put(actionInfo, labelSet);
 						gotoTargetUnreachable.put(actionInfo, unreachableLabelSet);
 						if(setupChosenTarget)
@@ -484,7 +486,7 @@ public class IdentifierFiller {
 			}
 			if(targetLabel == -1){
 				ActionInfo info = gotoTargetPair.getKey();
-				info.sequence.getStatements().remove(info.action);
+				info.block.remove(info.action);
 			}else{
 				gotoAction.getParams()[0] = new Identifier("."+stateLabelMap.get(targetLabel).getIdentifier());
 			}
@@ -504,7 +506,7 @@ public class IdentifierFiller {
 			if(targetLabel == -1){
 				ActionInfo info = spawnTargetPair.getKey();
 				//NOTE:: sometime, remove return false but there is no bad action in the generated result
-				info.sequence.getStatements().remove(info.action);
+				info.block.remove(info.action);
 			}else{
 				spawnAction.getParams()[0] = new Identifier("."+agentLabelMap.get(targetLabel).getIdentifier());
 			}
