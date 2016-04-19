@@ -16,13 +16,37 @@ import adl_2daa.ast.structure.Root;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.ast.structure.State;
 import adl_2daa.gen.profile.AgentProfile;
-import adl_2daa.gen.profile.ReachProfile;
+import adl_2daa.gen.profile.AgentProperties;
 import adl_2daa.gen.signature.GeneratorRegistry;
 
 public class Skeleton {
 
 	private String identifier;
 	private Root skel;
+	
+	private Sequence dirtyInitForMain(){
+		AgentProperties prop = new AgentProperties();
+		prop.texture = 4;
+		prop.position = "c(320,400)";
+		prop.direction = "west";
+		prop.collider = "32,48";
+		prop.gravityeff = 1f;
+		prop.hp  = 100;
+		prop.attacker = true;
+		prop.atk = 10;
+		prop.defender = true;
+		return prop.toInit();
+	}
+	
+	private Sequence dirtyInitForChild(){
+		AgentProperties prop = new AgentProperties();
+		prop.texture = 6;
+		prop.collider = "16,16";
+		prop.projectile = true;
+		prop.attacker = true;
+		prop.atk = 1;
+		return prop.toInit();
+	}
 	
 	/**
 	 * Generate initial skeleton from profiles, there must be at least 1 profile.
@@ -36,10 +60,11 @@ public class Skeleton {
 		skel = new Root(agents);
 		
 		for(int i=0; i<profiles.length; i++){
-			List<ASTStatement> init = new LinkedList<ASTStatement>();
+			//List<ASTStatement> init = new LinkedList<ASTStatement>();
+			Sequence init = profiles[0].isMainAgent() ? dirtyInitForMain() : dirtyInitForChild();
 			List<ASTStatement> des = new LinkedList<ASTStatement>();
 			List<State> states = new LinkedList<State>();
-			Agent agent = new Agent("agent"+i, new Sequence("init", init), 
+			Agent agent = new Agent("agent"+i, init,//new Sequence("init", init), 
 					new Sequence("des", des), states);
 			
 			assert(profiles[i].getStructureInfo().length > 0);
@@ -114,6 +139,16 @@ public class Skeleton {
 		
 		//Analyze reach and modify key action target.
 		IdentifierFiller.instance.fillMissingIdentifier(skel);
+		
+		//Fill init for remaining agents
+		for(Agent agent : skel.getRelatedAgents()){
+			if(agent.getInit() != null && agent.getInit().getStatements().size() == 0){
+				List<ASTStatement> initBlock = dirtyInitForChild().getStatements();
+				for(ASTStatement st : initBlock){
+					agent.getInit().getStatements().add(st);
+				}
+			}
+		}
 		
 		//System.out.println( (new ReachProfile(skel)).profileToString(skel) );
 	}

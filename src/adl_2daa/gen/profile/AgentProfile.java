@@ -19,6 +19,7 @@ public class AgentProfile {
 	private int parallelRelationUsage;
 	private int parallelInterEntityRelationUsage;
 	private int nestingRelationUsage;
+	private AgentProperties properties;
 	
 	//Structure info
 	private boolean hasDes;
@@ -68,6 +69,10 @@ public class AgentProfile {
 		return nestingRelationUsage;
 	}
 	
+	public AgentProperties getProperties() {
+		return properties;
+	}
+
 	public void setId(int id) {
 		this.id = id;
 	}
@@ -108,6 +113,10 @@ public class AgentProfile {
 		this.nestingRelationUsage++;
 	}
 	
+	public void setProperties(AgentProperties properties) {
+		this.properties = properties;
+	}
+
 	public void createStructureProfile(Agent agent){
 		this.agentName = agent.getIdentifier();
 		this.hasDes = agent.getDes() != null;

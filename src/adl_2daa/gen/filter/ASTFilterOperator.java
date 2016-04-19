@@ -197,8 +197,8 @@ public class ASTFilterOperator {
 	 * This method try to match using LCSEmbedding + spawnComparator which checks for
 	 * nesting condition. Any state with more than 1 solution will have duplicate 
 	 * ResultState under the same ResultAgent with different containing sequences. 
-	 * The sequences in ResultState are
-	 * - Having their length equals to relation size (sequence count)
+	 * The sequences in ResultState are <br/>
+	 * - Having their length equals to relation size (sequence count) <br/>
 	 * - sequences[i] == null : i-th relation sequence has no matched skel sequence <br/>
 	 * - else : i-th relation sequence is matched to this skel sequence <br/>
 	 * This method DO NOT modify provided agentList but create a new one for the result.

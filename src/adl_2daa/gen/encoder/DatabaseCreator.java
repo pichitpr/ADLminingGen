@@ -15,6 +15,7 @@ import adl_2daa.ast.structure.Root;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.ast.structure.State;
 import adl_2daa.gen.profile.AgentProfile;
+import adl_2daa.gen.profile.AgentProperties;
 import adl_2daa.gen.signature.FileIterator;
 import adl_2daa.tool.Parser;
 import de.parsemis.graph.Graph;
@@ -61,7 +62,11 @@ public class DatabaseCreator {
 				agentProfile.setRootName(rootFile.getName());
 				agentProfile.setComplexAgent(false);
 				agentProfile.setMainAgent(i == 0);
-				agentProfile.createStructureProfile(root.getRelatedAgents().get(i));
+				Agent agent = root.getRelatedAgents().get(i);
+				if(agent.getInit() != null){
+					agentProfile.setProperties(new AgentProperties(agent.getInit()));
+				}
+				agentProfile.createStructureProfile(agent);
 				profile.add(agentProfile);
 			}
 		}
