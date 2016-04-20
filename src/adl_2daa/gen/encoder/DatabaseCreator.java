@@ -14,6 +14,7 @@ import adl_2daa.ast.structure.Agent;
 import adl_2daa.ast.structure.Root;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.ast.structure.State;
+import adl_2daa.gen.generator.ASTUtility;
 import adl_2daa.gen.profile.AgentProfile;
 import adl_2daa.gen.profile.AgentProperties;
 import adl_2daa.gen.signature.FileIterator;
@@ -24,9 +25,18 @@ public class DatabaseCreator {
 
 	private FileIterator it = new FileIterator();
 	private List<AgentProfile> profile = new ArrayList<AgentProfile>();
+	private List<AgentProfile> mainAgentProfile = new ArrayList<AgentProfile>();
 	
 	public AgentProfile getProfile(int agentID){
 		return profile.get(agentID);
+	}
+	
+	public AgentProfile getRandomProfile(){
+		return ASTUtility.randomUniform(profile);
+	}
+	
+	public AgentProfile getRandomMainProfile(){
+		return ASTUtility.randomUniform(mainAgentProfile);
 	}
 	
 	public String createProfileDump(){
@@ -50,6 +60,9 @@ public class DatabaseCreator {
 		}
 		it.trackFiles(dir);
 		
+		profile.clear();
+		mainAgentProfile.clear();
+		
 		File rootFile;
 		Root root;
 		AgentProfile agentProfile;
@@ -68,6 +81,9 @@ public class DatabaseCreator {
 				}
 				agentProfile.createStructureProfile(agent);
 				profile.add(agentProfile);
+				if(agentProfile.isMainAgent()){
+					mainAgentProfile.add(agentProfile);
+				}
 			}
 		}
 		it.reset();
