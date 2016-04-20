@@ -88,6 +88,14 @@ public class AgentProfile {
 	public void setMainAgent(boolean isMainAgent) {
 		this.isMainAgent = isMainAgent;
 	}
+	
+	public void setRelationUsage(int order, int gotoRel, int desRel, int parallel, int interEntity){
+		this.orderRelationUsage = order;
+		this.interStateGotoRelationUsage = gotoRel;
+		this.interStateDespawnRelationUsage = desRel;
+		this.parallelRelationUsage = parallel;
+		this.parallelInterEntityRelationUsage = interEntity;
+	}
 
 	public void addOrderRelationUsage() {
 		this.orderRelationUsage++;

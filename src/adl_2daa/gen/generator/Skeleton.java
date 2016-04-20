@@ -15,6 +15,7 @@ import adl_2daa.ast.structure.Agent;
 import adl_2daa.ast.structure.Root;
 import adl_2daa.ast.structure.Sequence;
 import adl_2daa.ast.structure.State;
+import adl_2daa.gen.Miner;
 import adl_2daa.gen.profile.AgentProfile;
 import adl_2daa.gen.profile.AgentProperties;
 import adl_2daa.gen.signature.GeneratorRegistry;
@@ -46,6 +47,38 @@ public class Skeleton {
 		prop.attacker = true;
 		prop.atk = 1;
 		return prop.toInit();
+	}
+	
+	/**
+	 * Generate a full root from provided miner that passed all mining phase. The result is kept in memory.
+	 */
+	public void fullyGenerate(Miner miner){
+		AgentProfile[] profiles = miner.generateAgentProfile();
+		generateInitialSkeleton(profiles);
+		List<GraphPattern<String,Integer>> interEntityList = miner.getFrequentInterEntityParallel();
+		List<GraphPattern<String,Integer>> parallelList = miner.getFrequentParallel();
+		List<JSPatternGen<String>> gotoList = miner.getFrequentInterStateOrder_Goto();
+		List<JSPatternGen<String>> desList = miner.getFrequentInterStateOrder_Despawn();
+		List<SequentialPatternGen<String>> orderList = miner.getFrequentOrder();
+		
+		for(int i=1; i<=profiles[0].getParallelInterEntityRelationUsage(); i++){
+			mergeInterEntity(ASTUtility.randomUniform(interEntityList), true);
+		}
+		for(int i=1; i<=profiles[0].getParallelRelationUsage(); i++){
+			mergeParallel(ASTUtility.randomUniform(parallelList));
+		}
+		for(int i=1; i<=profiles[0].getInterStateGotoRelationUsage(); i++){
+			mergeInterState(false, ASTUtility.randomUniform(gotoList), true);
+		}
+		for(int i=1; i<=profiles[0].getInterStateDespawnRelationUsage(); i++){
+			mergeInterState(true, ASTUtility.randomUniform(desList), true);
+		}
+		for(int i=1; i<=profiles[0].getOrderRelationUsage(); i++){
+			mergeOrder(ASTUtility.randomUniform(orderList));
+		}
+		mergeNesting(miner.getFrequentNesting());
+		
+		finalizeSkeleton();
 	}
 	
 	/**

@@ -22,6 +22,8 @@ import spmf.extension.prefixspan.JSPatternGen;
 import adl_2daa.gen.encoder.DatabaseCreator;
 import adl_2daa.gen.encoder.EncodeTable;
 import adl_2daa.gen.encoder.NestingLiteralCollector;
+import adl_2daa.gen.generator.ASTUtility;
+import adl_2daa.gen.profile.AgentProfile;
 import adl_2daa.gen.signature.GeneratorRegistry;
 import adl_2daa.gen.testtool.TestUtility;
 import de.parsemis.graph.Edge;
@@ -362,4 +364,46 @@ public class Miner {
 		}
 	}
 	
+	public AgentProfile[] generateAgentProfile(){
+		AgentProfile mainAgent = new AgentProfile();
+		mainAgent.setId(1);
+		mainAgent.setComplexAgent(false);
+		mainAgent.setMainAgent(true);
+		mainAgent.setRootName("Sample");
+		
+		int orderCount = dbCreator.getRandomProfile().getOrderRelationUsage();
+		int interStateCount = dbCreator.getRandomProfile().getInterStateGotoRelationUsage();
+		int interStateDesCount = dbCreator.getRandomProfile().getInterStateDespawnRelationUsage();
+		int parallelCount = dbCreator.getRandomProfile().getParallelRelationUsage();
+		int interEntityCount = dbCreator.getRandomProfile().getParallelInterEntityRelationUsage();
+		boolean hasDes = dbCreator.getRandomProfile().hasDes();
+		
+		int stateCount = dbCreator.getRandomMainProfile().getStructureInfo().length;
+		int[] structureInfo = new int[stateCount];
+		for(int i=0; i<structureInfo.length; i++){
+			if(i == 0){
+				structureInfo[i] = dbCreator.getRandomMainProfile().getStructureInfo()[0];
+			}else{
+				structureInfo[i] = randomNonInitStateCountFromMainProfile();
+			}
+		}
+		
+		mainAgent.setRelationUsage(orderCount, interStateCount, interStateDesCount, parallelCount, interEntityCount);
+		mainAgent.setStructureInfo(hasDes, structureInfo);
+		
+		return new AgentProfile[]{mainAgent};
+	}
+	
+	private int randomNonInitStateCountFromMainProfile(){
+		int randomLimit = 100;
+		while(randomLimit > 0){
+			int[] info = dbCreator.getRandomMainProfile().getStructureInfo();
+			if(info.length > 1){
+				return info[ASTUtility.randomRange(1, info.length-1)];
+			}
+			randomLimit--;
+		}
+		int[] info = dbCreator.getRandomMainProfile().getStructureInfo();
+		return info[ASTUtility.randomRange(0, info.length-1)]; 
+	}
 }
