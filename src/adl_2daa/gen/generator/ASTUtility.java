@@ -31,6 +31,10 @@ public class ASTUtility {
 	
 	private static Random random = new Random(1000);
 	
+	public static void resetRandomizer(){
+		random = new Random();
+	}
+	
 	/**
 	 * Return [start, end]
 	 */
