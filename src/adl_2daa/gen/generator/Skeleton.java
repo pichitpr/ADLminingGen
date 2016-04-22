@@ -52,8 +52,9 @@ public class Skeleton {
 	/**
 	 * Generate a full root from provided miner that passed all mining phase. The result is kept in memory.
 	 */
-	public void fullyGenerate(Miner miner){
+	public void fullyGenerate(Miner miner, String identifier){
 		AgentProfile[] profiles = miner.generateAgentProfile();
+		profiles[0].setRootName(identifier);
 		generateInitialSkeleton(profiles);
 		List<GraphPattern<String,Integer>> interEntityList = miner.getFrequentInterEntityParallel();
 		List<GraphPattern<String,Integer>> parallelList = miner.getFrequentParallel();

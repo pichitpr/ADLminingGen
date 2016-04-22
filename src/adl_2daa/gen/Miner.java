@@ -379,12 +379,18 @@ public class Miner {
 		boolean hasDes = dbCreator.getRandomProfile().hasDes();
 		
 		int stateCount = dbCreator.getRandomMainProfile().getStructureInfo().length;
+		if(stateCount <= 0){
+			stateCount = 1;
+		}
 		int[] structureInfo = new int[stateCount];
 		for(int i=0; i<structureInfo.length; i++){
 			if(i == 0){
 				structureInfo[i] = dbCreator.getRandomMainProfile().getStructureInfo()[0];
 			}else{
 				structureInfo[i] = randomNonInitStateCountFromMainProfile();
+			}
+			if(structureInfo[i] <= 0){
+				structureInfo[i] = 1;
 			}
 		}
 		
