@@ -62,7 +62,7 @@ $RECYCLE.BIN/
 /bin/
 
 /result
-/result_script
+/result_script*
 swap.txt*
 .classpath
 .project
