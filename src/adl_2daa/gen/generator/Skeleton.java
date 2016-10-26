@@ -10,6 +10,8 @@ import parsemis.extension.GraphPattern;
 import spmf.extension.algorithm.seqgen.SequentialPatternGen;
 import spmf.extension.prefixspan.JSPatternGen;
 import adl_2daa.ast.ASTStatement;
+import adl_2daa.ast.expression.IntConstant;
+import adl_2daa.ast.expression.StringConstant;
 import adl_2daa.ast.statement.Action;
 import adl_2daa.ast.structure.Agent;
 import adl_2daa.ast.structure.Root;
@@ -47,6 +49,22 @@ public class Skeleton {
 		prop.attacker = true;
 		prop.atk = 1;
 		return prop.toInit();
+	}
+	
+	public void dirtyMutateInitialHp(int newHp){
+		if(skel.getRelatedAgents().isEmpty()) return;
+		Agent mainAgent = skel.getRelatedAgents().get(0);
+		if(mainAgent.getInit() == null || mainAgent.getInit().getStatements().size() == 0) return;
+		List<ASTStatement> initBlock = mainAgent.getInit().getStatements();
+		for(ASTStatement st : initBlock){
+			if(st instanceof Action){
+				Action action = (Action)st;
+				if(action.getName().equals("Set") && ((StringConstant)action.getParams()[0]).getValue().equals("hp")){
+					action.getParams()[2] = new IntConstant(""+newHp);
+					break;
+				}
+			}
+		}
 	}
 	
 	/**
@@ -95,11 +113,11 @@ public class Skeleton {
 		
 		for(int i=0; i<profiles.length; i++){
 			//List<ASTStatement> init = new LinkedList<ASTStatement>();
-			Sequence init = profiles[0].isMainAgent() ? dirtyInitForMain() : dirtyInitForChild();
+			Sequence init = profiles[i].isMainAgent() ? dirtyInitForMain() : dirtyInitForChild();
 			List<ASTStatement> des = new LinkedList<ASTStatement>();
 			List<State> states = new LinkedList<State>();
-			Agent agent = new Agent("agent"+i, init,//new Sequence("init", init), 
-					new Sequence("des", des), states);
+			Agent agent = new Agent(profiles[i].isMainAgent() ? identifier : identifier+"_sub"+i, 
+					init, new Sequence("des", des), states);
 			
 			assert(profiles[i].getStructureInfo().length > 0);
 			for(int j=0; j<profiles[i].getStructureInfo().length; j++){
