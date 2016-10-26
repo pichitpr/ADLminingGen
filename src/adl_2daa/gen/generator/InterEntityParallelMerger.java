@@ -143,7 +143,7 @@ public class InterEntityParallelMerger {
 			validAgents.removeIf(resultAgent -> 
 				resultAgent.getActualAgent().getIdentifier().equals(mainAgentIdentifier));
 			if(validAgents.isEmpty()){
-				Agent newAgent = ASTUtility.createEmptyAgent("agent"+skel.getRelatedAgents().size());
+				Agent newAgent = ASTUtility.createEmptyAgent(mainAgentIdentifier+"_sub"+skel.getRelatedAgents().size());
 				skel.getRelatedAgents().add(newAgent);
 				validAgents.add(new ResultAgent(newAgent,
 						ASTFilterOperator.filterState(newAgent.getStates(), null, null)
