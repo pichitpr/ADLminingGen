@@ -167,4 +167,14 @@ public class AgentProfile {
 		strb.append("Nesting relation count:").append(nestingRelationUsage).append("\r\n");
 		return strb.toString();
 	}
+	
+	public String toRelationUsageCSV(){
+		StringBuilder strb = new StringBuilder();
+		strb.append("ID:").append(id).append(" ").append(rootName).append(":").append(agentName);
+		strb.append(",");
+		strb.append(orderRelationUsage).append(",").append(interStateGotoRelationUsage).append(",");
+		strb.append(interStateDespawnRelationUsage).append(",").append(parallelRelationUsage).append(",");
+		strb.append(parallelInterEntityRelationUsage).append(",").append(nestingRelationUsage);
+		return strb.toString();
+	}
 }

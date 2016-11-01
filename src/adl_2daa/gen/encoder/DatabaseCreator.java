@@ -47,6 +47,15 @@ public class DatabaseCreator {
 		return strb.toString();
 	}
 	
+	public String createProfileRelationUsageCSVDump(){
+		StringBuilder strb = new StringBuilder();
+		strb.append("name,order,goto,despawn,parallel,interentity,nesting\r\n");
+		for(AgentProfile prof : profile){
+			strb.append(prof.toRelationUsageCSV()).append("\r\n");
+		}
+		return strb.toString();
+	}
+	
 	/**
 	 * This method must be called before performing mining process
 	 * to store all references to dataset. Also create agent profile

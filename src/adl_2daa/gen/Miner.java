@@ -85,6 +85,14 @@ public class Miner {
 		}
 	}
 	
+	public void dumpRelationUsageCSV(File file){
+		try {
+			FileUtils.write(file, dbCreator.createProfileRelationUsageCSVDump());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	/**
 	 * Setup dataset to be mined
 	 */

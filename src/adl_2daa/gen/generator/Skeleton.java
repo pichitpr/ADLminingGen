@@ -1,6 +1,7 @@
 package adl_2daa.gen.generator;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -51,6 +52,22 @@ public class Skeleton {
 		return prop.toInit();
 	}
 	
+	/**
+	 * Change main agent (Skeleton) identifier. Only call this method after the generation finish. This method assumes that
+	 * no agent can spawn the main agent and the main agent must be the first agent in the script. Note that this method does
+	 * not change identifier used as a part of child agent prefix.
+	 */
+	public void dirtyIdentifierChange(String newIdentifier){
+		identifier = newIdentifier;
+		Agent mainAgent = skel.getRelatedAgents().get(0);
+		Agent newMainAgent = new Agent(newIdentifier, mainAgent.getInit(), mainAgent.getDes(), mainAgent.getStates());
+		skel.getRelatedAgents().set(0, newMainAgent);
+	}
+	
+	/**
+	 * Change main agent hp in .init. Only call this method after the generation finish. This method assumes that agent hp
+	 * is set only once in .init using Set()
+	 */
 	public void dirtyMutateInitialHp(int newHp){
 		if(skel.getRelatedAgents().isEmpty()) return;
 		Agent mainAgent = skel.getRelatedAgents().get(0);
@@ -70,9 +87,11 @@ public class Skeleton {
 	/**
 	 * Generate a full root from provided miner that passed all mining phase. The result is kept in memory.
 	 */
-	public void fullyGenerate(Miner miner, String identifier){
+	public GenerationProfile fullyGenerate(Miner miner, String identifier){
+		GenerationProfile genProfile = new GenerationProfile();
 		AgentProfile[] profiles = miner.generateAgentProfile();
 		profiles[0].setRootName(identifier);
+		genProfile.profile = profiles[0];
 		generateInitialSkeleton(profiles);
 		List<GraphPattern<String,Integer>> interEntityList = miner.getFrequentInterEntityParallel();
 		List<GraphPattern<String,Integer>> parallelList = miner.getFrequentParallel();
@@ -81,23 +100,35 @@ public class Skeleton {
 		List<SequentialPatternGen<String>> orderList = miner.getFrequentOrder();
 		
 		for(int i=1; i<=profiles[0].getParallelInterEntityRelationUsage(); i++){
-			mergeInterEntity(ASTUtility.randomUniform(interEntityList), true);
+			GraphPattern<String,Integer> relation = ASTUtility.randomUniform(interEntityList);
+			mergeInterEntity(relation, true);
+			genProfile.interEntityList.add(relation);
 		}
 		for(int i=1; i<=profiles[0].getParallelRelationUsage(); i++){
-			mergeParallel(ASTUtility.randomUniform(parallelList));
+			GraphPattern<String,Integer> relation = ASTUtility.randomUniform(parallelList);
+			mergeParallel(relation);
+			genProfile.parallelList.add(relation);
 		}
 		for(int i=1; i<=profiles[0].getInterStateGotoRelationUsage(); i++){
-			mergeInterState(false, ASTUtility.randomUniform(gotoList), true);
+			JSPatternGen<String> relation = ASTUtility.randomUniform(gotoList);
+			mergeInterState(false, relation, true);
+			genProfile.gotoList.add(relation);
 		}
 		for(int i=1; i<=profiles[0].getInterStateDespawnRelationUsage(); i++){
-			mergeInterState(true, ASTUtility.randomUniform(desList), true);
+			JSPatternGen<String> relation = ASTUtility.randomUniform(desList);
+			mergeInterState(true, relation, true);
+			genProfile.desList.add(relation);
 		}
 		for(int i=1; i<=profiles[0].getOrderRelationUsage(); i++){
-			mergeOrder(ASTUtility.randomUniform(orderList));
+			SequentialPatternGen<String> relation =ASTUtility.randomUniform(orderList); 
+			mergeOrder(relation);
+			genProfile.orderList.add(relation);
 		}
 		mergeNesting(miner.getFrequentNesting());
 		
 		finalizeSkeleton();
+		
+		return genProfile;
 	}
 	
 	/**
@@ -186,6 +217,11 @@ public class Skeleton {
 				if(state.getSequences().size() == 0){
 					agent.getStates().remove(j);
 				}
+				
+			}
+			//Fill empty state back if there is no state left
+			if(agent.getStates().size() == 0){
+				agent.getStates().add(ASTUtility.createEmptyState("seq0"));
 			}
 		}
 		
@@ -205,9 +241,67 @@ public class Skeleton {
 		//System.out.println( (new ReachProfile(skel)).profileToString(skel) );
 	}
 	
-	public void saveAsScript(File dir) throws Exception{
+	public void saveAsScript(File dir) throws IOException{
 		StringBuilder strb = new StringBuilder();
 		skel.toScript(strb, 0);
 		FileUtils.writeStringToFile(new File(dir, identifier+".txt"), strb.toString());
+	}
+	
+	public boolean isEmptySkeleton(){
+		if(skel.getRelatedAgents().size() == 0){
+			return true;
+		}
+		Agent mainAgent = skel.getRelatedAgents().get(0);
+		if(mainAgent.getStates().size() == 0){
+			return true;
+		}
+		//Non empty .des exists, do not care about state
+		if(mainAgent.getDes() != null && mainAgent.getDes().getStatements().size() > 0){
+			return false;
+		}
+		//Otherwise, check for non-empty sequence in initial state
+		for(State st : mainAgent.getStates()){
+			for(Sequence seq : st.getSequences()){
+				if(seq.getStatements().size() > 0){
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	
+	public class GenerationProfile{
+		public AgentProfile profile;
+		public List<GraphPattern<String,Integer>> interEntityList = new LinkedList<GraphPattern<String,Integer>>();
+		public List<GraphPattern<String,Integer>> parallelList = new LinkedList<GraphPattern<String,Integer>>();
+		public List<JSPatternGen<String>> gotoList = new LinkedList<JSPatternGen<String>>();
+		public List<JSPatternGen<String>> desList = new LinkedList<JSPatternGen<String>>();
+		public List<SequentialPatternGen<String>> orderList = new LinkedList<SequentialPatternGen<String>>();
+		
+		public void print(){
+			StringBuilder strb = new StringBuilder(profile.toString());
+			strb.append("\n\n");
+			for(GraphPattern<String,Integer> relation : interEntityList){
+				InterEntityParallelMerger.instance.decodeAndDumpRelation(relation, strb);
+			}
+			strb.append("\n\n");
+			for(GraphPattern<String,Integer> relation : parallelList){
+				ParallelMerger.instance.decodeAndDumpRelation(relation, strb);
+			}
+			strb.append("\n\n");
+			for(JSPatternGen<String> relation : gotoList){
+				InterStateOrderMerger.instance.decodeAndDumpRelation(false, relation, strb);
+			}
+			strb.append("\n\n");
+			for(JSPatternGen<String> relation : desList){
+				InterStateOrderMerger.instance.decodeAndDumpRelation(true, relation, strb);
+			}
+			strb.append("\n\n");
+			for(SequentialPatternGen<String> relation : orderList){
+				OrderMerger.instance.decodeAndDumpRelation(relation, strb);
+			}
+			strb.append("\n");
+			System.out.println(strb.toString());
+		}
 	}
 }
