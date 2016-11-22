@@ -379,12 +379,12 @@ public class Miner {
 		mainAgent.setMainAgent(true);
 		mainAgent.setRootName("Sample");
 		
-		int orderCount = dbCreator.getRandomProfile().getOrderRelationUsage();
-		int interStateCount = dbCreator.getRandomProfile().getInterStateGotoRelationUsage();
-		int interStateDesCount = dbCreator.getRandomProfile().getInterStateDespawnRelationUsage();
-		int parallelCount = dbCreator.getRandomProfile().getParallelRelationUsage();
-		int interEntityCount = dbCreator.getRandomProfile().getParallelInterEntityRelationUsage();
-		boolean hasDes = dbCreator.getRandomProfile().hasDes();
+		int orderCount = dbCreator.getRandomMainProfile().getOrderRelationUsage();
+		int interStateCount = dbCreator.getRandomMainProfile().getInterStateGotoRelationUsage();
+		int interStateDesCount = dbCreator.getRandomMainProfile().getInterStateDespawnRelationUsage();
+		int parallelCount = dbCreator.getRandomMainProfile().getParallelRelationUsage();
+		int interEntityCount = dbCreator.getRandomMainProfile().getParallelInterEntityRelationUsage();
+		boolean hasDes = dbCreator.getRandomMainProfile().hasDes();
 		
 		int stateCount = dbCreator.getRandomMainProfile().getStructureInfo().length;
 		if(stateCount <= 0){
