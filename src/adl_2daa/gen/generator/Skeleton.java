@@ -2,6 +2,8 @@ package adl_2daa.gen.generator;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -10,10 +12,16 @@ import org.apache.commons.io.FileUtils;
 import parsemis.extension.GraphPattern;
 import spmf.extension.algorithm.seqgen.SequentialPatternGen;
 import spmf.extension.prefixspan.JSPatternGen;
+import adl_2daa.ast.ASTExpression;
 import adl_2daa.ast.ASTStatement;
+import adl_2daa.ast.expression.ASTBinary;
+import adl_2daa.ast.expression.ASTUnary;
+import adl_2daa.ast.expression.Function;
 import adl_2daa.ast.expression.IntConstant;
 import adl_2daa.ast.expression.StringConstant;
 import adl_2daa.ast.statement.Action;
+import adl_2daa.ast.statement.Condition;
+import adl_2daa.ast.statement.Loop;
 import adl_2daa.ast.structure.Agent;
 import adl_2daa.ast.structure.Root;
 import adl_2daa.ast.structure.Sequence;
@@ -27,6 +35,12 @@ public class Skeleton {
 
 	private String identifier;
 	private Root skel;
+	
+	public Skeleton(){}
+	public Skeleton(String identifier, Root skel){
+		this.identifier = identifier;
+		this.skel = skel;
+	}
 	
 	private Sequence dirtyInitForMain(){
 		AgentProperties prop = new AgentProperties();
@@ -50,6 +64,10 @@ public class Skeleton {
 		prop.attacker = true;
 		prop.atk = 1;
 		return prop.toInit();
+	}
+	
+	public Root getRoot(){
+		return skel;
 	}
 	
 	/**
@@ -302,6 +320,104 @@ public class Skeleton {
 			}
 			strb.append("\n");
 			System.out.println(strb.toString());
+		}
+	}
+	
+	//===================================
+	// Non-general operation
+	//===================================
+	
+	public void reduceWait(){
+		for(Agent agent : skel.getRelatedAgents()){
+			if(agent.getInit() != null){
+				reduceWait(agent.getInit().getStatements());
+			}
+			if(agent.getDes() != null){
+				reduceWait(agent.getDes().getStatements());
+			}
+			for(State st : agent.getStates()){
+				for(Sequence seq : st.getSequences()){
+					reduceWait(seq.getStatements());
+				}
+			}
+		}
+	}
+	
+	private class SimilarStatementChunk{
+		private Action baseStatement;
+		private int startIndex, endIndex;
+		
+		public SimilarStatementChunk(Action baseStatement, int start){
+			this.baseStatement = baseStatement;
+			startIndex = endIndex = start;
+		}
+		
+		public boolean tryAppend(Action st){
+			if(isSimilarWait(st, baseStatement)){
+				endIndex++;
+				return true;
+			}else{
+				return false;
+			}
+		}
+		
+		public void reduce(List<ASTStatement> targetList){
+			ASTStatement pickedStatement = targetList.get(ASTUtility.randomRange(startIndex, endIndex));
+			for(int i=1; i<=endIndex-startIndex+1; i++){
+				targetList.remove(startIndex);
+			}
+			targetList.add(startIndex, pickedStatement);
+		}
+		
+		private boolean isSimilarWait(Action st1, Action st2){
+			if(!st1.getName().equals(st2.getName()) || !st1.getName().equalsIgnoreCase("Wait")){
+				return false;
+			}
+			String firstFunc1 = getFirstFunctionName(st1.getParams()[0]);
+			String firstFunc2 = getFirstFunctionName(st2.getParams()[0]);
+			if(firstFunc1 == null && firstFunc2 == null)
+				return true;
+			return firstFunc1 != null && firstFunc2 != null && firstFunc1.equals(firstFunc2);
+		}
+		
+		private String getFirstFunctionName(ASTExpression astExp){
+			if(astExp instanceof ASTUnary){
+				return getFirstFunctionName(((ASTUnary)astExp).node);
+			}else if(astExp instanceof ASTBinary){
+				ASTBinary bin = (ASTBinary)astExp;
+				String funcName = getFirstFunctionName(bin.left);
+				return funcName != null ? funcName : getFirstFunctionName(bin.right);
+			}else if(astExp instanceof Function){
+				return ((Function)astExp).getName();
+			}else{
+				return null;
+			}
+		}
+	}
+	
+	private void reduceWait(List<ASTStatement> seqList){
+		List<SimilarStatementChunk> reduceableStatement = new ArrayList<SimilarStatementChunk>();
+		int index = 0;
+		for(ASTStatement st : seqList){
+			if(st instanceof Action){
+				Action action = (Action)st;
+				if(reduceableStatement.size() == 0 || !reduceableStatement.get(reduceableStatement.size()-1).tryAppend(action)){
+					reduceableStatement.add(new SimilarStatementChunk(action, index));
+				}
+			}else if(st instanceof Condition){
+				Condition cond = (Condition)st;
+				reduceWait(((Condition) st).getIfblock());
+				if(cond.getElseblock() != null){
+					reduceWait(cond.getElseblock());
+				}
+			}else if(st instanceof Loop){
+				reduceWait(((Loop)st).getContent());
+			}
+			index++;
+		}
+		Collections.reverse(reduceableStatement);
+		for(SimilarStatementChunk chunk : reduceableStatement){
+			chunk.reduce(seqList);
 		}
 	}
 }
