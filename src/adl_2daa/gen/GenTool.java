@@ -94,16 +94,17 @@ public class GenTool {
 	}
 	
 	/**
-	 * Move all scripts that are static enemy from root/PreSortSkel to root/StaticSkel. Existing files will be overwritten
+	 * Move all scripts that are static enemy from root/PreSortSkel to root/StaticSkel. Existing files will be overwritten.
 	 */
 	public static void sortOutStaticSkel(String tier){
 		initTool();
 		if(tier != null && !tier.isEmpty()){
-			tier = "/"+tier;
+			tier = "/"+capitalize(tier);
 		}
 		FileIterator it = new FileIterator();
 		it.trackFiles(new File("PreSortSkel"+tier));
 		File staticSkelFolder = new File("StaticSkel"+tier);
+		staticSkelFolder.mkdirs();
 		while(it.hasNext()){
 			File rootFile = it.next();
 			Root root = loadScriptAsAST(rootFile);
@@ -125,9 +126,15 @@ public class GenTool {
 	 */
 	public static void improveStaticSkel(boolean saveMultipleSkel, String tier){
 		initTool();
+		if(!(new File("improve_static_script")).exists()){
+			(new File("improve_static_script/Enemy")).mkdirs();
+			(new File("improve_static_script/Elite")).mkdirs();
+			(new File("improve_static_script/Miniboss")).mkdirs();
+			(new File("improve_static_script/Boss")).mkdirs();
+		}
 		String tierSubdir = "";
 		if(tier != null && !tier.isEmpty()){
-			tierSubdir = "/"+tier;
+			tierSubdir = "/"+capitalize(tier);
 		}
 		Miner miner = setupMinerAndResult();
 		PostGenProcessor.filterOutStaticRelation(miner);
@@ -164,9 +171,15 @@ public class GenTool {
 	 */
 	public static void improveWaitDelay(float multiplier, boolean saveMultipleSkel, String tier){
 		initTool();
+		if(!(new File("improve_wait_script")).exists()){
+			(new File("improve_wait_script/Enemy")).mkdirs();
+			(new File("improve_wait_script/Elite")).mkdirs();
+			(new File("improve_wait_script/Miniboss")).mkdirs();
+			(new File("improve_wait_script/Boss")).mkdirs();
+		}
 		String tierSubdir = "";
 		if(tier != null && !tier.isEmpty()){
-			tierSubdir = "/"+tier;
+			tierSubdir = "/"+capitalize(tier);
 		}
 		FileIterator it = new FileIterator();
 		it.trackFiles(new File("HighSpawnSkel"+tierSubdir));
@@ -196,8 +209,12 @@ public class GenTool {
 		}
 	}
 	
+	private static String capitalize(String str){
+		return Character.toUpperCase(str.charAt(0)) + str.substring(1);
+	}
+	
 	private static void saveSingleSkel(Skeleton skel, String dir, String id, String tier) throws IOException{
-		String subdirName = Character.toUpperCase(tier.charAt(0)) + tier.substring(1);
+		String subdirName = capitalize(tier);
 		int hp = 2;
 		if(tier.equalsIgnoreCase("elite")){
 			hp = 8;
