@@ -191,7 +191,11 @@ public class PostGenProcessor {
 		if(!(cmp.left instanceof Function) || !((Function)cmp.left).getName().equals("TimePass") || 
 				!(cmp.right instanceof IntConstant))
 			return;
-		cmp.right = new IntConstant(""+ (int)( ((IntConstant)cmp.right).getValue()*multiplier) );
+		int newDelay = (int)( ((IntConstant)cmp.right).getValue()*multiplier);
+		if(newDelay <= 0){
+			newDelay = 1;
+		}
+		cmp.right = new IntConstant(""+ newDelay );
 	}
 	
 	private static boolean findImprovementRequiredWait(List<ASTStatement> seq, boolean hasPrecedingSpawn, 
