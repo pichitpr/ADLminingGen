@@ -2,6 +2,7 @@ package adl_2daa.gen.generator;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -262,7 +263,7 @@ public class Skeleton {
 	public void saveAsScript(File dir) throws IOException{
 		StringBuilder strb = new StringBuilder();
 		skel.toScript(strb, 0);
-		FileUtils.writeStringToFile(new File(dir, identifier+".txt"), strb.toString());
+		FileUtils.writeStringToFile(new File(dir, identifier+".txt"), strb.toString(), StandardCharsets.US_ASCII);
 	}
 	
 	public boolean isEmptySkeleton(){
@@ -343,6 +344,21 @@ public class Skeleton {
 		}
 	}
 	
+	public void removePhasing(){
+		Agent mainAgent = skel.getRelatedAgents().get(0);
+		if(mainAgent.getInit() != null){
+			removePhasing(mainAgent.getInit().getStatements());
+		}
+		if(mainAgent.getDes() != null){
+			removePhasing(mainAgent.getDes().getStatements());
+		}
+		for(State st : mainAgent.getStates()){
+			for(Sequence seq : st.getSequences()){
+				removePhasing(seq.getStatements());
+			}
+		}
+	}
+	
 	private class SimilarStatementChunk{
 		private Action baseStatement;
 		private int startIndex, endIndex;
@@ -419,5 +435,38 @@ public class Skeleton {
 		for(SimilarStatementChunk chunk : reduceableStatement){
 			chunk.reduce(seqList);
 		}
+	}
+	
+	private void removePhasing(List<ASTStatement> seqList){
+		List<Integer> flaggedForRemoval = new ArrayList<Integer>();
+		int index = 0;
+		for(ASTStatement st : seqList){
+			if(st instanceof Action){
+				Action action = (Action)st;
+				if(isSetPhasing(action)){
+					flaggedForRemoval.add(index);
+				}
+			}else if(st instanceof Condition){
+				Condition cond = (Condition)st;
+				removePhasing(((Condition) st).getIfblock());
+				if(cond.getElseblock() != null){
+					removePhasing(cond.getElseblock());
+				}
+			}else if(st instanceof Loop){
+				removePhasing(((Loop)st).getContent());
+			}
+			index++;
+		}
+		Collections.reverse(flaggedForRemoval);
+		for(int i : flaggedForRemoval){
+			seqList.remove(i);
+		}
+	}
+	
+	private boolean isSetPhasing(Action action){
+		if(action.getName().equals("Set")){
+			return ((StringConstant)action.getParams()[0]).getValue().equals("phasing");
+		}
+		return false;
 	}
 }
