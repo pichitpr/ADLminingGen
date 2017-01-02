@@ -163,6 +163,7 @@ public class PostGenProcessor {
 		skel.mergeNesting(filteredMiner.getFrequentNesting());
 		skel.finalizeSkeleton();
 		skel.reduceWait();
+		skel.removePhasing();
 	}
 	
 	/*

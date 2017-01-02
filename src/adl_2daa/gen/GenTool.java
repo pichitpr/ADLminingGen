@@ -72,6 +72,7 @@ public class GenTool {
 					emptySkel = true;
 				}else{
 					skel.reduceWait();
+					skel.removePhasing();
 				}
 				String filename = ""+agentCounter;
 				if(emptySkel){
