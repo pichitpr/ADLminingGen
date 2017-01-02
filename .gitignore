@@ -69,5 +69,5 @@ swap.txt*
 _Sandbox*.java
 src/adl_2daa/gen/Main.java
 ProfileDump.txt
-/eval_log*
+*_log*
 /Veil
