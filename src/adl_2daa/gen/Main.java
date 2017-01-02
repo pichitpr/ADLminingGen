@@ -12,11 +12,46 @@ public class Main {
 
 	public static void main(String[] args){
 		//runMinerTest();
-		
+		/*
 		TestInitializer.init();
 		Miner gen = new Miner();
 		gen.initialize("data");
 		gen.mineInterEntityParallelSequence(0.02, false);
+		*/
+		//GenTool.generate(170, 1);
+		/*
+		GenTool.sortOutStaticSkel("enemy");
+		GenTool.sortOutStaticSkel("elite");
+		GenTool.sortOutStaticSkel("miniboss");
+		GenTool.sortOutStaticSkel("boss");
+		*/
+		/*
+		GenTool.improveStaticSkel(false, "enemy");
+		GenTool.improveStaticSkel(false, "elite");
+		GenTool.improveStaticSkel(false, "miniboss");
+		GenTool.improveStaticSkel(false, "boss");
+		*/
+		ImproveFlow.start();
+		/*
+		String[] tiers = new String[]{"Enemy","Elite","Miniboss","Boss"};
+		for(String tier : tiers){
+			FileIterator it = new FileIterator();
+			it.trackFiles(new File("result_script/"+tier));
+			while(it.hasNext()){
+				File rootFile = it.next();
+				Root root = GenTool.loadScriptAsAST(rootFile);
+				String id = rootFile.getName().replaceAll("\\D+","");
+				Skeleton skel = new Skeleton("Agent"+id, root);
+				skel.removePhasing();
+				try {
+					GenTool.saveSingleSkel(skel, "result_script_", id, tier.toLowerCase());
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		*/
 	}
 	
 	public static void runMinerTest(){
