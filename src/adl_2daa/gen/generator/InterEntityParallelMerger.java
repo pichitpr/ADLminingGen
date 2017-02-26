@@ -224,7 +224,7 @@ public class InterEntityParallelMerger {
 		
 		/*
 		 * Phase 1:
-		 * Filter for highest EOB-T fit. Matched Spawn() pairs are excluded from testing
+		 * Filter for highest EOB-T fit (Only test for EOS-T). Matched Spawn() pairs are excluded from testing
 		 * sequence and relation before filtering. Therefore, each test will have different
 		 * sequence and EOB-T list requiring special handle. Note that "no solution" case
 		 * is acceptable since the filtering process also specify relation type for each
@@ -238,10 +238,10 @@ public class InterEntityParallelMerger {
 		 * - sequence[sequence.length-1] (we'll call this lastSequence) is for additional info
 		 * - Info and meaning
 		 * - sequence[i] != null (== Sequence) , lastSequence[i] != null
-		 * 		Transition fitted for EOB-T of relation[i] --> sequence[i] 
+		 * 		Spawn() matched between sequence[i] and relation[i] 
 		 * 		{SPAWN_MATCH}
 		 * - sequence[i] != null (== Sequence) , lastSequence[i] == null
-		 * 		Spawn() matched between sequence[i] and relation[i] 
+		 * 		Transition fitted for EOB-T of relation[i] --> sequence[i]
 		 * 		{EOBT_FIT}
 		 * - sequence[i] == null , lastSequence[i] != null
 		 * 		EOB-T exist in relation[i] BUT CANNOT FIT in any non-Spawn() matched sequence
