@@ -18,16 +18,16 @@ public class TestInitializer {
 				new ActionMainSignature());
 		GeneratorRegistry.registerActionSignature("FlipDirection",
 				new ActionMainSignature(Datatype.DIRECTION));
-		GeneratorRegistry.registerActionSignature("FloorStun",
-				new ActionMainSignature(Datatype.INT));
+		/*GeneratorRegistry.registerActionSignature("FloorStun",
+				new ActionMainSignature(Datatype.INT));*/
 		GeneratorRegistry.registerActionSignature("Goto",
 				new ActionMainSignature(Datatype.IDENTIFIER));
 		GeneratorRegistry.registerActionSignature("Jump",
 				new ActionMainSignature(Datatype.POSITION, Datatype.DECIMAL, Datatype.INT, Datatype.BOOL));
 		GeneratorRegistry.registerActionSignature("Notify",
 				new ActionMainSignature(Datatype.DYNAMIC, Datatype.INT));
-		GeneratorRegistry.registerActionSignature("RunCircling", 
-				new ActionMainSignature(Datatype.POSITION, Datatype.DECIMAL, Datatype.DECIMAL, Datatype.INT));
+		/*GeneratorRegistry.registerActionSignature("RunCircling", 
+				new ActionMainSignature(Datatype.POSITION, Datatype.DECIMAL, Datatype.DECIMAL, Datatype.INT));*/
 		GeneratorRegistry.registerActionSignature("RunHarmonic", 
 				new ActionMainSignature(Datatype.DIRECTION, Datatype.DECIMAL, Datatype.BOOL));
 		GeneratorRegistry.registerActionSignature("RunStraight", 
@@ -159,8 +159,8 @@ public class TestInitializer {
 		get.addChoiceSignature("invul", new Signature(Datatype.BOOL, Datatype.DYNAMIC));
 		get.addChoiceSignature("projectile", new Signature(Datatype.BOOL, Datatype.DYNAMIC));
 		get.addChoiceSignature("phasing", new Signature(Datatype.BOOL, Datatype.DYNAMIC));
-		get.addChoiceSignature("parent", new Signature(Datatype.DYNAMIC, Datatype.DYNAMIC));
-		get.addChoiceSignature("children", new Signature(Datatype.DYNAMIC_SET, Datatype.DYNAMIC));
+		//get.addChoiceSignature("parent", new Signature(Datatype.DYNAMIC, Datatype.DYNAMIC));
+		//get.addChoiceSignature("children", new Signature(Datatype.DYNAMIC_SET, Datatype.DYNAMIC));
 		get.addChoiceSignature("hp", new Signature(Datatype.INT, Datatype.DYNAMIC));
 		GeneratorRegistry.registerFunctionSignature("Get", get);
 		
@@ -174,8 +174,16 @@ public class TestInitializer {
 		GeneratorRegistry.registerFunctionSignature("Perpendicular", 
 				new FunctionMainSignature(Datatype.DIRECTION,
 						Datatype.DIRECTION));
-		GeneratorRegistry.registerFunctionSignature("Random", 
-				new FunctionMainSignature(Datatype.ABSTRACT, Datatype.ABSTRACT_SET));
+		
+		//Use this for normal generation (comment out below section)
+		/*GeneratorRegistry.registerFunctionSignature("Random", 
+				new FunctionMainSignature(Datatype.ABSTRACT, Datatype.ABSTRACT_SET));*/
+		//Use this for random generation (comment out above section)
+		GeneratorRegistry.registerFunctionSignature("_Random_decimal", 
+				new FunctionMainSignature(Datatype.DECIMAL, Datatype.DECIMAL_SET));
+		GeneratorRegistry.registerFunctionSignature("_Random_direction", 
+				new FunctionMainSignature(Datatype.DIRECTION, Datatype.DIRECTION_SET));
+		
 		GeneratorRegistry.registerFunctionSignature("RandomPositionInRadius", 
 				new FunctionMainSignature(Datatype.POSITION, 
 						Datatype.POSITION, Datatype.DECIMAL));

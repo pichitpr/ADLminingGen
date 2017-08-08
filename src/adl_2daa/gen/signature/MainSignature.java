@@ -2,6 +2,8 @@ package adl_2daa.gen.signature;
 
 import java.util.HashMap;
 
+import adl_2daa.gen.generator.ASTUtility;
+
 public abstract class MainSignature {
 	
 	protected String funcname = "";
@@ -61,5 +63,11 @@ public abstract class MainSignature {
 			return mainSignature;
 		}
 		return sig;
+	}
+	
+	public Signature getRandomChoiceSignature(){
+		if(!hasChoice())
+			return null;
+		return ASTUtility.randomUniform(choiceSigMap.values());
 	}
 }

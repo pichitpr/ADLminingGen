@@ -1,5 +1,11 @@
 package adl_2daa.gen.profile;
 
+import java.util.List;
+
+import adl_2daa.ast.ASTStatement;
+import adl_2daa.ast.statement.Action;
+import adl_2daa.ast.statement.Condition;
+import adl_2daa.ast.statement.Loop;
 import adl_2daa.ast.structure.Agent;
 import adl_2daa.ast.structure.State;
 
@@ -24,6 +30,10 @@ public class AgentProfile {
 	//Structure info
 	private boolean hasDes;
 	private int[] structureInfo; //structureInfo[i] = #sequence of i-th state 
+	
+	//Additional info
+	private int[] desActionUsageInfo; //[k] k: 0=action, 1=cond, 2=loop
+	private int[][][] actionUsageInfo; //actionUsageInfo[i-th state][j-th seq][k] k: 0=action, 1=cond, 2=loop
 	
 	public int getId() {
 		return id;
@@ -128,10 +138,46 @@ public class AgentProfile {
 	public void createStructureProfile(Agent agent){
 		this.agentName = agent.getIdentifier();
 		this.hasDes = agent.getDes() != null;
+		if(this.hasDes){
+			desActionUsageInfo = countAction(agent.getDes().getStatements());
+		}else{
+			desActionUsageInfo = new int[]{0,0,0};
+		}
 		this.structureInfo = new int[agent.getStates().size()];
+		this.actionUsageInfo = new int[agent.getStates().size()][][];
 		for(int i=0; i<agent.getStates().size(); i++){
 			State state = agent.getStates().get(i);
 			this.structureInfo[i] = state.getSequences().size();
+			this.actionUsageInfo[i] = new int[state.getSequences().size()][];
+			for(int j=0; j<state.getSequences().size(); j++){
+				this.actionUsageInfo[i][j] = countAction(state.getSequences().get(j).getStatements());
+			}
+		}
+	}
+	
+	private int[] countAction(List<ASTStatement> seq){
+		int[] counter = new int[3];
+		for(ASTStatement st : seq){
+			if(st instanceof Action){
+				counter[0]++;
+			}else if(st instanceof Condition){
+				Condition cond = (Condition)st;
+				counter[1]++;
+				tupleAdd(counter, countAction(cond.getIfblock()));
+				if(cond.getElseblock() != null){
+					tupleAdd(counter, countAction(cond.getElseblock()));
+				}
+			}else{
+				counter[2]++;
+				tupleAdd(counter, countAction(((Loop)st).getContent()));
+			}
+		}
+		return counter;
+	}
+	
+	private void tupleAdd(int[] a, int[] b){
+		for(int i=0; i<a.length; i++){
+			a[i] += b[i];
 		}
 	}
 	
@@ -146,6 +192,22 @@ public class AgentProfile {
 
 	public int[] getStructureInfo() {
 		return structureInfo;
+	}
+	
+	public int[] getDesActionUsage(){
+		return desActionUsageInfo;
+	}
+	
+	public void setDesActionUsage(int[] value){
+		desActionUsageInfo = value;
+	}
+	
+	public int[][][] getActionUsageInfo(){
+		return actionUsageInfo;
+	}
+	
+	public void setActionUsageInfo(int[][][] value){
+		actionUsageInfo = value;
 	}
 	
 	@Override

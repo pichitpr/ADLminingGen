@@ -30,7 +30,9 @@ import adl_2daa.ast.structure.State;
 import adl_2daa.gen.Miner;
 import adl_2daa.gen.profile.AgentProfile;
 import adl_2daa.gen.profile.AgentProperties;
+import adl_2daa.gen.signature.Datatype;
 import adl_2daa.gen.signature.GeneratorRegistry;
+import adl_2daa.gen.signature.Signature;
 
 public class Skeleton {
 
@@ -258,6 +260,129 @@ public class Skeleton {
 		}
 		
 		//System.out.println( (new ReachProfile(skel)).profileToString(skel) );
+	}
+	
+	public void randomlyGenerate(AgentProfile[] profile){
+		generateInitialSkeleton(profile);
+		for(int agentIdx=0; agentIdx<profile.length; agentIdx++){
+			Agent agent = skel.getRelatedAgents().get(agentIdx);
+			AgentProfile agentProfile = profile[agentIdx];
+			for(int stateIdx=0; stateIdx<agentProfile.getStructureInfo().length; stateIdx++){
+				State state = agent.getStates().get(stateIdx);
+				int seqCount = agentProfile.getStructureInfo()[stateIdx];
+				for(int seqIdx=0; seqIdx<seqCount; seqIdx++){
+					Sequence seq = state.getSequences().get(seqIdx);
+					//Fill up sequence
+					randomlyFillSequence(seq.getStatements(), agentProfile.getActionUsageInfo()[stateIdx][seqIdx]);
+					//Remove all loop blocks without spanned action
+					trimLoopWithoutBreakpoint(seq.getStatements());
+				}
+			}
+			
+			if(agentProfile.getDesActionUsage() != null){
+				//Fill up .des
+				randomlyFillSequence(agent.getDes().getStatements(), agentProfile.getDesActionUsage());
+				trimLoopWithoutBreakpoint(agent.getDes().getStatements());
+			}
+		}
+	}
+	
+	private void randomlyFillSequence(List<ASTStatement> seq, int[] statementUsageCount){
+		int actionCount = statementUsageCount[0];
+		int condCount = statementUsageCount[1];
+		int loopCount = statementUsageCount[2];
+		List<Integer> fillingType = new ArrayList<Integer>();
+		for(int i=1; i<=actionCount; i++){
+			fillingType.add(0);
+		}
+		for(int i=1; i<=condCount; i++){
+			fillingType.add(1);
+		}
+		for(int i=1; i<=loopCount; i++){
+			fillingType.add(2);
+		}
+		Collections.shuffle(fillingType);
+		for(Integer type : fillingType){
+			switch(type){
+			case 0: //Action
+				Signature sig = GeneratorRegistry.getRandomActionSignature();
+				String actionName = GeneratorRegistry.getActionName(sig.getId());
+				List<ASTExpression> paramList = new LinkedList<ASTExpression>();
+				int choiceSymbolIndex = actionName.indexOf('#');
+				if(choiceSymbolIndex > -1){
+					String choice = actionName.substring(choiceSymbolIndex+1);
+					actionName = actionName.substring(0, choiceSymbolIndex);
+					paramList.add(new StringConstant(choice));
+				}
+				for(Datatype expectingType : sig.getParamType()){
+					paramList.add(new ExpressionSkeleton(expectingType));
+				}
+				randomlyFillStatement(seq, new Action(actionName, paramList));
+				break;
+			case 1: //Condition
+				Condition cond = new Condition(new ExpressionSkeleton(Datatype.BOOL), new LinkedList<ASTStatement>(),
+						ASTUtility.randomBool() ? null : new LinkedList<ASTStatement>()
+						);
+				randomlyFillStatement(seq, cond);
+				break;
+			case 2: //Loop
+				Loop loop = new Loop(new ExpressionSkeleton(Datatype.INT), new LinkedList<ASTStatement>());
+				randomlyFillStatement(seq, loop);
+				break;
+			}
+		}
+		NestingRandomMerger.instance.merge(skel, 4);
+	}
+	
+	private void randomlyFillStatement(List<ASTStatement> seq, ASTStatement statement){
+		ASTSequenceWrapper wrapper = new ASTSequenceWrapper(seq);
+		wrapper.queueInsertion(ASTUtility.randomRange(0, wrapper.getSlotCount()-1), statement);
+		wrapper.finalizeWrapper();
+	}
+	
+	private static String[] spannedAction = new String[]{"AddExtraVelocityToPlayer",
+		"ChangeDirectionToPlayerByStep",
+		"Despawn",
+		"FloorStun",
+		"Goto",
+		"Jump",
+		"RunCircling",
+		"RunHarmonic",
+		"RunStraight",
+		"RunTo",
+		"Wait"
+		};
+	
+	private boolean trimLoopWithoutBreakpoint(List<ASTStatement> seq){
+		boolean hasBreakpoint = false;
+		List<Integer> loopIndex = new ArrayList<Integer>();
+		for(int i=seq.size()-1; i>=0; i--){
+			ASTStatement st = seq.get(i);
+			if(st instanceof Condition){
+				//Do not take condition into account since it may not be executed
+				Condition cond = (Condition)st;
+				trimLoopWithoutBreakpoint(cond.getIfblock());
+				if(cond.getElseblock() != null){
+					trimLoopWithoutBreakpoint(cond.getElseblock());
+				}
+			}else if(st instanceof Loop){
+				Loop loop = (Loop)st;
+				if(!trimLoopWithoutBreakpoint(loop.getContent())){
+					loopIndex.add(i);
+				}
+			}else if(st instanceof Action){
+				for(String actionName : spannedAction){
+					if(((Action)st).getName().equals(actionName)){
+						hasBreakpoint = true;
+						break;
+					}
+				}
+			}
+		}
+		for(int i : loopIndex){
+			seq.remove(i);
+		}
+		return hasBreakpoint;
 	}
 	
 	public void saveAsScript(File dir) throws IOException{

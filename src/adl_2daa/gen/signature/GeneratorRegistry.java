@@ -1,7 +1,11 @@
 package adl_2daa.gen.signature;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
+
+import adl_2daa.gen.generator.ASTUtility;
 
 public class GeneratorRegistry {
 
@@ -37,6 +41,18 @@ public class GeneratorRegistry {
 		ActionMainSignature sig = actionSignatureMap.get(funcCode);
 		if(sig == null){
 			System.out.println("Action not found : "+funcCode);
+		}
+		return sig;
+	}
+	
+	public static Signature getRandomActionSignature(){		
+		ActionMainSignature mainSig = ASTUtility.randomUniform(actionSignatureMap.values());
+		while(mainSig.funcname.equals("@dummy") || mainSig.funcname.equals("@Spawn")){
+			mainSig = ASTUtility.randomUniform(actionSignatureMap.values());
+		}
+		Signature sig = mainSig.getMainSignature();
+		if(mainSig.hasChoice()){
+			sig = mainSig.getRandomChoiceSignature();
 		}
 		return sig;
 	}
@@ -83,6 +99,27 @@ public class GeneratorRegistry {
 			System.out.println("Function not found : "+funcCode);
 		}
 		return sig;
+	}
+	
+	public static Signature getRandomFunctionSignature(Datatype desiredReturnType){
+		List<Signature> result = new LinkedList<Signature>();
+		for(FunctionMainSignature mainSig : functionSignatureMap.values()){
+			if(mainSig.hasChoice()){
+				for(Signature choiceSig : mainSig.choiceSigMap.values()){
+					if(choiceSig.returnType == desiredReturnType){
+						result.add(choiceSig);
+					}
+				}
+			}else{
+				if(mainSig.getMainSignature().returnType == desiredReturnType){
+					result.add(mainSig.getMainSignature());
+				}
+			}
+		}
+		if(result.size() == 0)
+			return null;
+		else
+			return ASTUtility.randomUniform(result);
 	}
 	
 	/**
