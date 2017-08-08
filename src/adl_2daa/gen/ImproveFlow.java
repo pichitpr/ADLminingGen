@@ -13,9 +13,9 @@ public class ImproveFlow {
 	public static void start(){
 		ImproveFlow flow = new ImproveFlow();
 		try {
-			//flow.step0_firstEvaluation();
-			//flow.step1_staticSortOut();
-			//flow.step2_improveStatic();
+			flow.step0_firstEvaluation();
+			flow.step1_staticSortOut();
+			flow.step2_improveStatic();
 			flow.step3_improveStaticWait(1,5);
 			flow.step4_improveWait(1,5);
 			flow.saveCSVReport(new File("improvement_result.csv"));
