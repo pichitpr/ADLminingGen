@@ -57,6 +57,47 @@ public class DatabaseCreator {
 	}
 	
 	/**
+	 * Create agent profile from dataset and return it. Agents from different scripts are saved in different list item
+	 */
+	public List<AgentProfile[]> getAllAgentProfile(String directory){
+		File dir = new File(directory);
+		if(!dir.isDirectory()){
+			System.out.println("Specified directory is not directory");
+			return null;
+		}
+		it.trackFiles(dir);
+		
+		List<AgentProfile[]> profiles = new LinkedList<AgentProfile[]>();
+		
+		File rootFile;
+		Root root;
+		AgentProfile agentProfile;
+		int idCounter = 0;
+		while(it.hasNext()){
+			rootFile = it.next();
+			root = loadScriptAsAST(rootFile);
+			AgentProfile[] profileArray = new AgentProfile[root.getRelatedAgents().size()];
+			for(int i=0; i<root.getRelatedAgents().size(); i++){
+				agentProfile = new AgentProfile();
+				agentProfile.setId(idCounter);
+				agentProfile.setRootName(rootFile.getName());
+				agentProfile.setComplexAgent(false);
+				agentProfile.setMainAgent(i == 0);
+				Agent agent = root.getRelatedAgents().get(i);
+				if(agent.getInit() != null){
+					agentProfile.setProperties(new AgentProperties(agent.getInit()));
+				}
+				agentProfile.createStructureProfile(agent);
+				profileArray[i] = agentProfile;
+				idCounter++;
+			}
+			profiles.add(profileArray);
+		}
+		it.reset();
+		return profiles;
+	}
+	
+	/**
 	 * This method must be called before performing mining process
 	 * to store all references to dataset. Also create agent profile
 	 * for information retrieving
