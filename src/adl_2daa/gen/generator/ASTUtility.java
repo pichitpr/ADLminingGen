@@ -34,13 +34,31 @@ public class ASTUtility {
 	public static void resetRandomizer(){
 		random = new Random();
 	}
-	
+
 	/**
 	 * Return [start, end]
 	 */
 	public static int randomRange(int start, int end){
-		return start+random.nextInt(end-start+1);
+		//return start+random.nextInt(end-start+1);
 		//return start+(new Random()).nextInt(end-start+1);
+		return (int) ((random.nextLong() & Long.MAX_VALUE) % (1L + end - start)) + start;
+	}
+	
+	public static boolean randomBool(){
+		return randomRange(0,1) == 0;
+	}
+	
+	public static float randomFloat(boolean posOnly){
+		if(posOnly){
+			return random.nextFloat() * Float.MAX_VALUE;
+		}else{
+			float sgn = randomBool() ? -1 : 1;
+			return random.nextFloat() * Float.MAX_VALUE * sgn;
+		}
+	}
+	
+	public static float randomFloatFromZero(float bound){
+		return random.nextFloat() * bound; 
 	}
 	
 	/**
